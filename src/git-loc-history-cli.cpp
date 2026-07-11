@@ -7,8 +7,8 @@ MIT/Expat License. See LICENSE or this project's source
 for more information.
 Project Source: https://github.com/liam-ralph/git-loc-history
 
-Git LoC History - An application for view a git repo's history
-in lines of code.
+Git LoC History - An application for view a git repo's lines of
+code across its history.
 */
 
 
@@ -28,22 +28,32 @@ using namespace std;
 
 // Functions
 
-void print_usage() {
-    cout <<
-        "Usage: git-loc-history-cli <git_repo_path>\n"
-        "    [-x, --exclude <pattern>] [-X, --exclude-from <file>] [-v] [-h]\n"
-        "More information can be found using --help."
-    << endl;
-}
-
-void print_help() {}
-
 
 // Main Function
 
 int main(int argc, char *argv[]) {
 
     // Parse Args
+
+    auto print_usage = []() {
+        cout <<
+            "Usage: git-loc-history-cli <git_repo_path>\n"
+            "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-v] [-h]\n"
+            "More information can be found using --help."
+        << endl;
+    };
+
+    auto print_help = []() {
+        cout <<
+            "Usage: git-loc-history-cli <git_repo_path>\n"
+            "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-v] [-h]\n\n"
+            "Display a git repo's lines of code across its history.\n\n"
+            "\t-x, --exclude=<path>       Exclude <path> from results\n"
+            "\t-X, --exclude-from=<file>  Exclude all paths in <file> from results\n"
+            "\t-v, --version              Print version and exit\n"
+            "\t-h, --help                 Display this help and exit\n"
+        << endl;
+    };
 
     if (argc < 2) {
         cout << "Missing required argument <git_repo_path>." << endl;
