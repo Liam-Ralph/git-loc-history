@@ -14,6 +14,7 @@ in lines of code.
 
 // Includes
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     // Parse Args
 
-    if (argc == 0) {
+    if (argc < 2) {
         cout << "Missing required argument <git_repo_path>." << endl;
         print_usage();
         return 1;
@@ -55,7 +56,7 @@ int main(int argc, char *argv[]) {
     char last_flag = 'N';
     // N: None
 
-    for (int i = 0; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
 
         string arg = argv[i];
         int arg_len = arg.length();
@@ -107,14 +108,18 @@ int main(int argc, char *argv[]) {
                     return 0;
                 }
 
-                if (arg_len != 2) {
+                if (arg_len > 2) {
+                    // Multiple flags at once (e.g. -xX) are invalid as x and X require an argument
                     cout << "Invalid flags." << endl;
                     print_usage();
                     return 1;
                 }
 
-                switch (arg[2]) {
-                    case 'x' || 'X':
+                switch (arg[1]) {
+                    case 'x':
+                        last_flag = arg[1];
+                        break;
+                    case 'X':
                         last_flag = arg[1];
                         break;
                     case 'v':
@@ -125,6 +130,8 @@ int main(int argc, char *argv[]) {
                         return 0;
                     default:
                         cout << "Unknown flag " << arg[1] << "." << endl;
+                        print_usage();
+                        return 1;
                 }
 
             }
@@ -140,12 +147,31 @@ int main(int argc, char *argv[]) {
                     excluded_paths.push_back(arg);
                     break;
                 case 'X':
-                    // read file
+                    ifstream file(arg);
+                    if (!file.is_open()) {
+                        cout << "Error opening file " << arg << "." << endl;
+                        return 1;
+                    }
+                    string line;
+                    while (getline(file, line)) {
+                        excluded_paths.push_back(line);
+                    }
+                    file.close();
                     break;
             }
             last_flag = 'N';
 
         }
+    }
+
+    if (git_repo_path.empty()) {
+        cout << "Missing required argument <git_repo_path>." << endl;
+        return 1;
+    }
+
+    cout << "Path: " << git_repo_path << endl;
+    for (int i = 0; i < excluded_paths.size(); i++) {
+        cout << excluded_paths[i] << endl;
     }
 
     return 0;
