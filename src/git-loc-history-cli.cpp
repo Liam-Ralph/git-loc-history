@@ -15,6 +15,8 @@ in lines of code.
 // Includes
 
 #include <iostream>
+#include <string>
+#include <vector>
 using namespace std;
 
 // Functions
@@ -22,7 +24,51 @@ using namespace std;
 
 // Main Function
 
-int main() {
-    cout << "Hello World 1";
+int main(int argc, char *argv[]) {
+
+    // Parse Args
+
+    class Flag {
+        public:
+            char flag;
+            bool takesArg;
+            string arg;
+            int execute_flag() {
+
+            }
+    };
+
+    if (argc == 0) {
+        cout << "Missing required argument <git_repo_path>:"
+            "A path (local or url) of the git repo to use." << endl;
+        return 1;
+    }
+
+    string path;
+    vector<Flag> flags;
+
+    for (int i = 0; i < argc; i++) {
+
+        string arg = argv[i];
+
+        if (arg[0] == '-') {
+
+            char flag;
+            if (arg[1] == '-') {
+
+            } else {
+
+            }
+
+        } else {
+
+            if (flags.size() == 0 || !flags.back().takesArg) {
+
+            }
+
+        }
+    }
+
     return 0;
+
 }
