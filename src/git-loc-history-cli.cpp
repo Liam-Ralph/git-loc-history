@@ -14,6 +14,7 @@ code across its history.
 
 // Includes
 
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -27,6 +28,49 @@ using namespace std;
 // Definitions
 
 #define README_PATH "../README.md" // "/usr/share/doc/git-loc-history/README.md"
+
+
+// Classes
+
+class Language {
+
+    public:
+        
+        string name;
+        string ext;
+        string short_comment;
+        array<string, 2> long_comment;
+
+        Language(
+            string name, string ext,
+            string short_comment = "//", array<string, 2> long_comment = {"/*", "*/"}
+        ) : name(name), ext(ext), short_comment(short_comment), long_comment(long_comment) {}
+
+};
+
+class File {
+
+    public:
+
+        string path;
+        Language lang;
+        int lines;
+
+        File(string path, Language lang) : path(path), lang(lang), lines(0) {}
+
+};
+
+class Commit {
+
+    public:
+
+        string sha;
+        vector<File> files;
+        Commit *prev;
+
+        Commit(string sha, Commit *prev) : sha(sha), files({}), prev(prev) {}
+
+};
 
 
 // Functions
@@ -253,6 +297,21 @@ int main(int argc, char *argv[]) {
         }
 
     }
+
+    // Languages
+
+    Language python = Language("Python", "py", "#", {"\"\"\"", "\"\"\""});
+    Language java = Language("Java", "java");
+    Language html = Language("HTML", "html", "", {"<!--", "-->"});
+    Language css = Language("CSS", "css", "", {"/*", "*/"});
+    Language javascript = Language("JavaScript", "js");
+    Language typescript = Language("TypeScript", "ts");
+    Language c = Language("C", "c");
+    Language cpp = Language("C++", "cpp");
+    Language c_sharp = Language("C#", "cs");
+    Language go = Language("Go", "go");
+    Language rust = Language("Rust", "rs");
+    Language shell = Language("Shell", "sh", "#", {"", ""});
 
     return 0;
 
