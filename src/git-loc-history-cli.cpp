@@ -26,7 +26,7 @@ using namespace std;
 
 // Definitions
 
-#define VERSION "0.0.0"
+#define README_PATH "../README.md" // "/usr/share/doc/git-loc-history/README.md"
 
 
 // Functions
@@ -35,6 +35,18 @@ using namespace std;
 // Main Function
 
 int main(int argc, char *argv[]) {
+
+    // Get Version
+
+    ifstream file(README_PATH);
+    if (!file.is_open()) {
+        cerr << "Error opening file " << README_PATH << "." << endl;
+        return 1;
+    }
+    string line;
+    for (int i = 0; i < 3; i++) getline(file, line);
+    const string version = line.substr(12);
+    file.close();
 
     // Parse Args
 
@@ -101,7 +113,7 @@ int main(int argc, char *argv[]) {
                 } else if (arg.compare("--exclude-from") == 0) {
                     last_flag = 'X';
                 } else if (arg.compare("--version") == 0) {
-                    cout << VERSION << endl;
+                    cout << version << endl;
                     return 0;
                 } else if (arg.compare("--help") == 0) {
                     print_help();
@@ -118,7 +130,7 @@ int main(int argc, char *argv[]) {
                 // Short Flag
 
                 if (arg.find('v') != string::npos) {
-                    cout << VERSION << endl;
+                    cout << version << endl;
                     return 0;
                 } else if (arg.find('h') != string::npos) {
                     print_help();
@@ -140,7 +152,7 @@ int main(int argc, char *argv[]) {
                         last_flag = arg[1];
                         break;
                     case 'v':
-                        cout << VERSION << endl;
+                        cout << version << endl;
                         return 0;
                     case 'h':
                         print_help();
@@ -166,7 +178,7 @@ int main(int argc, char *argv[]) {
                 case 'X':
                     string abs_arg = arg;
                     if (abs_arg.rfind("/", 0) == 0 || abs_arg.rfind("~", 0) == 0) {
-                        abs_arg = filesystem::current_path().u8string() + abs_arg;
+                        abs_arg = filesystem::current_path().string() + abs_arg;
                     }
                     ifstream file(abs_arg);
                     if (!file.is_open()) {
@@ -211,9 +223,9 @@ int main(int argc, char *argv[]) {
             repo_name = repo_name.substr(0, repo_name.length() - 4);
         }
 
-        repo_path = "/tmp/git-loc-history-cli/" + repo_name;
+        repo_path = "/tmp/git-loc-history/" + repo_name;
 
-        filesystem::create_directory(repo_path);
+        filesystem::create_directories(repo_path);
         int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), NULL);
         if (error != 0) {
             const git_error *e = git_error_last();
@@ -226,7 +238,7 @@ int main(int argc, char *argv[]) {
         // git_repo_path is a filesystem path
 
         if (git_repo_path.rfind("/", 0) == 0 || git_repo_path.rfind("~", 0) == 0) {
-            git_repo_path = filesystem::current_path().u8string() + git_repo_path;
+            git_repo_path = filesystem::current_path().string() + git_repo_path;
         }
 
         repo_path = git_repo_path;
