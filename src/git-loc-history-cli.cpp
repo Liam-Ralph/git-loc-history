@@ -15,6 +15,7 @@ code across its history.
 // Includes
 
 #include <array>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -37,12 +38,12 @@ class Language {
     public:
         
         string name;
-        string ext;
+        vector<string> ext;
         string short_comment;
         array<string, 2> long_comment;
 
         Language(
-            string name, string ext,
+            string name, vector<string> ext,
             string short_comment = "//", array<string, 2> long_comment = {"/*", "*/"}
         ) : name(name), ext(ext), short_comment(short_comment), long_comment(long_comment) {}
 
@@ -64,11 +65,13 @@ class Commit {
 
     public:
 
-        string sha;
+        string oid;
+        string message;
+        time_t date;
         vector<File> files;
-        Commit *prev;
 
-        Commit(string sha, Commit *prev) : sha(sha), files({}), prev(prev) {}
+        Commit(string oid, string message, time_t date) :
+            oid(oid), message(message), date(date), files({}) {}
 
 };
 
@@ -300,18 +303,40 @@ int main(int argc, char *argv[]) {
 
     // Languages
 
-    Language python = Language("Python", "py", "#", {"\"\"\"", "\"\"\""});
-    Language java = Language("Java", "java");
-    Language html = Language("HTML", "html", "", {"<!--", "-->"});
-    Language css = Language("CSS", "css", "", {"/*", "*/"});
-    Language javascript = Language("JavaScript", "js");
-    Language typescript = Language("TypeScript", "ts");
-    Language c = Language("C", "c");
-    Language cpp = Language("C++", "cpp");
-    Language c_sharp = Language("C#", "cs");
-    Language go = Language("Go", "go");
-    Language rust = Language("Rust", "rs");
-    Language shell = Language("Shell", "sh", "#", {"", ""});
+    Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
+    Language java = Language("Java", {"java"});
+    Language html = Language("HTML", {"html"}, "", {"<!--", "-->"});
+    Language css = Language("CSS", {"css"}, "", {"/*", "*/"});
+    Language javascript = Language("JavaScript", {"js"});
+    Language typescript = Language("TypeScript", {"ts"});
+    Language c = Language("C", {"c", "h"});
+    Language cpp = Language("C++", {"cpp", "hpp"});
+    Language c_sharp = Language("C#", {"cs"});
+    Language go = Language("Go", {"go"});
+    Language rust = Language("Rust", {"rs"});
+    Language shell = Language("Shell", {"sh"}, "#", {"", ""});
+
+    // Get Commit History
+
+    git_revwalk *repo_walker = NULL;
+    git_oid oid;
+    git_commit *commit = NULL;
+    vector<Commit> commits = {};
+    git_revwalk_new(&repo_walker, repo);
+    git_revwalk_push_head(repo_walker);
+
+    while (git_revwalk_next(&oid, repo_walker) == 0) {
+        if (git_commit_lookup(&commit, repo, &oid) == 0) {
+            char oid_str[GIT_OID_HEXSZ + 1];
+            git_oid_tostr(oid_str, sizeof(oid_str), &oid);
+            commits.push_back(Commit(oid_str, git_commit_message(commit), git_commit_time(commit)));
+            git_commit_free(commit);
+        }
+    }
+
+    git_revwalk_free(repo_walker);
+    git_repository_free(repo);
+    git_libgit2_shutdown();
 
     return 0;
 
