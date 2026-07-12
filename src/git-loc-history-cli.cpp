@@ -14,11 +14,14 @@ code across its history.
 
 // Includes
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 using namespace std;
+
+#include <git2.h>
 
 
 // Definitions
@@ -51,17 +54,21 @@ int main(int argc, char *argv[]) {
             "\t-x, --exclude=<path>       Exclude <path> from results\n"
             "\t-X, --exclude-from=<file>  Exclude all paths in <file> from results\n"
             "\t-v, --version              Print version and exit\n"
-            "\t-h, --help                 Display this help and exit\n"
+            "\t-h, --help                 Display this help and exit\n\n"
+            "<git_repo_path> must be a url or a path to a local folder.\n"
+            "<path> format follows .gitignore format.\n"
+            "Paths are not absolute by default (e.g. foo will exclude both /foo and /bar/foo)."
+            "Absolute paths (e.g. /foo) are relative to repository path."
         << endl;
     };
 
     if (argc < 2) {
-        cout << "Missing required argument <git_repo_path>." << endl;
+        cerr << "Missing required argument <git_repo_path>." << endl;
         print_usage();
         return 1;
     }
 
-    string git_repo_path;
+    string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
     char last_flag = 'N';
     // N: None
@@ -74,13 +81,13 @@ int main(int argc, char *argv[]) {
         if (arg[0] == '-') {
 
             if (arg_len < 2) {
-                cout << "Missing flag." << endl;
+                cerr << "Missing flag." << endl;
                 print_usage();
                 return 1;
             }
 
             if (last_flag == 'x' || last_flag == 'X') {
-                cout << "Missing required argument for exclusion." << endl;
+                cerr << "Missing required argument for exclusion." << endl;
                 print_usage();
                 return 1;
             }
@@ -100,8 +107,8 @@ int main(int argc, char *argv[]) {
                     print_help();
                     return 0;
                 } else {
-                    if (arg_len > 2) cout << "Unknown flag " << arg.substr(2) << "." << endl;
-                    else cout << "Unknown flag." << endl;
+                    if (arg_len > 2) cerr << "Unknown flag " << arg.substr(2) << "." << endl;
+                    else cerr << "Unknown flag." << endl;
                     print_usage();
                     return 1;
                 }
@@ -120,7 +127,7 @@ int main(int argc, char *argv[]) {
 
                 if (arg_len > 2) {
                     // Multiple flags at once (e.g. -xX) are invalid as x and X require an argument
-                    cout << "Invalid flags." << endl;
+                    cerr << "Invalid flags." << endl;
                     print_usage();
                     return 1;
                 }
@@ -139,7 +146,7 @@ int main(int argc, char *argv[]) {
                         print_help();
                         return 0;
                     default:
-                        cout << "Unknown flag " << arg[1] << "." << endl;
+                        cerr << "Unknown flag " << arg[1] << "." << endl;
                         print_usage();
                         return 1;
                 }
@@ -157,9 +164,16 @@ int main(int argc, char *argv[]) {
                     excluded_paths.push_back(arg);
                     break;
                 case 'X':
-                    ifstream file(arg);
+                    string abs_arg = arg;
+                    if (abs_arg.rfind("/", 0) == 0 || abs_arg.rfind("~", 0) == 0) {
+                        abs_arg = filesystem::current_path().u8string() + abs_arg;
+                    }
+                    ifstream file(abs_arg);
                     if (!file.is_open()) {
-                        cout << "Error opening file " << arg << "." << endl;
+                        cerr << "Error opening file " << arg << "." << endl;
+                        if (abs_arg.compare(arg) != 0) {
+                            cerr << "Used " << abs_arg << " for " << arg << "." << endl;
+                        }
                         return 1;
                     }
                     string line;
@@ -175,13 +189,57 @@ int main(int argc, char *argv[]) {
     }
 
     if (git_repo_path.empty()) {
-        cout << "Missing required argument <git_repo_path>." << endl;
+        cerr << "Missing required argument <git_repo_path>." << endl;
         return 1;
     }
 
-    cout << "Path: " << git_repo_path << endl;
-    for (int i = 0; i < excluded_paths.size(); i++) {
-        cout << excluded_paths[i] << endl;
+    // Repository Setup
+
+    git_libgit2_init();
+    git_repository *repo = NULL;
+    filesystem::path repo_path;
+
+    // Get Repository Name
+
+    string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
+
+    if (git_repo_path.rfind("http", 0) == 0) {
+
+        // git_repo_path is a URL
+
+        if (repo_name.rfind(".git") == repo_name.length() - 4) {
+            repo_name = repo_name.substr(0, repo_name.length() - 4);
+        }
+
+        repo_path = "/tmp/git-loc-history-cli/" + repo_name;
+
+        filesystem::create_directory(repo_path);
+        int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), NULL);
+        if (error != 0) {
+            const git_error *e = git_error_last();
+            cout << "git_clone error " << error << "/" << e->klass << ": " << e->message << endl;
+            return 1;
+        }
+
+    } else {
+
+        // git_repo_path is a filesystem path
+
+        if (git_repo_path.rfind("/", 0) == 0 || git_repo_path.rfind("~", 0) == 0) {
+            git_repo_path = filesystem::current_path().u8string() + git_repo_path;
+        }
+
+        repo_path = git_repo_path;
+
+        int error = git_repository_open(&repo, repo_path.c_str());
+        if (error != 0) {
+            const git_error *e = git_error_last();
+            cout <<
+                "git_repository_open error " << error << "/" << e->klass << ": " << e->message
+            << endl;
+            return 1;
+        }
+
     }
 
     return 0;
