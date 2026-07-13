@@ -14,7 +14,6 @@ code across its history.
 
 // Includes
 
-#include <array>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
@@ -23,57 +22,12 @@ code across its history.
 #include <vector>
 using namespace std;
 
-#include <git2.h>
+#include "create-loc-history.hpp"
 
 
 // Definitions
 
 #define README_PATH "../README.md" // "/usr/share/doc/git-loc-history/README.md"
-
-
-// Classes
-
-class Language {
-
-    public:
-        
-        string name;
-        vector<string> ext;
-        string short_comment;
-        array<string, 2> long_comment;
-
-        Language(
-            string name, vector<string> ext,
-            string short_comment = "//", array<string, 2> long_comment = {"/*", "*/"}
-        ) : name(name), ext(ext), short_comment(short_comment), long_comment(long_comment) {}
-
-};
-
-class File {
-
-    public:
-
-        string path;
-        Language lang;
-        int lines;
-
-        File(string path, Language lang) : path(path), lang(lang), lines(0) {}
-
-};
-
-class Commit {
-
-    public:
-
-        string oid;
-        string message;
-        time_t date;
-        vector<File> files;
-
-        Commit(string oid, string message, time_t date) :
-            oid(oid), message(message), date(date), files({}) {}
-
-};
 
 
 // Functions
@@ -252,91 +206,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Repository Setup
+    // Create LoC History
 
-    git_libgit2_init();
-    git_repository *repo = NULL;
-    filesystem::path repo_path;
-
-    // Get Repository Name
-
-    string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
-
-    if (git_repo_path.rfind("http", 0) == 0) {
-
-        // git_repo_path is a URL
-
-        if (repo_name.rfind(".git") == repo_name.length() - 4) {
-            repo_name = repo_name.substr(0, repo_name.length() - 4);
-        }
-
-        repo_path = "/tmp/git-loc-history/" + repo_name;
-
-        filesystem::create_directories(repo_path);
-        int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), NULL);
-        if (error != 0) {
-            const git_error *e = git_error_last();
-            cout << "git_clone error " << error << "/" << e->klass << ": " << e->message << endl;
-            return 1;
-        }
-
-    } else {
-
-        // git_repo_path is a filesystem path
-
-        if (git_repo_path.rfind("/", 0) == 0 || git_repo_path.rfind("~", 0) == 0) {
-            git_repo_path = filesystem::current_path().string() + git_repo_path;
-        }
-
-        repo_path = git_repo_path;
-
-        int error = git_repository_open(&repo, repo_path.c_str());
-        if (error != 0) {
-            const git_error *e = git_error_last();
-            cout <<
-                "git_repository_open error " << error << "/" << e->klass << ": " << e->message
-            << endl;
-            return 1;
-        }
-
+    try {
+        vector<Commit> result = create_loc_history(git_repo_path);
+    } catch (const runtime_error &e) {
+        cerr << e.what() << endl;
     }
-
-    // Languages
-
-    Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
-    Language java = Language("Java", {"java"});
-    Language html = Language("HTML", {"html"}, "", {"<!--", "-->"});
-    Language css = Language("CSS", {"css"}, "", {"/*", "*/"});
-    Language javascript = Language("JavaScript", {"js"});
-    Language typescript = Language("TypeScript", {"ts"});
-    Language c = Language("C", {"c", "h"});
-    Language cpp = Language("C++", {"cpp", "hpp"});
-    Language c_sharp = Language("C#", {"cs"});
-    Language go = Language("Go", {"go"});
-    Language rust = Language("Rust", {"rs"});
-    Language shell = Language("Shell", {"sh"}, "#", {"", ""});
-
-    // Get Commit History
-
-    git_revwalk *repo_walker = NULL;
-    git_oid oid;
-    git_commit *commit = NULL;
-    vector<Commit> commits = {};
-    git_revwalk_new(&repo_walker, repo);
-    git_revwalk_push_head(repo_walker);
-
-    while (git_revwalk_next(&oid, repo_walker) == 0) {
-        if (git_commit_lookup(&commit, repo, &oid) == 0) {
-            char oid_str[GIT_OID_HEXSZ + 1];
-            git_oid_tostr(oid_str, sizeof(oid_str), &oid);
-            commits.push_back(Commit(oid_str, git_commit_message(commit), git_commit_time(commit)));
-            git_commit_free(commit);
-        }
-    }
-
-    git_revwalk_free(repo_walker);
-    git_repository_free(repo);
-    git_libgit2_shutdown();
 
     return 0;
 
