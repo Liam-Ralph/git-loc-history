@@ -47,9 +47,10 @@ class Commit {
         string message;
         time_t date;
         vector<File> files;
+        size_t lines;
 
         Commit(string oid, string message, time_t date) :
-            oid(oid), message(message), date(date), files({}) {}
+            oid(oid), message(message), date(date), files({}), lines(0) {}
 
 };
 

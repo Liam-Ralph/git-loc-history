@@ -40,6 +40,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
         }
 
         repo_path = "/tmp/git-loc-history/" + repo_name;
+        filesystem::remove_all(repo_path);
 
         filesystem::create_directories(repo_path);
         int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), NULL);
@@ -103,6 +104,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
     function<void(const filesystem::path&, Commit&)> process_files_recursive =
     [&process_files_recursive, &excluded_paths, &git_repo_path, &languages]
     (const filesystem::path &base_path, Commit &commit) {
+
         for (const filesystem::directory_entry &entry : filesystem::directory_iterator(base_path)) {
 
             filesystem::path path = entry.path();
@@ -221,9 +223,11 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
             }
 
         }
+
     };
 
     while (git_revwalk_next(&oid, repo_walker) == 0) {
+
         if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
 
             char oid_str[GIT_OID_HEXSZ + 1];
@@ -248,15 +252,22 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
             
             }
 
+            for (const File &file : commit.files) commit.lines += file.lines;
+
             commits.push_back(commit);
             git_commit_free(git_commit);
 
         }
+
     }
 
     git_revwalk_free(repo_walker);
     git_repository_free(repo);
     git_libgit2_shutdown();
+
+    for (const Commit &commit : commits) {
+        cout << commit.oid << " " << commit.lines << endl;
+    }
 
     return commits;
 
