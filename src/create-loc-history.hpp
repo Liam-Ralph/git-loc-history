@@ -33,7 +33,7 @@ class File {
 
         string path;
         Language lang;
-        int lines;
+        size_t lines;
 
         File(string path, Language lang) : path(path), lang(lang), lines(0) {}
 
@@ -56,7 +56,7 @@ class Commit {
 
 // Functions
 
-vector<Commit> create_loc_history(string git_repo_path);
+vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_paths);
 
 
 #endif

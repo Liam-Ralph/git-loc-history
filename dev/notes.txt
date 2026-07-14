@@ -2,3 +2,13 @@ future flags
 -c cache results
 -b choose a specific branch
 -p show progress
+
+future features
+read changes instead of every file
+caching
+use .gitignore for excluded paths (user optional)
+
+edge cases
+use of """ within python
+blank lines inside """
+comments inside """

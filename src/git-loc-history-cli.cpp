@@ -14,7 +14,6 @@ code across its history.
 
 // Includes
 
-#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <getopt.h>
@@ -52,14 +51,6 @@ int main(int argc, char *argv[]) {
 
     // Parse Args
 
-    auto print_usage = []() {
-        cout <<
-            "Usage: git-loc-history-cli <git_repo_path>\n"
-            "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-v] [-h]\n"
-            "More information can be found using --help."
-        << endl;
-    };
-
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
 
@@ -80,7 +71,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'X': {
                 string abs_arg = optarg;
-                if (abs_arg.rfind("/", 0) == 0 || abs_arg.rfind("~", 0) == 0) {
+                if (abs_arg.find("/", 0) == 0 || abs_arg.find("~", 0) == 0) {
                     abs_arg = filesystem::current_path().string() + abs_arg;
                 }
                 ifstream file(abs_arg);
@@ -116,6 +107,13 @@ int main(int argc, char *argv[]) {
                     "Absolute paths (e.g. /foo) are relative to repository path."
                 << endl;
                 return 0;
+            case '?':
+                cout <<
+                    "Usage: git-loc-history-cli <git_repo_path>\n"
+                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-v] [-h]\n"
+                    "More information can be found using --help."
+                << endl;
+                return 1;
         }
     }
 
@@ -124,7 +122,7 @@ int main(int argc, char *argv[]) {
     // Create LoC History
 
     try {
-        vector<Commit> result = create_loc_history(git_repo_path);
+        vector<Commit> result = create_loc_history(git_repo_path, excluded_paths);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
     }
