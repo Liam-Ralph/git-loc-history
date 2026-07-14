@@ -55,7 +55,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
 
         // git_repo_path is a filesystem path
 
-        if (git_repo_path.find("/", 0) == 0 || git_repo_path.find("~", 0) == 0) {
+        if (git_repo_path.find("/", 0) != 0 && git_repo_path.find("~", 0) != 0) {
             git_repo_path = filesystem::current_path().string() + git_repo_path;
         }
 
@@ -130,7 +130,8 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
 
                 // Parse File
 
-                string ext = path.extension().string().substr(1);
+                string ext = path.extension().string();
+                if (ext.length() > 0 && ext[0] == '.') ext = ext.substr(1);
 
                 for (Language lang : languages) {
                     if (find(lang.ext.begin(), lang.ext.end(), ext) != lang.ext.end()) {
@@ -187,9 +188,10 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
                             size_t pos_start = contents.find(lang.long_comment[0]);
                             size_t pos_end = contents.find(lang.long_comment[1]);
                             while (pos_start != string::npos && pos_end != string::npos) {
-                                contents = contents.substr(0, pos_start) + contents.substr(pos_end);
+                                contents = contents.substr(0, pos_start) +
+                                    contents.substr(pos_end + lang.long_comment[1].length());
                                 pos_start = contents.find(lang.long_comment[0]);
-                                pos_end = contents.find(lang.long_comment[1]);
+                                pos_end = contents.find(lang.long_comment[1], pos_start);
                             }
                         }
 
