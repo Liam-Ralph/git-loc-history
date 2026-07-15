@@ -86,7 +86,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
     Language c_sharp = Language("C#", {"cs"});
     Language go = Language("Go", {"go"});
     Language rust = Language("Rust", {"rs"});
-    Language shell = Language("Shell", {"sh"}, "#", {"", ""});
+    Language shell = Language("Shell", {"sh", "bash"}, "#", {"", ""});
     Language languages[] = {
         python, java, html, css, javascript, typescript, c, cpp, c_sharp, go, rust, shell
     };
@@ -236,13 +236,22 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
             Commit commit = Commit(
                 oid_str, git_commit_message(git_commit), git_commit_time(git_commit)
             );
-
             git_tree *commit_tree = NULL;
+
             if (git_commit_tree(&commit_tree, git_commit) == 0 && commit_tree != NULL) {
 
                 // Checkout Commit
 
-                git_checkout_tree(repo, (const git_object *)commit_tree, NULL);
+                git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
+                opts.checkout_strategy = GIT_CHECKOUT_FORCE;
+                int error = git_checkout_tree(repo, (const git_object *)commit_tree, &opts);
+                if (error != 0) {
+                    const git_error *e = git_error_last();
+                    throw runtime_error(
+                        "git_checkout_tree error " +
+                        to_string(error) + "/" + to_string(e->klass) + ": " + e->message
+                    );
+                }
 
                 // Iterate over Files
 
@@ -264,10 +273,6 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
     git_revwalk_free(repo_walker);
     git_repository_free(repo);
     git_libgit2_shutdown();
-
-    for (const Commit &commit : commits) {
-        cout << commit.oid << " " << commit.lines << endl;
-    }
 
     return commits;
 

@@ -121,10 +121,21 @@ int main(int argc, char *argv[]) {
 
     // Create LoC History
 
+    vector<Commit> commits;
+
     try {
-        vector<Commit> result = create_loc_history(git_repo_path, excluded_paths);
+        commits = create_loc_history(git_repo_path, excluded_paths);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
+        return 1;
+    }
+
+    for (const Commit &commit : commits) {
+        cout << commit.oid << " ";
+        for (int i = 0; i < commit.lines / 10; i++) {
+            cout << "#";
+        }
+        cout << endl;
     }
 
     return 0;
