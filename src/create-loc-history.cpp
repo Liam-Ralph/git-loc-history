@@ -1,7 +1,5 @@
 // Includes
 
-#include "create-loc-history.hpp"
-
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -16,11 +14,13 @@ using namespace std;
 
 #include <git2.h>
 
+#include "create-loc-history.hpp"
+
 
 // Functions
 
 vector<Commit> create_loc_history(
-    string git_repo_path, vector<string> excluded_paths, array<int, 2> *progress_ptr
+    string git_repo_path, vector<string> excluded_paths, array<int, 6> *progress_ptr
 ) {
 
     vector<Commit> commits = {};
@@ -51,14 +51,20 @@ vector<Commit> create_loc_history(
         if (progress_ptr != NULL) {
 
             auto progress_callback = [](const git_transfer_progress* stats, void* payload) -> int {
-                
+                array<int, 6> *progress_ptr = static_cast<array<int, 6> *>(payload);
+                if (progress_ptr != NULL) {
+                    (*progress_ptr)[0] = stats->received_objects;
+                    (*progress_ptr)[1] = stats->total_objects;
+                    (*progress_ptr)[2] = stats->indexed_deltas;
+                    (*progress_ptr)[3] = stats->total_deltas;
+                }
                 return 0;
             };
 
             git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
             opts.fetch_opts.callbacks.transfer_progress =
                 static_cast<git_transfer_progress_cb>(progress_callback);
-            opts.fetch_opts.callbacks.payload = NULL;
+            opts.fetch_opts.callbacks.payload = progress_ptr;
 
             opts_ptr = &opts;
 
@@ -93,6 +99,11 @@ vector<Commit> create_loc_history(
             );
         }
 
+        if (progress_ptr != NULL) {
+            (*progress_ptr)[0] = 1;
+            (*progress_ptr)[1] = 1;
+        }
+
     }
 
     // Languages
@@ -125,8 +136,9 @@ vector<Commit> create_loc_history(
 
     if (progress_ptr != NULL) {
         while (git_revwalk_next(&oid, repo_walker) == 0) {
-            (*progress_ptr)[2]++;
+            (*progress_ptr)[5]++;
         }
+        git_revwalk_push_head(repo_walker);
     }
 
     // File Processing Function
@@ -305,7 +317,7 @@ vector<Commit> create_loc_history(
             commits.push_back(commit);
             git_commit_free(git_commit);
 
-            if (progress_ptr != NULL) (*progress_ptr)[3]++;
+            if (progress_ptr != NULL) (*progress_ptr)[4]++;
 
         }
 
