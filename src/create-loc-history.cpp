@@ -156,7 +156,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
                             size_t pos = contents.find(old_str);
                             while (pos != string::npos) {
                                 contents.replace(pos, old_str.length(), new_str);
-                                pos = contents.find(old_str, pos + new_str.length());
+                                pos = contents.find(old_str);
                             }
                         };
 
@@ -205,13 +205,19 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
 
                         replace_str("\n\n", "\n");
 
+                        while (contents.length() != 0 && contents[0] == '\n') {
+                            contents = contents.substr(1);
+                        }
+                        while (contents.length() != 0 && contents[contents.length() - 1] == '\n') {
+                            contents = contents.substr(0, contents.length() - 1);
+                        }
+
                         // Calculate File Lines
 
                         size_t lines = 1;
                         for (const char &c : contents) {
                             if (c == '\n') lines++;
                         }
-                        if (contents.rfind('\n') == contents.length() - 1) lines--;
                         file.lines = lines;
                         commit.lines += lines;
 
