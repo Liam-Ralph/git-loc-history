@@ -1,3 +1,4 @@
+#pragma once
 #ifndef CREATE_LOC_HISTORY_HPP
 #define CREATE_LOC_HISTORY_HPP
 
@@ -57,7 +58,9 @@ class Commit {
 
 // Functions
 
-vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_paths);
+vector<Commit> create_loc_history(
+    string git_repo_path, vector<string> excluded_paths, array<int, 2> *progress_ptr
+);
 
 
 #endif

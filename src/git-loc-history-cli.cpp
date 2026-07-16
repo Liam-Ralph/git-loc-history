@@ -14,11 +14,14 @@ code across its history.
 
 // Includes
 
+#include <array>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 using namespace std;
 
@@ -31,6 +34,17 @@ using namespace std;
 
 
 // Functions
+
+void progress_tracker(array<int, 2> *progress_ptr) {
+
+    // Wait Until Progress Started
+
+    system("clear");
+
+    while ((*progress_ptr)[0] == 0) {
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
+}
 
 
 // Main Function
@@ -54,6 +68,8 @@ int main(int argc, char *argv[]) {
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
 
+    array<int, 2> *progress_ptr = NULL;
+
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
         {"exclude-from", required_argument, 0, 'X'},
@@ -64,7 +80,7 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
     int opt;
 
-    while ((opt = getopt_long(argc, argv, "x:X:vh", flag_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "x:X:pvh", flag_options, &option_index)) != -1) {
         switch (opt) {
             case 'x':
                 excluded_paths.push_back(optarg);
@@ -89,6 +105,10 @@ int main(int argc, char *argv[]) {
                 file.close();
                 break;
             }
+            case 'p':
+                array<int, 2> progress = {0};
+                progress_ptr = &progress;
+                break;
             case 'v':
                 cout << version << endl;
                 return 0;
@@ -123,20 +143,16 @@ int main(int argc, char *argv[]) {
 
     vector<Commit> commits;
 
+    thread t(progress_tracker, progress_ptr);
+
     try {
-        commits = create_loc_history(git_repo_path, excluded_paths);
+        commits = create_loc_history(git_repo_path, excluded_paths, progress_ptr);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
         return 1;
     }
 
-    for (const Commit &commit : commits) {
-        cout << commit.oid << " ";
-        for (int i = 0; i < commit.lines / 10; i++) {
-            cout << "#";
-        }
-        cout << endl;
-    }
+    t.join();
 
     return 0;
 

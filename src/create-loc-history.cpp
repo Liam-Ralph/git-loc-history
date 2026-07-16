@@ -1,6 +1,9 @@
 // Includes
 
+#include "create-loc-history.hpp"
+
 #include <algorithm>
+#include <array>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -12,12 +15,13 @@
 using namespace std;
 
 #include <git2.h>
-#include "create-loc-history.hpp"
 
 
 // Functions
 
-vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_paths) {
+vector<Commit> create_loc_history(
+    string git_repo_path, vector<string> excluded_paths, array<int, 2> *progress_ptr
+) {
 
     vector<Commit> commits = {};
 
@@ -42,8 +46,26 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
         repo_path = "/tmp/git-loc-history/" + repo_name;
         filesystem::remove_all(repo_path);
 
+        git_clone_options *opts_ptr = NULL;
+
+        if (progress_ptr != NULL) {
+
+            auto progress_callback = [](const git_transfer_progress* stats, void* payload) -> int {
+                
+                return 0;
+            };
+
+            git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
+            opts.fetch_opts.callbacks.transfer_progress =
+                static_cast<git_transfer_progress_cb>(progress_callback);
+            opts.fetch_opts.callbacks.payload = NULL;
+
+            opts_ptr = &opts;
+
+        }
+
         filesystem::create_directories(repo_path);
-        int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), NULL);
+        int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), opts_ptr);
         if (error != 0) {
             const git_error *e = git_error_last();
             throw runtime_error(
@@ -100,6 +122,14 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
     git_commit *git_commit = NULL;
     git_revwalk_new(&repo_walker, repo);
     git_revwalk_push_head(repo_walker);
+
+    if (progress_ptr != NULL) {
+        while (git_revwalk_next(&oid, repo_walker) == 0) {
+            (*progress_ptr)[2]++;
+        }
+    }
+
+    // File Processing Function
 
     function<void(const filesystem::path&, Commit&)> process_files_recursive =
     [&process_files_recursive, &excluded_paths, &git_repo_path, &languages]
@@ -274,6 +304,8 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
 
             commits.push_back(commit);
             git_commit_free(git_commit);
+
+            if (progress_ptr != NULL) (*progress_ptr)[3]++;
 
         }
 
