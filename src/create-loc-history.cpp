@@ -203,7 +203,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
 
                         // Calculate File Lines
 
-                        size_t lines = 0;
+                        size_t lines = 1;
                         for (const char &c : contents) {
                             if (c == '\n') lines++;
                         }
