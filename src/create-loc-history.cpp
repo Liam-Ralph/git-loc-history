@@ -209,6 +209,7 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
                         }
                         if (contents.rfind('\n') == contents.length() - 1) lines--;
                         file.lines = lines;
+                        commit.lines += lines;
 
                         // Add File to Commit
 
@@ -260,8 +261,6 @@ vector<Commit> create_loc_history(string git_repo_path, vector<string> excluded_
                 git_tree_free(commit_tree);
             
             }
-
-            for (const File &file : commit.files) commit.lines += file.lines;
 
             commits.push_back(commit);
             git_commit_free(git_commit);
