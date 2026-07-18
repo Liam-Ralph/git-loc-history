@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
         {"exclude-from", required_argument, 0, 'X'},
+        {"progress", no_argument, 0, 'p'},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'}
     };
@@ -219,12 +220,12 @@ int main(int argc, char *argv[]) {
 
     // Create Graph
 
-    // Get Terminal Size
-
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int width = int(w.ws_col);
     int height = int(w.ws_row);
+
+    //cout << commits[0].date << endl;
 
     return 0;
 

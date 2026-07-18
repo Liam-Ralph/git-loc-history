@@ -7,6 +7,7 @@
 
 #include <array>
 #include <atomic>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -34,10 +35,10 @@ class File {
     public:
 
         string path;
-        Language lang;
+        Language language;
         size_t lines;
 
-        File(string path, Language lang) : path(path), lang(lang), lines(0) {}
+        File(string path, Language language) : path(path), language(language), lines(0) {}
 
 };
 
@@ -50,9 +51,10 @@ class Commit {
         time_t date;
         vector<File> files;
         size_t lines;
+        map<Language, size_t> language_map;
 
         Commit(string oid, string message, time_t date) :
-            oid(oid), message(message), date(date), files({}), lines(0) {}
+            oid(oid), message(message), date(date), files({}), lines(0), language_map() {}
 
 };
 

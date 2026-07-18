@@ -8,6 +8,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -17,6 +18,9 @@ using namespace std;
 
 #include "create-loc-history.hpp"
 
+bool operator<(const Language &a, const Language &b) {
+    return a.name < b.name;
+}
 
 // Functions
 
@@ -121,7 +125,7 @@ vector<Commit> create_loc_history(
     Language go = Language("Go", {"go"});
     Language rust = Language("Rust", {"rs"});
     Language shell = Language("Shell", {"sh", "bash"}, "#", {"", ""});
-    Language languages[] = {
+    array<Language, 12> languages = {
         python, java, html, css, javascript, typescript, c, cpp, c_sharp, go, rust, shell
     };
 
@@ -273,6 +277,14 @@ vector<Commit> create_loc_history(
                         // Add File to Commit
 
                         commit.files.push_back(file);
+
+                        // Update Commit Language Map
+
+                        if (commit.language_map.find(lang) == commit.language_map.end())
+                            commit.language_map.insert({lang, lines});
+                        else
+                            commit.language_map[lang] += lines;
+
                         break;
 
                     }
