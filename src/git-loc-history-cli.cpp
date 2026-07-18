@@ -21,7 +21,9 @@ code across its history.
 #include <filesystem>
 #include <fstream>
 #include <getopt.h>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <sys/ioctl.h>
 #include <thread>
@@ -39,14 +41,20 @@ using namespace std;
 
 // Functions
 
-void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning) {
+string format_time(clock_t start) {
+    stringstream ss;
+    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC;
+    return ss.str();
+}
+
+void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning, clock_t start) {
 
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int columns = min(int(w.ws_col), 50);
 
     system("clear");
-    string text = "Setup...\n";
+    string text = format_time(start) + " Setup...\n";
     for (int i = 0; i < columns; i++) text += "▒";
     cout << text << endl;
 
@@ -62,23 +70,21 @@ void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning) {
                 0.7 * (*progress_ptr)[4] / (*progress_ptr)[5];
         } else progress_pct = (*progress_ptr)[4] / (*progress_ptr)[5];
 
-        string new_text;
-        if ((*progress_ptr)[4] > 0) new_text = "Processing Commits...\n";
-        else if ((*progress_ptr)[2] > 0) new_text = "Cloning: Resolving Deltas...\n";
-        else if ((*progress_ptr)[0] > 0) new_text = "Cloning: Receiving Objects...\n";
-        else continue;
+        text = format_time(start) + " ";
+        if ((*progress_ptr)[4] > 0) text += "Processing Commits...\n";
+        else if ((*progress_ptr)[2] > 0) text += "Cloning: Resolving Deltas...\n";
+        else if ((*progress_ptr)[0] > 0) text += "Cloning: Receiving Objects...\n";
+        else text += "Setup...\n";
         int bars = int(round(progress_pct * columns));
         for (int i = 0; i < columns; i++) {
-            if (i < bars) new_text += "█";
-            else new_text += "▒";
+            if (i < bars) text += "█";
+            else text += "▒";
         }
 
-        if (new_text.compare(text) != 0) {
-            system("clear");
-            cout << new_text << endl;
-            text = new_text;
-            if ((*progress_ptr)[4] == (*progress_ptr)[5]) break;
-        }
+        system("clear");
+        cout << text << endl;
+
+        if ((*progress_ptr)[4] == (*progress_ptr)[5]) break;
 
     }
 
@@ -186,13 +192,16 @@ int main(int argc, char *argv[]) {
 
     // Create LoC History
 
+    clock_t start = clock();
+
     vector<Commit> commits;
 
     unique_ptr<thread> t_ptr;
     if (progress_ptr != NULL)
         t_ptr = unique_ptr<thread>(
             new thread(
-                progress_tracker, progress_ptr, git_repo_path.substr(0, 4).compare("http") == 0
+                progress_tracker,
+                progress_ptr, git_repo_path.substr(0, 4).compare("http") == 0, start
             )
         );
 
@@ -205,6 +214,17 @@ int main(int argc, char *argv[]) {
 
     if (progress_ptr != NULL)
         (*t_ptr).join();
+
+    string elapsed_time = format_time(start);
+
+    // Create Graph
+
+    // Get Terminal Size
+
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    int width = int(w.ws_col);
+    int height = int(w.ws_row);
 
     return 0;
 
