@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -20,7 +21,7 @@ using namespace std;
 // Functions
 
 vector<Commit> create_loc_history(
-    string git_repo_path, vector<string> excluded_paths, array<int, 6> *progress_ptr
+    string git_repo_path, vector<string> excluded_paths, array<atomic<int>, 6> *progress_ptr
 ) {
 
     vector<Commit> commits = {};
@@ -136,8 +137,11 @@ vector<Commit> create_loc_history(
 
     if (progress_ptr != NULL) {
         while (git_revwalk_next(&oid, repo_walker) == 0) {
-            (*progress_ptr)[5]++;
+            if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
+                (*progress_ptr)[5]++;
+            }
         }
+        (*progress_ptr)[5]--;
         git_revwalk_push_head(repo_walker);
     }
 

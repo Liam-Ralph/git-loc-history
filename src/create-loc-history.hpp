@@ -6,6 +6,7 @@
 // Includes
 
 #include <array>
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -59,7 +60,7 @@ class Commit {
 // Functions
 
 vector<Commit> create_loc_history(
-    string git_repo_path, vector<string> excluded_paths, array<int, 6> *progress_ptr
+    string git_repo_path, vector<string> excluded_paths, array<atomic<int>, 6> *progress_ptr
 );
 
 
