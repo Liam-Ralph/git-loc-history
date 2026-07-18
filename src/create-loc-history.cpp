@@ -35,7 +35,7 @@ vector<Commit> create_loc_history(
 
     string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
 
-    if (git_repo_path.find("http", 0) == 0) {
+    if (git_repo_path.substr(0, 4).compare("http") == 0) {
 
         // git_repo_path is a URL
 
@@ -84,7 +84,7 @@ vector<Commit> create_loc_history(
 
         // git_repo_path is a filesystem path
 
-        if (git_repo_path.find("/", 0) != 0 && git_repo_path.find("~", 0) != 0) {
+        if (git_repo_path[0] != '/' && git_repo_path[0] != '~') {
             git_repo_path = filesystem::current_path().string() + git_repo_path;
         }
 
@@ -213,7 +213,10 @@ vector<Commit> create_loc_history(
                             istringstream stream(contents);
                             string line;
                             while (getline(stream, line)) {
-                                if (line.find(lang.short_comment) == 0) {
+                                if (
+                                    line.substr(0, lang.short_comment.length())
+                                    .compare(lang.short_comment) == 0
+                                ) {
                                     continue;
                                 }
                                 for (const char &c : line) {

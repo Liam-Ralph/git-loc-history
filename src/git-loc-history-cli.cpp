@@ -65,7 +65,7 @@ void progress_tracker(array<int, 6> *progress_ptr, bool cloning) {
         else if ((*progress_ptr)[2] > 0) new_section = 2;
         else if ((*progress_ptr)[4] > 0) new_section = 3;
         else new_section = 0;
-        
+
         if (new_section != section) {
             cout << "\x1b[s";
             cout << "\x1b[1;1H";
@@ -83,6 +83,10 @@ void progress_tracker(array<int, 6> *progress_ptr, bool cloning) {
             for (int i = 0; i < new_empty_bars; i++) cout << "▒";
             cout << "\x1b[u";
         }
+
+        if ((*progress_ptr)[4] == (*progress_ptr)[5]) break;
+        section = new_section;
+        empty_bars = new_empty_bars;
 
         this_thread::sleep_for(chrono::milliseconds(100));
 
@@ -112,6 +116,7 @@ int main(int argc, char *argv[]) {
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
 
+    array<int, 6> progress;
     array<int, 6> *progress_ptr = NULL;
 
     struct option flag_options[] {
@@ -131,7 +136,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'X': {
                 string abs_arg = optarg;
-                if (abs_arg.find("/", 0) == 0 || abs_arg.find("~", 0) == 0) {
+                if (abs_arg[0] == '/' || abs_arg[0] == '~') {
                     abs_arg = filesystem::current_path().string() + abs_arg;
                 }
                 ifstream file(abs_arg);
@@ -150,7 +155,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case 'p': {
-                array<int, 6> progress = {0, 1, 0, 1, 0, 1};
+                progress = {0, 1, 0, 1, 0, 1};
                 progress_ptr = &progress;
                 break;
             }
@@ -190,7 +195,7 @@ int main(int argc, char *argv[]) {
 
     thread t([]{});
     if (progress_ptr != NULL)
-        t = thread(progress_tracker, progress_ptr, git_repo_path.find("http") == 0);
+        t = thread(progress_tracker, progress_ptr, git_repo_path.substr(0, 4).compare("http") == 0);
 
     try {
         commits = create_loc_history(git_repo_path, excluded_paths, progress_ptr);
