@@ -64,15 +64,15 @@ vector<Commit> create_loc_history(
 
     // Get Repository Name
 
-    string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
+    
 
     if (git_repo_path.substr(0, 4).compare("http") == 0) {
 
         // git_repo_path is a URL
 
-        if (repo_name.rfind(".git") == repo_name.length() - 4) {
+        string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
+        if (repo_name.rfind(".git") == repo_name.length() - 4)
             repo_name = repo_name.substr(0, repo_name.length() - 4);
-        }
 
         repo_path = "/tmp/git-loc-history/" + repo_name;
         filesystem::remove_all(repo_path);

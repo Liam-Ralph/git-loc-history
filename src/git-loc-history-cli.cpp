@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int width = int(w.ws_col);
-    int height = int(w.ws_row) - 3;
+    int height = int(w.ws_row) - 5;
 
     // Define Language Text Colors
 
@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 
         map<Language, int> bar_heights;
         for (auto &[lang, lines] : commit.language_map)
-            bar_heights.emplace(lang, int(round(double(lines / max_lines)) * height * 8));
+            bar_heights.emplace(lang, int(round(double(lines) / max_lines * height * 8)));
         const map<Language, int> bar_heights_const = bar_heights;
 
         // Create Each Block of Bar
@@ -268,6 +268,7 @@ int main(int argc, char *argv[]) {
             map<Language, int> block_parts;
             int iii = 0;
             for (auto &[lang, lines] : bar_heights) {
+                if (lines == 0) continue;
                 int part = min(lines, 8 - iii);
                 lines -= part;
                 iii += part;
@@ -294,8 +295,8 @@ int main(int argc, char *argv[]) {
                 else
                     // Partial Block of One Color, Top of Bar
                     graph_bar.push_back(
-                        "\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
-                        block_chars[first_block_part->second]
+                        "\u001b[m\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
+                        block_chars[first_block_part->second - 1]
                     );
                     break;
 
@@ -303,7 +304,7 @@ int main(int argc, char *argv[]) {
                 // Block Has Two Colors
                 graph_bar.push_back(
                     "\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
-                    block_chars[first_block_part->second] +
+                    block_chars[first_block_part->second - 1] +
                     "\u001b[48;5;" + language_colors[block_parts.rbegin()->first] + "m "
                 );
 
@@ -353,17 +354,65 @@ int main(int argc, char *argv[]) {
 
                 int first_og_lines = bar_heights_const.at(*first_lang);
                 int total_og_lines = first_og_lines + bar_heights_const.at(*second_lang);
+                int first_char = int(round(double(first_og_lines) / (total_og_lines) * 8));
 
-                graph_bar.push_back(
-                    "\u001b[38;5;" + language_colors[*first_lang] + "m" +
-                    block_chars[int(round(double(first_og_lines) / (total_og_lines) * 8))] +
-                    "\u001b[48;5;" + language_colors[*second_lang] + "m "
-                );
+                if (first_char < 8)
+                    graph_bar.push_back(
+                        "\u001b[38;5;" + language_colors[*first_lang] + "m" +
+                        block_chars[first_char - 1] +
+                        "\u001b[48;5;" + language_colors[*second_lang] + "m "
+                    );
+                else
+                    graph_bar.push_back(
+                        "\u001b[48;5;" + language_colors[*first_lang] + "m "
+                    );
 
             }
 
         }
 
+    }
+
+    // Get Most Recent Commit Statistics
+
+    const Commit &last_commit = commits[0];
+    string last_commit_line = "Last Commit: " + to_string(last_commit.lines) + " LoC";
+    for (auto &[lang, lines] : last_commit.language_map) {
+        stringstream ss;
+        ss << fixed << setprecision(1) << double(lines) / last_commit.lines * 100;
+        last_commit_line += ", " + lang.name + ": " + to_string(lines) + " LoC (" + ss.str() + "%)";
+    }
+    if (last_commit_line.length() > width)
+        last_commit_line = last_commit_line.substr(0, width - 3) + "...";
+
+    // Print Graph
+
+    if (git_repo_path.length() > width)
+        git_repo_path = git_repo_path.substr(git_repo_path.length() - width + 3) + "...";
+
+    if (graph_bars.size() > width) {
+
+    } else {
+        system("clear");
+        // for (int i = 0; i < height; i++) {
+        //     for (int ii = 0; ii < graph_bars.size(); ii++) {
+        //         if (graph_bars[ii].size() > i)
+        //             cout << graph_bars[ii][i];
+        //         else cout << graph_bars[ii].size() << " ";
+        //     }
+        //     cout << "\n";
+        // }
+        cout << git_repo_path << "\n";
+        cout << last_commit_line << "\n";
+        for (int i = height - 1; i >= 0; i--) {
+            for (int ii = graph_bars.size() - 1; ii >= 0; ii--) {
+                if (graph_bars[ii].size() > i)
+                    cout << graph_bars[ii][i];
+                else cout << "\u001b[m ";
+            }
+            cout << "\u001b[m\n";
+        }
+        flush(cout);
     }
 
     return 0;
