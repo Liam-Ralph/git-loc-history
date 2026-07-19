@@ -23,6 +23,7 @@ code across its history.
 #include <getopt.h>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <sys/ioctl.h>
@@ -65,9 +66,9 @@ void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning, clock_t
         double progress_pct;
         if (cloning) {
             progress_pct =
-                0.2 * (*progress_ptr)[0] / (*progress_ptr)[1] +
-                0.1 * (*progress_ptr)[2] / (*progress_ptr)[3] +
-                0.7 * (*progress_ptr)[4] / (*progress_ptr)[5];
+                0.1 * (*progress_ptr)[0] / (*progress_ptr)[1] +
+                0.05 * (*progress_ptr)[2] / (*progress_ptr)[3] +
+                0.85 * (*progress_ptr)[4] / (*progress_ptr)[5];
         } else progress_pct = (*progress_ptr)[4] / (*progress_ptr)[5];
 
         text = format_time(start) + " ";
@@ -220,12 +221,34 @@ int main(int argc, char *argv[]) {
 
     // Create Graph
 
+    // Get Terminal Dimensions
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int width = int(w.ws_col);
-    int height = int(w.ws_row);
+    int height = int(w.ws_row) - 3;
 
-    //cout << commits[0].date << endl;
+    // Define Language Text Colors
+
+    map<Language, string> language_colors = {
+        {python, "20"}, {java, "124"}, {html, "208"}, {css, "129"},
+        {javascript, "11"}, {typescript, "27"}, {c, "19"}, {cpp, "18"}, {c_sharp, "17"},
+        {go, "39"}, {rust, "202"}, {shell, "248"}
+    };
+
+    // Create Graph Bars
+
+    int max_lines = 0;
+    for (const Commit &commit : commits) if (commit.lines > max_lines) max_lines = commit.lines;
+
+    vector<string> graph_bars(commits.size(), "");
+
+    for (int i = 0; i < commits.size(); i++) {
+
+        const Commit &commit = commits[i];
+        string &graph_bar = graph_bars[i];
+
+    }
 
     return 0;
 

@@ -30,6 +30,23 @@ class Language {
 
 };
 
+bool operator==(const Language &a, const Language &b);
+bool operator<(const Language &a, const Language &b);
+
+extern Language python;
+extern Language java;
+extern Language html;
+extern Language css;
+extern Language javascript;
+extern Language typescript;
+extern Language c;
+extern Language cpp;
+extern Language c_sharp;
+extern Language go;
+extern Language rust;
+extern Language shell;
+extern array<Language, 12> languages;
+
 class File {
 
     public:
@@ -54,9 +71,14 @@ class Commit {
         map<Language, size_t> language_map;
 
         Commit(string oid, string message, time_t date) :
-            oid(oid), message(message), date(date), files({}), lines(0), language_map() {}
+            oid(oid), message(message), date(date), files({}), lines(0), language_map({
+                {python, 0}, {java, 0}, {html, 0}, {css, 0}, {javascript, 0}, {typescript, 0},
+                {c, 0}, {cpp, 0}, {c_sharp, 0}, {go, 0}, {rust, 0}, {shell, 0}
+            }) {}
 
 };
+
+
 
 
 // Functions

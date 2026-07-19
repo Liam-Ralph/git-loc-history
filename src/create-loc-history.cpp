@@ -18,9 +18,35 @@ using namespace std;
 
 #include "create-loc-history.hpp"
 
+
+// Language Variables
+
+Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
+Language java = Language("Java", {"java"});
+Language html = Language("HTML", {"html"}, "", {"<!--", "-->"});
+Language css = Language("CSS", {"css"}, "", {"/*", "*/"});
+Language javascript = Language("JavaScript", {"js"});
+Language typescript = Language("TypeScript", {"ts"});
+Language c = Language("C", {"c", "h"});
+Language cpp = Language("C++", {"cpp", "hpp"});
+Language c_sharp = Language("C#", {"cs"});
+Language go = Language("Go", {"go"});
+Language rust = Language("Rust", {"rs"});
+Language shell = Language("Shell", {"sh", "bash"}, "#", {"", ""});
+array<Language, 12> languages = {
+    python, java, html, css, javascript, typescript, c, cpp, c_sharp, go, rust, shell
+};
+
+
+// Language < Operator
+
+bool operator==(const Language &a, const Language &b) {
+    return a.name.compare(b.name) == 0;
+}
 bool operator<(const Language &a, const Language &b) {
     return a.name < b.name;
 }
+
 
 // Functions
 
@@ -111,24 +137,6 @@ vector<Commit> create_loc_history(
 
     }
 
-    // Languages
-
-    Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
-    Language java = Language("Java", {"java"});
-    Language html = Language("HTML", {"html"}, "", {"<!--", "-->"});
-    Language css = Language("CSS", {"css"}, "", {"/*", "*/"});
-    Language javascript = Language("JavaScript", {"js"});
-    Language typescript = Language("TypeScript", {"ts"});
-    Language c = Language("C", {"c", "h"});
-    Language cpp = Language("C++", {"cpp", "hpp"});
-    Language c_sharp = Language("C#", {"cs"});
-    Language go = Language("Go", {"go"});
-    Language rust = Language("Rust", {"rs"});
-    Language shell = Language("Shell", {"sh", "bash"}, "#", {"", ""});
-    array<Language, 12> languages = {
-        python, java, html, css, javascript, typescript, c, cpp, c_sharp, go, rust, shell
-    };
-
     // Get Commit History
 
     git_checkout_head(repo, NULL);
@@ -152,7 +160,7 @@ vector<Commit> create_loc_history(
     // File Processing Function
 
     function<void(const filesystem::path&, Commit&)> process_files_recursive =
-    [&process_files_recursive, &excluded_paths, &git_repo_path, &languages]
+    [&process_files_recursive, &excluded_paths, &git_repo_path]
     (const filesystem::path &base_path, Commit &commit) {
 
         for (const filesystem::directory_entry &entry : filesystem::directory_iterator(base_path)) {
@@ -280,10 +288,7 @@ vector<Commit> create_loc_history(
 
                         // Update Commit Language Map
 
-                        if (commit.language_map.find(lang) == commit.language_map.end())
-                            commit.language_map.insert({lang, lines});
-                        else
-                            commit.language_map[lang] += lines;
+                        commit.language_map[lang] += lines;
 
                         break;
 
@@ -332,6 +337,11 @@ vector<Commit> create_loc_history(
                 git_tree_free(commit_tree);
             
             }
+
+            // Erase Extra Language Map Keys
+
+            for (const Language &lang : languages)
+                if (commit.language_map[lang] == 0) commit.language_map.erase(lang);
 
             commits.push_back(commit);
             git_commit_free(git_commit);
