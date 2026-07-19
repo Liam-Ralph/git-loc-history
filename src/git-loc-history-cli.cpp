@@ -29,6 +29,7 @@ code across its history.
 #include <sys/ioctl.h>
 #include <thread>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 using namespace std;
 
@@ -241,12 +242,127 @@ int main(int argc, char *argv[]) {
     int max_lines = 0;
     for (const Commit &commit : commits) if (commit.lines > max_lines) max_lines = commit.lines;
 
-    vector<string> graph_bars(commits.size(), "");
+    vector<vector<string>> graph_bars(commits.size(), vector<string>());
+    array<string, 7> block_chars = {"▁", "▂", "▃", "▄", "▅", "▆", "▇"};
 
     for (int i = 0; i < commits.size(); i++) {
 
+        // Get Commit and Bar
+
         const Commit &commit = commits[i];
-        string &graph_bar = graph_bars[i];
+        vector<string> &graph_bar = graph_bars[i];
+
+        // Create Bar Heights
+
+        map<Language, int> bar_heights;
+        for (auto &[lang, lines] : commit.language_map)
+            bar_heights.emplace(lang, int(round(double(lines / max_lines)) * height * 8));
+        const map<Language, int> bar_heights_const = bar_heights;
+
+        // Create Each Block of Bar
+
+        for (int ii = 0; ii < height; ii++) {
+
+            // Get Parts of Block
+
+            map<Language, int> block_parts;
+            int iii = 0;
+            for (auto &[lang, lines] : bar_heights) {
+                int part = min(lines, 8 - iii);
+                lines -= part;
+                iii += part;
+                block_parts.emplace(lang, part);
+                if (iii == 8) break;
+            }
+
+            // Create Block
+
+            if (block_parts.size() == 0) break;
+
+            const map<Language, int>::iterator first_block_part = block_parts.begin();
+
+            if (block_parts.size() == 1) {
+
+                // Block Has One Color
+        
+                if (first_block_part->second == 8)
+                    // Full Block of One Color
+                    graph_bar.push_back(
+                        "\u001b[48;5;" + language_colors[first_block_part->first] + "m "
+                    );
+
+                else
+                    // Partial Block of One Color, Top of Bar
+                    graph_bar.push_back(
+                        "\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
+                        block_chars[first_block_part->second]
+                    );
+                    break;
+
+            } else if (block_parts.size() == 2) {
+                // Block Has Two Colors
+                graph_bar.push_back(
+                    "\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
+                    block_chars[first_block_part->second] +
+                    "\u001b[48;5;" + language_colors[block_parts.rbegin()->first] + "m "
+                );
+
+            } else {
+
+                // Block Has Three or More Colors
+                // A character can only have two colors, fore- and background
+
+                // Get Largest Two Block Parts
+
+                map<Language, int>::iterator largest = block_parts.begin();
+                map<Language, int>::iterator largest2 = next(block_parts.begin());
+                bool largest_first = true;
+                if (largest->second < largest2->second) {
+                    largest = next(block_parts.begin());
+                    largest2 = block_parts.begin();
+                    largest_first = false;
+                }
+                for (
+                    map<Language, int>::iterator block_part = next(block_parts.begin(), 2);
+                    block_part != block_parts.end(); block_part++
+                ) {
+                    if (block_part->second <= largest2->second) continue;
+                    if (block_part->second > largest->second) {
+                        largest2 = largest;
+                        largest = block_part;
+                        largest_first = true;
+                    } else if (block_part->second > largest2->second) {
+                        largest2 = block_part;
+                        largest_first = false;
+                    }
+                }
+
+                // Get First (Bottom) and Second Block Part Languages
+
+                const Language *first_lang;
+                const Language *second_lang;
+                if (largest_first) {
+                    first_lang = &(largest->first);
+                    second_lang = &(largest2->first);
+                } else {
+                    first_lang = &(largest2->first);
+                    second_lang = &(largest->first);
+                }
+
+                // Create Block
+
+                int first_og_lines = bar_heights_const.at(*first_lang);
+                int total_og_lines = first_og_lines + bar_heights_const.at(*second_lang);
+
+                graph_bar.push_back(
+                    "\u001b[38;5;" + language_colors[*first_lang] + "m" +
+                    block_chars[int(round(double(first_og_lines) / (total_og_lines) * 8))] +
+                    "\u001b[48;5;" + language_colors[*second_lang] + "m "
+                );
+
+            }
+
+        }
 
     }
 
