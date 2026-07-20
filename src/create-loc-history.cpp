@@ -114,7 +114,7 @@ vector<Commit> create_loc_history(
         // git_repo_path is a filesystem path
 
         if (git_repo_path[0] != '/' && git_repo_path[0] != '~') {
-            git_repo_path = filesystem::current_path().string() + git_repo_path;
+            git_repo_path = filesystem::current_path().string() + '/' + git_repo_path;
         }
 
         repo_path = git_repo_path;
