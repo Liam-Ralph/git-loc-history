@@ -292,20 +292,21 @@ int main(int argc, char *argv[]) {
                         "\u001b[48;5;" + language_colors[first_block_part->first] + "m "
                     );
 
-                else
+                else {
                     // Partial Block of One Color, Top of Bar
                     graph_bar.push_back(
                         "\u001b[m\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
                         block_chars[first_block_part->second - 1]
                     );
                     break;
+                }
 
             } else if (block_parts.size() == 2) {
                 // Block Has Two Colors
                 graph_bar.push_back(
                     "\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
-                    block_chars[first_block_part->second - 1] +
-                    "\u001b[48;5;" + language_colors[block_parts.rbegin()->first] + "m "
+                    "\u001b[48;5;" + language_colors[block_parts.rbegin()->first] + "m" +
+                    block_chars[first_block_part->second - 1]
                 );
 
             } else {
@@ -359,8 +360,8 @@ int main(int argc, char *argv[]) {
                 if (first_char < 8)
                     graph_bar.push_back(
                         "\u001b[38;5;" + language_colors[*first_lang] + "m" +
-                        block_chars[first_char - 1] +
-                        "\u001b[48;5;" + language_colors[*second_lang] + "m "
+                        "\u001b[48;5;" + language_colors[*second_lang] + "m" +
+                        block_chars[first_char - 1]
                     );
                 else
                     graph_bar.push_back(
@@ -394,14 +395,6 @@ int main(int argc, char *argv[]) {
 
     } else {
         system("clear");
-        // for (int i = 0; i < height; i++) {
-        //     for (int ii = 0; ii < graph_bars.size(); ii++) {
-        //         if (graph_bars[ii].size() > i)
-        //             cout << graph_bars[ii][i];
-        //         else cout << graph_bars[ii].size() << " ";
-        //     }
-        //     cout << "\n";
-        // }
         cout << git_repo_path << "\n";
         cout << last_commit_line << "\n";
         for (int i = height - 1; i >= 0; i--) {
