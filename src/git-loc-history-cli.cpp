@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
     if (progress_ptr != NULL)
         (*t_ptr).join();
 
-    string elapsed_time = format_time(start);
+    string elapsed_time = format_time(start) + "s ";
 
     // Create Graph
 
@@ -388,14 +388,16 @@ int main(int argc, char *argv[]) {
 
     // Print Graph
 
-    if (git_repo_path.length() > width)
-        git_repo_path = git_repo_path.substr(git_repo_path.length() - width + 3) + "...";
+    if (git_repo_path.length() > width - elapsed_time.length())
+        git_repo_path = git_repo_path.substr(
+            git_repo_path.length() - width + elapsed_time.length() + 3
+        ) + "...";
 
     if (graph_bars.size() > width) {
 
     } else {
         system("clear");
-        cout << git_repo_path << "\n";
+        cout << elapsed_time << git_repo_path << "\n";
         cout << last_commit_line << "\n";
         for (int i = height - 1; i >= 0; i--) {
             for (int ii = graph_bars.size() - 1; ii >= 0; ii--) {

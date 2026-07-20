@@ -17,6 +17,14 @@ code across its history.
 #include <iostream>
 using namespace std;
 
+#include "create-loc-history.hpp"
+
+
+// Definitions
+
+#define README_PATH "../README.md" // "/usr/share/doc/git-loc-history/README.md"
+
+
 // Functions
 
 
