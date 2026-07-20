@@ -2,3 +2,6 @@ a.out
 git-loc-history-cli
 git-loc-history
 /dev/test.cpp
+.vscode
+/build
+libgit2-1.9.6*

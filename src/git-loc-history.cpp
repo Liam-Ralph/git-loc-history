@@ -15,8 +15,10 @@ code across its history.
 // Includes
 
 #include <iostream>
+#include <QApplication>
 using namespace std;
 
+#include "mainwindow.hpp"
 #include "create-loc-history.hpp"
 
 
@@ -30,7 +32,13 @@ using namespace std;
 
 // Main Function
 
-int main() {
-    cout << "Hello World";
-    return 0;
+int main(int argc, char *argv[]) {
+
+    QApplication app(argc, argv);
+
+    MainWindow window;
+    window.show();
+
+    return app.exec();
+
 }
