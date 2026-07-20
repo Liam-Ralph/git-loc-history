@@ -1,6 +1,6 @@
 #pragma once
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
 
 // Includes
@@ -8,11 +8,11 @@
 #include <QMainWindow>
 
 class MainWindow : public QMainWindow {
-    
+
     Q_OBJECT
-    
+
     public :
-        MainWindow(QWidget *parent = nullptr);
+        MainWindow();
         ~MainWindow();
 
 };

@@ -15,7 +15,7 @@ find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
 add_executable(git-loc-history
     src/git-loc-history.cpp
     src/mainwindow.cpp
-    src/mainwindow.hpp
+    src/mainwindow.h
     src/create-loc-history.cpp
     src/create-loc-history.hpp
 )
