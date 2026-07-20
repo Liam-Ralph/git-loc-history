@@ -17,7 +17,7 @@
 class Language {
 
     public:
-        
+
         string name;
         vector<string> ext;
         string short_comment;
@@ -77,8 +77,6 @@ class Commit {
             }) {}
 
 };
-
-
 
 
 // Functions

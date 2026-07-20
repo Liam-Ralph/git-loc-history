@@ -64,8 +64,6 @@ vector<Commit> create_loc_history(
 
     // Get Repository Name
 
-    
-
     if (git_repo_path.substr(0, 4).compare("http") == 0) {
 
         // git_repo_path is a URL
@@ -335,7 +333,7 @@ vector<Commit> create_loc_history(
                 process_files_recursive(repo_path, commit);
 
                 git_tree_free(commit_tree);
-            
+
             }
 
             // Erase Extra Language Map Keys

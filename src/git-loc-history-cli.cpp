@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
             if (block_parts.size() == 1) {
 
                 // Block Has One Color
-        
+
                 if (first_block_part->second == 8)
                     // Full Block of One Color
                     graph_bar.push_back(
