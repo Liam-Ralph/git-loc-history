@@ -50,6 +50,11 @@ string format_time(clock_t start) {
     return ss.str();
 }
 
+template<typename T>
+bool is_in(T first, vector<T> values) {
+    return find(values.begin(), values.end(), first) != values.end();
+}
+
 void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning, clock_t start) {
 
     struct winsize w;
@@ -407,6 +412,50 @@ int main(int argc, char *argv[]) {
     // Print Graph
 
     if (graph_bars.size() > width) {
+
+        // Print Graph
+
+        int pos = graph_bars.size() - width - 1;
+
+        while (true) {
+
+            // Print Output
+
+            system("clear");
+            cout <<
+                elapsed_time << git_repo_path << "\n" <<
+                last_commit_line << "\n" <<
+                legend << "\n";
+            for (int i = height - 1; i >= 0; i--) {
+                for (int ii = pos; ii < width + pos; ii++) {
+                    int index = graph_bars.size() - 1 - ii;
+                    if (graph_bars[index].size() > i)
+                        cout << graph_bars[index][i];
+                    else cout << "\u001b[m ";
+                }
+                cout << "\u001b[m\n";
+            }
+            cout <<
+                "l/< and r/>: Move window. L and R: Move window to end. q: Quit program." << endl;
+
+            // Capture Input
+
+            string commands;
+            cin >> commands;
+            for (const char &command : commands) {
+                if (is_in(command, {'l', '<'})) {
+                    if (pos > 0) pos--;
+                } else if (command == 'L') {
+                    pos = 0;
+                } else if (is_in(command, {'r', '>'})) {
+                    if (pos < graph_bars.size() - width - 1) pos++;
+                } else if (command == 'R') {
+                    pos = graph_bars.size() - width - 1;
+                } else if (is_in(command, {'q', 'Q'}))
+                    return 0;
+            }
+
+        }
 
     } else {
         system("clear");
