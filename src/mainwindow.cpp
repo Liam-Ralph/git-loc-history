@@ -8,6 +8,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <QtGraphs>
+
 #include "mainwindow.h"
 
 MainWindow::MainWindow() {

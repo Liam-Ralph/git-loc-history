@@ -15,6 +15,7 @@ code across its history.
 // Includes
 
 #include <array>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -227,7 +228,7 @@ int main(int argc, char *argv[]) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int width = int(w.ws_col);
-    int height = int(w.ws_row) - 5;
+    int height = int(w.ws_row) - 6;
 
     // Define Language Text Colors
 
@@ -374,6 +375,13 @@ int main(int argc, char *argv[]) {
 
     }
 
+    // Truncate Git Repo Path if Needed
+
+    if (git_repo_path.length() > width - elapsed_time.length())
+        git_repo_path = git_repo_path.substr(
+            git_repo_path.length() - width + elapsed_time.length() + 3
+        ) + "...";
+
     // Get Most Recent Commit Statistics
 
     const Commit &last_commit = commits[0];
@@ -386,19 +394,26 @@ int main(int argc, char *argv[]) {
     if (last_commit_line.length() > width)
         last_commit_line = last_commit_line.substr(0, width - 3) + "...";
 
-    // Print Graph
+    // Create Graph Legend
 
-    if (git_repo_path.length() > width - elapsed_time.length())
-        git_repo_path = git_repo_path.substr(
-            git_repo_path.length() - width + elapsed_time.length() + 3
-        ) + "...";
+    vector<Language> project_langs;
+    for (const Commit &commit : commits) for (const auto &[lang, lines] : commit.language_map)
+        if (find(project_langs.begin(), project_langs.end(), lang) == project_langs.end())
+            project_langs.push_back(lang);
+    string legend = "";
+    for (const Language &lang : project_langs)
+        legend += "\u001b[48;5;" + language_colors[lang] + "m" + lang.name + "\u001b[m ";
+
+    // Print Graph
 
     if (graph_bars.size() > width) {
 
     } else {
         system("clear");
-        cout << elapsed_time << git_repo_path << "\n";
-        cout << last_commit_line << "\n";
+        cout <<
+            elapsed_time << git_repo_path << "\n" <<
+            last_commit_line << "\n" <<
+            legend << "\n";
         for (int i = height - 1; i >= 0; i--) {
             for (int ii = graph_bars.size() - 1; ii >= 0; ii--) {
                 if (graph_bars[ii].size() > i)

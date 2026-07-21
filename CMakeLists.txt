@@ -10,7 +10,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(libgit2-1.9.6)
 # Taken from https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.6.tar.gz
 
-find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Graphs REQUIRED)
 
 add_executable(git-loc-history
     src/git-loc-history.cpp
@@ -25,5 +25,5 @@ add_executable(git-loc-history-cli
     src/create-loc-history.hpp
 )
 
-target_link_libraries(git-loc-history git2 Qt6::Core Qt6::Gui Qt6::Widgets)
+target_link_libraries(git-loc-history git2 Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Graphs)
 target_link_libraries(git-loc-history-cli git2)
