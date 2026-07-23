@@ -1,0 +1,18 @@
+# Maintainer: Liam Ralph <liamralph@tutamail.com>
+pkgname=git-loc-history
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="An application for view a git repo's lines of code across its history."
+arch=(x86_64)
+url="https://github.com/liam-ralph/git-loc-history"
+license=("MIT")
+depends=(qt6-base)
+makedepends=(cmake)
+source=(
+    "https://github.com/liam-ralph/git-loc-history/refs/tags/v${pkgver}.tar.gz"
+    "https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.6.tar.gz"
+)
+sha256sums=(
+    ""
+    "a88a42a4ea9bdab7aa8686eead3bf7d9c6dd74529caca16ab22eaa92433d31d9"
+)

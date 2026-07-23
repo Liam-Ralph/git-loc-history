@@ -1,0 +1,20 @@
+Source: git-loc-history
+Maintainer: Liam Ralph <liamralph@tutmail.com>
+Section: misc
+Priority: optional
+Build-Depends: cmake
+Standards-Version: 4.7.4
+Homepage: https://github.com/liam-ralph/git-loc-history
+
+Package: git-loc-history
+Version: 1.0.0
+Architecture: amd64
+Essential: no
+Depends: qt6-base, libqt6gui6
+Description: A GUI application for view a git repo's lines of code across its history.
+
+Package: git-loc-history-cli
+Version: 1.0.0
+Architecture: amd64
+Essential: no
+Description: A CLI application for view a git repo's lines of code across its history.
