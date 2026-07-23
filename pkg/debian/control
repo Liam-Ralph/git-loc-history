@@ -11,10 +11,10 @@ Version: 1.0.0
 Architecture: amd64
 Essential: no
 Depends: qt6-base, libqt6gui6
-Description: A GUI application for view a git repo's lines of code across its history.
+Description: A GUI application for viewing a git repo's lines of code across its history.
 
 Package: git-loc-history-cli
 Version: 1.0.0
 Architecture: amd64
 Essential: no
-Description: A CLI application for view a git repo's lines of code across its history.
+Description: A CLI application for viewing a git repo's lines of code across its history.

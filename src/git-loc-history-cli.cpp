@@ -7,7 +7,7 @@ MIT/Expat License. See LICENSE or this project's source
 for more information.
 Project Source: https://github.com/liam-ralph/git-loc-history
 
-Git LoC History - An application for view a git repo's lines of
+Git LoC History - An application for viewing a git repo's lines of
 code across its history.
 */
 

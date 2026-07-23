@@ -2,7 +2,7 @@
 pkgname=git-loc-history
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="An application for view a git repo's lines of code across its history."
+pkgdesc="An application for viewing a git repo's lines of code across its history."
 arch=(x86_64)
 url="https://github.com/liam-ralph/git-loc-history"
 license=("MIT")

@@ -11,7 +11,7 @@ Source0: https://github.com/liam-ralph/git-loc-history/refs/tags/v%{version}.tar
 Source1: https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.6.tar.gz
 
 %description
-An application for view a git repo's lines of code across its history.
+An application for viewing a git repo's lines of code across its history.
 
 
 
