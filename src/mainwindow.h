@@ -12,8 +12,11 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
     public :
+
         MainWindow();
         ~MainWindow();
+
+        void show_info();
 
 };
 

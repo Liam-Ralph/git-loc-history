@@ -17,8 +17,9 @@
 #include <QtCharts>
 
 #include "mainwindow.h"
+#include "infowindow.h"
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow() : QMainWindow() {
 
     setWindowTitle("Git LoC History");
 
@@ -30,6 +31,7 @@ MainWindow::MainWindow() {
     // Top
 
     QPushButton *info_button = new QPushButton("Info");
+    connect(info_button, &QPushButton::clicked, this, &MainWindow::show_info);
     layout_back->addWidget(info_button);
     layout_back->setAlignment(info_button, Qt::AlignRight);
 
@@ -99,3 +101,8 @@ MainWindow::MainWindow() {
 }
 
 MainWindow::~MainWindow() {}
+
+void MainWindow::show_info() {
+    InfoWindow *info_window = new InfoWindow(this);
+    info_window->show();
+}

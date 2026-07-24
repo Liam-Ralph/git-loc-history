@@ -21,19 +21,19 @@ using namespace std;
 
 // Language Variables
 
-Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
-Language java = Language("Java", {"java"});
-Language html = Language("HTML", {"html"}, "", {"<!--", "-->"});
-Language css = Language("CSS", {"css"}, "", {"/*", "*/"});
-Language javascript = Language("JavaScript", {"js"});
-Language typescript = Language("TypeScript", {"ts"});
-Language c = Language("C", {"c", "h"});
-Language cpp = Language("C++", {"cpp", "hpp"});
-Language c_sharp = Language("C#", {"cs"});
-Language go = Language("Go", {"go"});
-Language rust = Language("Rust", {"rs"});
-Language shell = Language("Shell", {"sh", "bash"}, "#", {"", ""});
-array<Language, 12> languages = {
+const Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
+const Language java = Language("Java", {"java"});
+const Language html = Language("HTML", {"html"}, "", {"<!--", "-->"});
+const Language css = Language("CSS", {"css"}, "", {"/*", "*/"});
+const Language javascript = Language("JavaScript", {"js"});
+const Language typescript = Language("TypeScript", {"ts"});
+const Language c = Language("C", {"c", "h"});
+const Language cpp = Language("C++", {"cpp", "hpp"});
+const Language c_sharp = Language("C#", {"cs"});
+const Language go = Language("Go", {"go"});
+const Language rust = Language("Rust", {"rs"});
+const Language shell = Language("Shell", {"sh", "bash"}, "#", {"", ""});
+const array<Language, 12> languages = {
     python, java, html, css, javascript, typescript, c, cpp, c_sharp, go, rust, shell
 };
 
