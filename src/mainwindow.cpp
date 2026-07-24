@@ -16,6 +16,7 @@
 
 #include <QtCharts>
 
+#include "definitions.hpp"
 #include "mainwindow.h"
 #include "infowindow.h"
 
@@ -91,7 +92,8 @@ MainWindow::MainWindow() : QMainWindow() {
     QLabel *name_label = new QLabel("Git LoC History");
     layout_bottom->addWidget(name_label);
     layout_bottom->setAlignment(name_label, Qt::AlignLeft);
-    QLabel *version_label = new QLabel("v");
+    QString version = QString::fromStdString(Definitions::get_version());
+    QLabel *version_label = new QLabel(QString("v") + version);
     layout_bottom->addWidget(version_label);
     layout_bottom->setAlignment(version_label, Qt::AlignRight);
     layout_back->addLayout(layout_bottom);

@@ -34,6 +34,7 @@ code across its history.
 #include <vector>
 using namespace std;
 
+#include "definitions.hpp"
 #include "create-loc-history.hpp"
 
 
@@ -103,18 +104,6 @@ void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning, clock_t
 
 int main(int argc, char *argv[]) {
 
-    // Get Version
-
-    ifstream file(README_PATH);
-    if (!file.is_open()) {
-        cerr << "Error opening file " << README_PATH << "." << endl;
-        return 1;
-    }
-    string line;
-    for (int i = 0; i < 3; i++) getline(file, line);
-    const string version = line.substr(12);
-    file.close();
-
     // Parse Args
 
     string git_repo_path; // Path (filesystem or url) passed by user
@@ -170,7 +159,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case 'v':
-                cout << version << endl;
+                cout << Definitions::get_version() << endl;
                 return 0;
             case 'h':
                 cout <<
@@ -238,9 +227,9 @@ int main(int argc, char *argv[]) {
     // Define Language Text Colors
 
     map<Language, string> language_colors = {
-        {python, "20"}, {java, "124"}, {html, "208"}, {css, "129"},
-        {javascript, "11"}, {typescript, "27"}, {c, "19"}, {cpp, "18"}, {c_sharp, "17"},
-        {go, "39"}, {rust, "202"}, {shell, "248"}
+        {python, "27"}, {java, "124"}, {html, "208"}, {css, "129"},
+        {javascript, "11"}, {typescript, "39"}, {c, "21"}, {cpp, "19"}, {c_sharp, "17"},
+        {go, "51"}, {rust, "202"}, {shell, "248"}
     };
 
     // Create Graph Bars

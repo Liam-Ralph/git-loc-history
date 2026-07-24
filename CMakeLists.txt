@@ -15,6 +15,8 @@ find_package(Curses REQUIRED)
 
 add_executable(git-loc-history
     src/git-loc-history.cpp
+    src/definitions.cpp
+    src/definitions.hpp
     src/mainwindow.cpp
     src/mainwindow.h
     src/infowindow.cpp
@@ -24,6 +26,8 @@ add_executable(git-loc-history
 )
 add_executable(git-loc-history-cli
     src/git-loc-history-cli.cpp
+    src/definitions.cpp
+    src/definitions.hpp
     src/create-loc-history.cpp
     src/create-loc-history.hpp
 )

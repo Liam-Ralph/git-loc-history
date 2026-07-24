@@ -4,7 +4,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "mainwindow.h"
+#include "definitions.hpp"
 #include "infowindow.h"
 
 InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
@@ -20,7 +20,8 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
     QLabel *label_name = new QLabel("Git LoC History");
     label_name->setAlignment(Qt::AlignHCenter);
     layout_back->addWidget(label_name);
-    QLabel *label_version = new QLabel("Version ");
+    QString version = QString::fromStdString(Definitions::get_version());
+    QLabel *label_version = new QLabel(QString("Version ") + version);
     label_version->setAlignment(Qt::AlignHCenter);
     layout_back->addWidget(label_version);
 
