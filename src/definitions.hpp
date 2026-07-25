@@ -11,11 +11,15 @@
 // Definitions Class
 
 class Definitions {
+
     public:
+
         static std::string get_path_logo();
         static std::string get_path_doc();
         static std::string get_path_license();
+        static std::string get_path_readme();
         static std::string get_version();
+
 };
 
 

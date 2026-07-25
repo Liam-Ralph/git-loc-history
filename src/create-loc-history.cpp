@@ -1,5 +1,7 @@
 // Includes
 
+#include "create-loc-history.hpp"
+
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -15,8 +17,6 @@
 using namespace std;
 
 #include <git2.h>
-
-#include "create-loc-history.hpp"
 
 
 // Language Variables

@@ -1,5 +1,9 @@
 // Includes
 
+#include "definitions.hpp"
+#include "mainwindow.hpp"
+#include "infowindow.hpp"
+
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGraphicsView>
@@ -16,9 +20,8 @@
 
 #include <QtCharts>
 
-#include "definitions.hpp"
-#include "mainwindow.h"
-#include "infowindow.h"
+
+// Functions
 
 MainWindow::MainWindow() : QMainWindow() {
 

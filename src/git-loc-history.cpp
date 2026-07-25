@@ -14,13 +14,13 @@ code across its history.
 
 // Includes
 
+#include "definitions.hpp"
+#include "mainwindow.hpp"
+#include "create-loc-history.hpp"
+
 #include <iostream>
 #include <QApplication>
 using namespace std;
-
-#include "definitions.hpp"
-#include "mainwindow.h"
-#include "create-loc-history.hpp"
 
 
 // Definitions

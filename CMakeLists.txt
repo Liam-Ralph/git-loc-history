@@ -18,9 +18,9 @@ add_executable(git-loc-history
     src/definitions.cpp
     src/definitions.hpp
     src/mainwindow.cpp
-    src/mainwindow.h
+    src/mainwindow.hpp
     src/infowindow.cpp
-    src/infowindow.h
+    src/infowindow.hpp
     src/create-loc-history.cpp
     src/create-loc-history.hpp
 )

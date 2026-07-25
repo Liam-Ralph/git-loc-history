@@ -7,6 +7,9 @@
 
 #include <QMainWindow>
 
+
+// MainWindow Class
+
 class MainWindow : public QMainWindow {
 
     Q_OBJECT
@@ -15,6 +18,8 @@ class MainWindow : public QMainWindow {
 
         MainWindow();
         ~MainWindow();
+    
+    private:
 
         void show_info();
 

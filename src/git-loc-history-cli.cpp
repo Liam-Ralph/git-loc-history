@@ -14,6 +14,9 @@ code across its history.
 
 // Includes
 
+#include "definitions.hpp"
+#include "create-loc-history.hpp"
+
 #include <array>
 #include <algorithm>
 #include <atomic>
@@ -33,9 +36,6 @@ code across its history.
 #include <unordered_map>
 #include <vector>
 using namespace std;
-
-#include "definitions.hpp"
-#include "create-loc-history.hpp"
 
 
 // Definitions
