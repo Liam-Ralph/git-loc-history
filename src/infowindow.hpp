@@ -16,7 +16,7 @@ class InfoWindow : public QMainWindow {
 
     Q_OBJECT
 
-    public :
+    public:
 
         InfoWindow(QWidget *parent);
         ~InfoWindow();

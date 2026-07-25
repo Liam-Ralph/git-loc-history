@@ -2,6 +2,8 @@
 
 #include "create-loc-history.hpp"
 
+#include <git2.h>
+
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -15,8 +17,6 @@
 #include <sstream>
 #include <vector>
 using namespace std;
-
-#include <git2.h>
 
 
 // Language Variables
