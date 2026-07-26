@@ -127,15 +127,15 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
 
     connect(
         view_readme, &QPushButton::clicked,
-        this, [this, doc_viewer]() mutable { open_doc('r', &doc_viewer); }
+        this, [this, doc_viewer]() mutable { open_doc('r', doc_viewer); }
     );
     connect(
         view_changelog, &QPushButton::clicked,
-        this, [this, doc_viewer]() mutable { open_doc('c', &doc_viewer); }
+        this, [this, doc_viewer]() mutable { open_doc('c', doc_viewer); }
     );
     connect(
         view_license, &QPushButton::clicked,
-        this, [this, doc_viewer]() mutable { open_doc('l', &doc_viewer); }
+        this, [this, doc_viewer]() mutable { open_doc('l', doc_viewer); }
     );
 
     setCentralWidget(window);
@@ -157,26 +157,26 @@ string InfoWindow::read_file(string path) {
     return buffer.str();
 }
 
-void InfoWindow::open_doc(char file, QTextBrowser **doc_viewer) {
+void InfoWindow::open_doc(char file, QTextBrowser *doc_viewer) {
     resize(this->width(), qMin(800, this->screen()->availableGeometry().height()));
     string contents;
     switch (file) {
         case 'r': // README
             static string readme_contents = InfoWindow::read_file(Definitions::get_path_readme());
             contents = readme_contents;
-            (*doc_viewer)->setMarkdown(QString::fromStdString(contents));
+            doc_viewer->setMarkdown(QString::fromStdString(contents));
             break;
         case 'c': // CHANGELOG
             static string changelog_contents =
                 InfoWindow::read_file(Definitions::get_path_doc() + "/CHANGELOG.md");
             contents = changelog_contents;
-            (*doc_viewer)->setMarkdown(QString::fromStdString(contents));
+            doc_viewer->setMarkdown(QString::fromStdString(contents));
             break;
         case 'l': // LICENSE
             static string license_contents = InfoWindow::read_file(Definitions::get_path_license());
             contents = license_contents;
-            (*doc_viewer)->setMarkdown("");
-            (*doc_viewer)->setText(QString::fromStdString(contents));
+            doc_viewer->setMarkdown("");
+            doc_viewer->setText(QString::fromStdString(contents));
             break;
     }
 }

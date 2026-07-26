@@ -47,6 +47,7 @@ MainWindow::MainWindow() : QMainWindow() {
     path_entry->setMinimumWidth(300);
     layout_path_entry->addWidget(path_entry, 0, 1, Qt::AlignHCenter);
     QPushButton *path_button = new QPushButton("Choose Local Path");
+    connect(path_button, &QPushButton::clicked, this, [this, path_entry]() mutable { open_path_dialog(path_entry); });
     layout_path_entry->addWidget(path_button, 0, 2, Qt::AlignLeft);
     layout_path_entry->setColumnStretch(0, 1);
     layout_path_entry->setColumnStretch(2, 1);
@@ -119,4 +120,13 @@ MainWindow::~MainWindow() {}
 void MainWindow::show_info() {
     InfoWindow *info_window = new InfoWindow(this);
     info_window->show();
+}
+
+void MainWindow::open_path_dialog(QLineEdit *path_entry) {
+    QFileDialog *dialog = new QFileDialog();
+    dialog->setOption(QFileDialog::ShowDirsOnly);
+    dialog->setFileMode(QFileDialog::Directory);
+    dialog->setDirectory("~");
+    dialog->exec();
+    path_entry->setText(dialog->selectedFiles()[0]);
 }

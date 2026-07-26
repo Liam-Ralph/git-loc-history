@@ -5,6 +5,7 @@
 
 // Includes
 
+#include <QLineEdit>
 #include <QMainWindow>
 
 
@@ -22,6 +23,7 @@ class MainWindow : public QMainWindow {
     private:
 
         void show_info();
+        void open_path_dialog(QLineEdit *path_entry);
 
 };
 
