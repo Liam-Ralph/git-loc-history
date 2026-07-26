@@ -17,6 +17,7 @@
 #include <QToolTip>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QSizePolicy>
 
 #include <QtCharts>
 
@@ -26,6 +27,7 @@
 MainWindow::MainWindow() : QMainWindow() {
 
     setWindowTitle("Git LoC History");
+    setWindowState(Qt::WindowMaximized);
 
     // Create Window
 
@@ -42,10 +44,10 @@ MainWindow::MainWindow() : QMainWindow() {
     QGridLayout *layout_path_entry = new QGridLayout();
     QLineEdit *path_entry = new QLineEdit();
     path_entry->setPlaceholderText("Enter Local Path");
-    path_entry->setMinimumWidth(400);
+    path_entry->setMinimumWidth(300);
     layout_path_entry->addWidget(path_entry, 0, 1, Qt::AlignHCenter);
     QPushButton *path_button = new QPushButton("Choose Local Path");
-    layout_path_entry->addWidget(path_button, 0, 2, Qt::AlignRight);
+    layout_path_entry->addWidget(path_button, 0, 2, Qt::AlignLeft);
     layout_path_entry->setColumnStretch(0, 1);
     layout_path_entry->setColumnStretch(2, 1);
     layout_back->addLayout(layout_path_entry);
@@ -68,6 +70,7 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_middle->addLayout(layout_excluded_paths);
 
     QGraphicsView *results_view = new QGraphicsView();
+    results_view->setMinimumSize(400, 400);
     layout_middle->addWidget(results_view);
 
     QVBoxLayout *layout_options = new QVBoxLayout();
@@ -81,12 +84,18 @@ MainWindow::MainWindow() : QMainWindow() {
 
     // Bottom
 
+    QPushButton *start_button = new QPushButton("Calculate Lines of Code");
+    layout_back->addWidget(start_button);
+    layout_back->setAlignment(start_button, Qt::AlignHCenter);
+
+    QHBoxLayout *layout_progress = new QHBoxLayout();
     QProgressBar *progress_bar = new QProgressBar();
-    progress_bar->setMinimumWidth(400);
-    progress_bar->setMaximumWidth(1000);
     progress_bar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    layout_back->addWidget(progress_bar);
-    layout_back->setAlignment(progress_bar, Qt::AlignCenter);
+    layout_progress->addStretch(1);
+    layout_progress->addWidget(progress_bar, 3);
+    layout_progress->addStretch(1);
+    layout_back->addLayout(layout_progress);
+
     QLabel *timer_label = new QLabel("0.0s");
     layout_back->addWidget(timer_label);
     layout_back->setAlignment(timer_label, Qt::AlignCenter);
