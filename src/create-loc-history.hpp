@@ -19,15 +19,15 @@ class Language {
 
     public:
 
-        std::string name;
-        std::vector<std::string> ext;
-        std::string short_comment;
-        std::array<std::string, 2> long_comment;
-
         Language(
             std::string name, std::vector<std::string> ext,
             std::string short_comment = "//", std::array<std::string, 2> long_comment = {"/*", "*/"}
         ) : name(name), ext(ext), short_comment(short_comment), long_comment(long_comment) {}
+
+        std::string name;
+        std::vector<std::string> ext;
+        std::string short_comment;
+        std::array<std::string, 2> long_comment;
 
 };
 
@@ -52,17 +52,23 @@ class File {
 
     public:
 
+        File(std::string path, Language language) : path(path), language(language), lines(0) {}
+
         std::string path;
         Language language;
         size_t lines;
-
-        File(std::string path, Language language) : path(path), language(language), lines(0) {}
 
 };
 
 class Commit {
 
     public:
+
+        Commit(std::string oid, std::string message, std::time_t date) :
+            oid(oid), message(message), date(date), files({}), lines(0), language_map({
+                {python, 0}, {java, 0}, {html, 0}, {css, 0}, {javascript, 0}, {typescript, 0},
+                {c, 0}, {cpp, 0}, {c_sharp, 0}, {go, 0}, {rust, 0}, {shell, 0}
+            }) {}
 
         std::string oid;
         std::string message;
@@ -71,19 +77,14 @@ class Commit {
         size_t lines;
         std::map<Language, size_t> language_map;
 
-        Commit(std::string oid, std::string message, std::time_t date) :
-            oid(oid), message(message), date(date), files({}), lines(0), language_map({
-                {python, 0}, {java, 0}, {html, 0}, {css, 0}, {javascript, 0}, {typescript, 0},
-                {c, 0}, {cpp, 0}, {c_sharp, 0}, {go, 0}, {rust, 0}, {shell, 0}
-            }) {}
-
 };
 
 
 // Functions
 
 std::vector<Commit> create_loc_history(
-    std::string git_repo_path, std::vector<std::string> excluded_paths, std::array<std::atomic<int>, 6> *progress_ptr
+    std::string git_repo_path, std::vector<std::string> excluded_paths,
+    std::array<std::atomic<int>, 6> *progress_ptr
 );
 
 
