@@ -8,6 +8,7 @@
 #include <string>
 
 #include <QMainWindow>
+#include <QTextBrowser>
 
 
 // InfoWindow Class
@@ -24,6 +25,7 @@ class InfoWindow : public QMainWindow {
     private:
 
         static std::string read_file(std::string path);
+        void open_doc(char file, QTextBrowser **doc_viewer);
 
 };
 

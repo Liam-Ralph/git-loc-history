@@ -11,7 +11,9 @@ using namespace std;
 
 #include <QLabel>
 #include <QPushButton>
+#include <QScreen>
 #include <QSpacerItem>
+#include <QTextBrowser>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -93,7 +95,7 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
     QLabel *license_label = new QLabel(QString::fromStdString(
         "This project is licensed under the MIT/Expat License.<br>"
         "This license can be found in the following locations:<br>"
-        "<a href=\"/usr/share/licenses/git-loc-history/LICENSE\">Local Copy</a><br>"
+        "<a href=\"" + Definitions::get_path_license() + "\">Local Copy</a><br>"
         "<a href=\"https://github.com/liam-ralph/git-loc-history/blob/main/LICENSE\">"
         "GitHub Repo (Official)</a><br>"
         "<a href=\"https://mit-license.org/\">MIT License Website</a><br>"
@@ -116,6 +118,26 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
     layout_buttons->addWidget(view_license);
     layout_back->addLayout(layout_buttons);
 
+    QTextBrowser *doc_viewer = new QTextBrowser();
+    doc_viewer->setReadOnly(true);
+    doc_viewer->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    doc_viewer->setOpenExternalLinks(true);
+    doc_viewer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    layout_back->addWidget(doc_viewer);
+
+    connect(
+        view_readme, &QPushButton::clicked,
+        this, [this, doc_viewer]() mutable { open_doc('r', &doc_viewer); }
+    );
+    connect(
+        view_changelog, &QPushButton::clicked,
+        this, [this, doc_viewer]() mutable { open_doc('c', &doc_viewer); }
+    );
+    connect(
+        view_license, &QPushButton::clicked,
+        this, [this, doc_viewer]() mutable { open_doc('l', &doc_viewer); }
+    );
+
     setCentralWidget(window);
 
 }
@@ -133,4 +155,28 @@ string InfoWindow::read_file(string path) {
     buffer << file.rdbuf();
     file.close();
     return buffer.str();
+}
+
+void InfoWindow::open_doc(char file, QTextBrowser **doc_viewer) {
+    resize(this->width(), qMin(800, this->screen()->availableGeometry().height()));
+    string contents;
+    switch (file) {
+        case 'r': // README
+            static string readme_contents = InfoWindow::read_file(Definitions::get_path_readme());
+            contents = readme_contents;
+            (*doc_viewer)->setMarkdown(QString::fromStdString(contents));
+            break;
+        case 'c': // CHANGELOG
+            static string changelog_contents =
+                InfoWindow::read_file(Definitions::get_path_doc() + "/CHANGELOG.md");
+            contents = changelog_contents;
+            (*doc_viewer)->setMarkdown(QString::fromStdString(contents));
+            break;
+        case 'l': // LICENSE
+            static string license_contents = InfoWindow::read_file(Definitions::get_path_license());
+            contents = license_contents;
+            (*doc_viewer)->setMarkdown("");
+            (*doc_viewer)->setText(QString::fromStdString(contents));
+            break;
+    }
 }

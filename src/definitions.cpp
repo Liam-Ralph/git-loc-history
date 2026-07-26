@@ -21,13 +21,13 @@ string Definitions::get_path_logo() {
         "/usr/share/icons/hicolor/512x512/apps/git-loc-history.png" : "../logo.png";
 }
 string Definitions::get_path_doc() {
-    return ABSOLUTE_PATHS ? "/usr/share/doc/git-loc-history/" : "../";
+    return ABSOLUTE_PATHS ? "/usr/share/doc/git-loc-history" : "..";
 }
 string Definitions::get_path_license() {
     return ABSOLUTE_PATHS ? "/usr/share/licenses/git-loc-history/LICENSE" : "../LICENSE";
 }
 string Definitions::get_path_readme() {
-    return Definitions::get_path_doc() + "README.md";
+    return Definitions::get_path_doc() + "/README.md";
 }
 string Definitions::get_version() {
     const string readme_path = Definitions::get_path_readme();
