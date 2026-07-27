@@ -5,10 +5,10 @@
 
 // Includes
 
-#include <string>
-
 #include <QMainWindow>
 #include <QTextBrowser>
+
+#include <string>
 
 
 // InfoWindow Class

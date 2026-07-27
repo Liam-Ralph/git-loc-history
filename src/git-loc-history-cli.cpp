@@ -33,7 +33,6 @@ code across its history.
 #include <sys/ioctl.h>
 #include <thread>
 #include <unistd.h>
-#include <unordered_map>
 #include <vector>
 using namespace std;
 
