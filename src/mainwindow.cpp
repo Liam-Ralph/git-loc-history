@@ -17,7 +17,6 @@
 #include <QToolTip>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QSizePolicy>
 
 #include <QtCharts>
 
@@ -33,6 +32,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
     QWidget *window = new QWidget();
     QVBoxLayout *layout_back = new QVBoxLayout(window);
+    setCentralWidget(window);
 
     // Top
 
@@ -42,12 +42,12 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_back->setAlignment(info_button, Qt::AlignRight);
 
     QGridLayout *layout_path_entry = new QGridLayout();
-    QLineEdit *path_entry = new QLineEdit();
+    path_entry = new QLineEdit();
     path_entry->setPlaceholderText("Enter Local Path");
     path_entry->setMinimumWidth(300);
     layout_path_entry->addWidget(path_entry, 0, 1, Qt::AlignHCenter);
     QPushButton *path_button = new QPushButton("Choose Local Path");
-    connect(path_button, &QPushButton::clicked, this, [this, path_entry]() mutable { open_path_dialog(path_entry); });
+    connect(path_button, &QPushButton::clicked, this, &MainWindow::open_path_dialog);
     layout_path_entry->addWidget(path_button, 0, 2, Qt::AlignLeft);
     layout_path_entry->setColumnStretch(0, 1);
     layout_path_entry->setColumnStretch(2, 1);
@@ -70,7 +70,7 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_excluded_paths->addWidget(excluded_paths_entry);
     layout_middle->addLayout(layout_excluded_paths);
 
-    QGraphicsView *results_view = new QGraphicsView();
+    results_view = new QGraphicsView();
     results_view->setMinimumSize(400, 400);
     layout_middle->addWidget(results_view);
 
@@ -111,8 +111,6 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_bottom->setAlignment(version_label, Qt::AlignRight);
     layout_back->addLayout(layout_bottom);
 
-    setCentralWidget(window);
-
 }
 
 MainWindow::~MainWindow() {}
@@ -122,11 +120,12 @@ void MainWindow::show_info() {
     info_window->show();
 }
 
-void MainWindow::open_path_dialog(QLineEdit *path_entry) {
+void MainWindow::open_path_dialog() {
     QFileDialog *dialog = new QFileDialog();
     dialog->setOption(QFileDialog::ShowDirsOnly);
     dialog->setFileMode(QFileDialog::Directory);
-    dialog->setDirectory("~");
+    dialog->setDirectory(QDir::homePath());
     dialog->exec();
-    path_entry->setText(dialog->selectedFiles()[0]);
+    if (dialog->result() == QDialog::Accepted && !dialog->selectedFiles().isEmpty())
+        path_entry->setText(dialog->selectedFiles()[0]);
 }

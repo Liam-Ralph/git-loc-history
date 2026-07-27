@@ -22,10 +22,12 @@ class InfoWindow : public QMainWindow {
         InfoWindow(QWidget *parent);
         ~InfoWindow();
 
+        QTextBrowser *doc_viewer;
+
     private:
 
         static std::string read_file(std::string path);
-        void open_doc(char file, QTextBrowser *doc_viewer);
+        void open_doc();
 
 };
 

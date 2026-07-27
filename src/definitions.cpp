@@ -17,28 +17,34 @@ using namespace std;
 
 
 string Definitions::get_path_logo() {
-    return ABSOLUTE_PATHS ?
+    static string result = ABSOLUTE_PATHS ?
         "/usr/share/icons/hicolor/512x512/apps/git-loc-history.png" : "../logo.png";
+    return result;
 }
 string Definitions::get_path_doc() {
-    return ABSOLUTE_PATHS ? "/usr/share/doc/git-loc-history" : "..";
+    static string result = ABSOLUTE_PATHS ? "/usr/share/doc/git-loc-history" : "..";
+    return result;
 }
 string Definitions::get_path_license() {
-    return ABSOLUTE_PATHS ? "/usr/share/licenses/git-loc-history/LICENSE" : "../LICENSE";
+    static string result = ABSOLUTE_PATHS ? "/usr/share/licenses/git-loc-history/LICENSE" : "../LICENSE";
+    return result;
 }
 string Definitions::get_path_readme() {
-    return Definitions::get_path_doc() + "/README.md";
+    static string result = Definitions::get_path_doc() + "/README.md";
+    return result;
 }
 string Definitions::get_version() {
-    const string readme_path = Definitions::get_path_readme();
-    ifstream file(readme_path);
-    if (!file.is_open()) {
-        cerr << "Error opening file " << readme_path << "." << endl;
-        return "-1";
-    }
-    string line;
-    for (int i = 0; i < 3; i++) getline(file, line);
-    const string version = line.substr(12);
-    file.close();
+    static string version = []() {
+        const string readme_path = Definitions::get_path_readme();
+        ifstream file(readme_path);
+        if (!file.is_open()) {
+            cerr << "Error opening file " << readme_path << "." << endl;
+            return string("-1");
+        }
+        string line;
+        for (int i = 0; i < 3; i++) getline(file, line);
+        file.close();
+        return line.substr(12);
+    }();
     return version;
 }

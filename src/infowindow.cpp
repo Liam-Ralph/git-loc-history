@@ -111,32 +111,26 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
 
     QHBoxLayout *layout_buttons = new QHBoxLayout();
     QPushButton *view_readme = new QPushButton("View README.md");
+    view_readme->setObjectName("view_readme");
     layout_buttons->addWidget(view_readme);
     QPushButton *view_changelog = new QPushButton("View CHANGELOG.md");
+    view_changelog->setObjectName("view_changelog");
     layout_buttons->addWidget(view_changelog);
     QPushButton *view_license = new QPushButton("View LICENSE");
+    view_license->setObjectName("view_license");
     layout_buttons->addWidget(view_license);
     layout_back->addLayout(layout_buttons);
 
-    QTextBrowser *doc_viewer = new QTextBrowser();
+    doc_viewer = new QTextBrowser();
     doc_viewer->setReadOnly(true);
     doc_viewer->setTextInteractionFlags(Qt::TextBrowserInteraction);
     doc_viewer->setOpenExternalLinks(true);
     doc_viewer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     layout_back->addWidget(doc_viewer);
 
-    connect(
-        view_readme, &QPushButton::clicked,
-        this, [this, doc_viewer]() mutable { open_doc('r', doc_viewer); }
-    );
-    connect(
-        view_changelog, &QPushButton::clicked,
-        this, [this, doc_viewer]() mutable { open_doc('c', doc_viewer); }
-    );
-    connect(
-        view_license, &QPushButton::clicked,
-        this, [this, doc_viewer]() mutable { open_doc('l', doc_viewer); }
-    );
+    connect(view_readme, &QPushButton::clicked, this, &InfoWindow::open_doc);
+    connect(view_changelog, &QPushButton::clicked, this, &InfoWindow::open_doc);
+    connect(view_license, &QPushButton::clicked, this, &InfoWindow::open_doc);
 
     setCentralWidget(window);
 
@@ -157,26 +151,23 @@ string InfoWindow::read_file(string path) {
     return buffer.str();
 }
 
-void InfoWindow::open_doc(char file, QTextBrowser *doc_viewer) {
+void InfoWindow::open_doc() {
     resize(this->width(), qMin(800, this->screen()->availableGeometry().height()));
+    QObject *button = QObject::sender();
     string contents;
-    switch (file) {
-        case 'r': // README
-            static string readme_contents = InfoWindow::read_file(Definitions::get_path_readme());
-            contents = readme_contents;
-            doc_viewer->setMarkdown(QString::fromStdString(contents));
-            break;
-        case 'c': // CHANGELOG
-            static string changelog_contents =
-                InfoWindow::read_file(Definitions::get_path_doc() + "/CHANGELOG.md");
-            contents = changelog_contents;
-            doc_viewer->setMarkdown(QString::fromStdString(contents));
-            break;
-        case 'l': // LICENSE
-            static string license_contents = InfoWindow::read_file(Definitions::get_path_license());
-            contents = license_contents;
-            doc_viewer->setMarkdown("");
-            doc_viewer->setText(QString::fromStdString(contents));
-            break;
+    if (button->objectName() == "view_readme") {
+        static string readme_contents = read_file(Definitions::get_path_readme());
+        contents = readme_contents;
+        doc_viewer->setMarkdown(QString::fromStdString(contents));
+    } else if (button->objectName() == "view_changelog") {
+        static string changelog_contents =
+            read_file(Definitions::get_path_doc() + "/CHANGELOG.md");
+        contents = changelog_contents;
+        doc_viewer->setMarkdown(QString::fromStdString(contents));
+    } else if (button->objectName() == "view_license") {
+        static string license_contents = read_file(Definitions::get_path_license());
+        contents = license_contents;
+        doc_viewer->setMarkdown("");
+        doc_viewer->setText(QString::fromStdString(contents));
     }
 }

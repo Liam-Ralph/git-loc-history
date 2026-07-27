@@ -5,6 +5,7 @@
 
 // Includes
 
+#include <QGraphicsView>
 #include <QLineEdit>
 #include <QMainWindow>
 
@@ -19,11 +20,14 @@ class MainWindow : public QMainWindow {
 
         MainWindow();
         ~MainWindow();
-    
+
+        QLineEdit *path_entry;
+        QGraphicsView *results_view;
+
     private:
 
         void show_info();
-        void open_path_dialog(QLineEdit *path_entry);
+        void open_path_dialog();
 
 };
 
