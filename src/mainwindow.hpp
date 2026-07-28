@@ -6,13 +6,16 @@
 // Includes
 
 #include <QCheckBox>
-#include <QGraphicsView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QTextEdit>
+
+#include <QtGraphs/QAreaSeries>
+#include <QtGraphs/QXYSeries>
+#include <QtQuickWidgets/QQuickWidget>
 
 #include <array>
 #include <atomic>
@@ -32,7 +35,12 @@ class MainWindow : public QMainWindow {
 
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;
-        QGraphicsView *results_view;
+
+        QXYSeries *graph_upper;
+        QXYSeries *graph_lower;
+        QAreaSeries *graph;
+        QQuickWidget *graph_view;
+        
         QPushButton *start_button;
         QCheckBox *progress_check;
         QProgressBar *progress_bar;

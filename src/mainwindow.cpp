@@ -7,7 +7,6 @@
 
 #include <QCheckBox>
 #include <QFileDialog>
-#include <QGraphicsView>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -20,7 +19,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <QtCharts>
+#include <QtGraphs/QAreaSeries>
+#include <QtGraphs/QXYSeries>
+#include <QtQuickWidgets/QQuickWidget>
 
 #include <array>
 #include <atomic>
@@ -81,13 +82,17 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_excluded_paths->addWidget(excluded_paths_entry);
     layout_middle->addLayout(layout_excluded_paths);
 
-    results_view = new QGraphicsView();
-    results_view->setMinimumSize(400, 400);
-    layout_middle->addWidget(results_view);
+    graph_view = new QQuickWidget();
+    graph_view->setMinimumSize(400, 400);
+    graph_view->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    layout_middle->addWidget(graph_view);
 
     QVBoxLayout *layout_options = new QVBoxLayout();
-    layout_options->addWidget(new QLabel("Options"));
+    QLabel *options_label = new QLabel("Options");
+    options_label->setMaximumWidth(200);
+    layout_options->addWidget(options_label);
     progress_check = new QCheckBox("Show Progress");
+    progress_check->setMaximumWidth(200);
     layout_options->addWidget(progress_check);
     layout_options->setAlignment(Qt::AlignTop);
     layout_middle->addLayout(layout_options);
@@ -211,6 +216,8 @@ void MainWindow::create_graph() {
     section_label->setText("Finished");
     progress_bar->setValue(100);
     update_timer();
+
+    // Create Graph
 
     start_button->setEnabled(true);
 
