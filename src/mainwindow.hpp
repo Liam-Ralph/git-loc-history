@@ -11,6 +11,8 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QProgressBar>
+#include <QPushButton>
+#include <QTextEdit>
 
 #include <array>
 #include <atomic>
@@ -31,11 +33,14 @@ class MainWindow : public QMainWindow {
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;
         QGraphicsView *results_view;
+        QPushButton *start_button;
         QCheckBox *progress_check;
         QProgressBar *progress_bar;
+        QLabel *section_label;
         QLabel *timer_label;
 
         std::clock_t start;
+        bool kill_thread_flag;
 
     private:
 

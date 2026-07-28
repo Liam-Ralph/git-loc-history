@@ -82,10 +82,14 @@ vector<Commit> create_loc_history(
             auto progress_callback = [](const git_transfer_progress* stats, void* payload) -> int {
                 array<int, 6> *progress_ptr = static_cast<array<int, 6> *>(payload);
                 if (progress_ptr != NULL) {
-                    (*progress_ptr)[0] = stats->received_objects;
-                    (*progress_ptr)[1] = stats->total_objects;
-                    (*progress_ptr)[2] = stats->indexed_deltas;
-                    (*progress_ptr)[3] = stats->total_deltas;
+                    if (stats->total_objects > 0) {
+                        (*progress_ptr)[0] = stats->received_objects;
+                        (*progress_ptr)[1] = stats->total_objects;
+                    }
+                    if (stats->total_deltas > 0) {
+                        (*progress_ptr)[2] = stats->indexed_deltas;
+                        (*progress_ptr)[3] = stats->total_deltas;
+                    }
                 }
                 return 0;
             };

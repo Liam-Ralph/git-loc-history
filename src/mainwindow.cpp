@@ -32,14 +32,6 @@
 using namespace std;
 
 
-// Functions
-
-string format_time(clock_t start) {
-    stringstream ss;
-    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC;
-    return ss.str();
-}
-
 // MainWindow Functions
 
 MainWindow::MainWindow() : QMainWindow() {
@@ -104,18 +96,23 @@ MainWindow::MainWindow() : QMainWindow() {
 
     // Bottom
 
-    QPushButton *start_button = new QPushButton("Calculate Lines of Code");
+    start_button = new QPushButton("Calculate Lines of Code");
     connect(start_button, &QPushButton::clicked, this, &MainWindow::create_graph);
     layout_back->addWidget(start_button);
     layout_back->setAlignment(start_button, Qt::AlignHCenter);
 
     QHBoxLayout *layout_progress = new QHBoxLayout();
     progress_bar = new QProgressBar();
+    progress_bar->setRange(0, 100);
     progress_bar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     layout_progress->addStretch(1);
     layout_progress->addWidget(progress_bar, 3);
     layout_progress->addStretch(1);
     layout_back->addLayout(layout_progress);
+
+    section_label = new QLabel("Not Running");
+    layout_back->addWidget(section_label);
+    layout_back->setAlignment(section_label, Qt::AlignCenter);
 
     timer_label = new QLabel("0.0s");
     layout_back->addWidget(timer_label);
@@ -152,7 +149,11 @@ void MainWindow::open_path_dialog() {
 
 void MainWindow::create_graph() {
 
+    start_button->setEnabled(false);
+
     // Create LoC History
+
+    progress_bar->setValue(0);
 
     array<atomic<int>, 6> progress;
     array<atomic<int>, 6> *progress_ptr = NULL;
@@ -179,32 +180,83 @@ void MainWindow::create_graph() {
     string git_repo_path = path_entry->text().toStdString();
 
     unique_ptr<std::thread> t_ptr;
-    if (progress_ptr != NULL)
+    if (progress_ptr != NULL) {
+        kill_thread_flag = false;
         t_ptr = unique_ptr<std::thread>(
             new std::thread(
-                progress_tracker,
+                &MainWindow::progress_tracker,
+                this,
                 progress_ptr,
-                git_repo_path.substr(0, 4).compare("http") == 0,
-                start
+                git_repo_path.substr(0, 4).compare("http") == 0
             )
         );
+    }
 
     try {
         commits = create_loc_history(git_repo_path, excluded_paths, progress_ptr);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
         QMessageBox::critical(this, "Error Calculating Lines of Code", e.what());
+        if (progress_ptr != NULL) {
+            kill_thread_flag = true;
+            (*t_ptr).join();
+        }
+        start_button->setEnabled(true);
         return;
     }
 
     if (progress_ptr != NULL)
         (*t_ptr).join();
 
+    section_label->setText("Finished");
+    progress_bar->setValue(100);
     update_timer();
+
+    start_button->setEnabled(true);
 
 }
 
 void MainWindow::progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning) {
+    
+    section_label->setText("Setup...");
+    char section = 's';
+
+    while (true) {
+
+        this_thread::sleep_for(chrono::milliseconds(100));
+
+        if (kill_thread_flag) {
+            kill_thread_flag = false;
+            return;
+        }
+
+        int progress_pct;
+        if (cloning) {
+            progress_pct =
+                10 * (*progress_ptr)[0] / (*progress_ptr)[1] +
+                5 * (*progress_ptr)[2] / (*progress_ptr)[3] +
+                85 * (*progress_ptr)[4] / (*progress_ptr)[5];
+        } else progress_pct = 100 * (*progress_ptr)[4] / (*progress_ptr)[5];
+
+        char new_section;
+        if ((*progress_ptr)[4] > 0) new_section = 'c';
+        else if ((*progress_ptr)[2] > 0) new_section = 'd';
+        else if ((*progress_ptr)[0] > 0) new_section = 'r';
+        else new_section = 's';
+        if (new_section != section) {
+            section = new_section;
+            if (section == 'r') section_label->setText("Cloning: Receiving Objects...");
+            else if (section == 'd') section_label->setText("Cloning: Resolving Deltas...");
+            else section_label->setText("Processing Commits...");
+        }
+
+        update_timer();
+
+        progress_bar->setValue(progress_pct);
+
+        if ((*progress_ptr)[4] == (*progress_ptr)[5]) break;
+
+    }
 
 }
 
