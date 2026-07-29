@@ -13,8 +13,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 
-#include <QtGraphs/QAreaSeries>
-#include <QtGraphs/QXYSeries>
+#include <QtGraphs/QGraphsTheme>
 #include <QtQuickWidgets/QQuickWidget>
 
 #include <array>
@@ -36,10 +35,8 @@ class MainWindow : public QMainWindow {
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;
 
-        QXYSeries *graph_upper;
-        QXYSeries *graph_lower;
-        QAreaSeries *graph;
         QQuickWidget *graph_view;
+        QGraphsTheme *graph_theme;
         
         QPushButton *start_button;
         QCheckBox *progress_check;

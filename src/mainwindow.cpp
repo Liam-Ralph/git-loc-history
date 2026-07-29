@@ -19,8 +19,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <QtGraphs/QAreaSeries>
-#include <QtGraphs/QXYSeries>
+#include <QtGraphs/QGraphsTheme>
+#include <QtGraphs/QLineSeries>
 #include <QtQuickWidgets/QQuickWidget>
 
 #include <array>
@@ -85,6 +85,9 @@ MainWindow::MainWindow() : QMainWindow() {
     graph_view = new QQuickWidget();
     graph_view->setMinimumSize(400, 400);
     graph_view->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    graph_theme = new QGraphsTheme(graph_view);
+    graph_theme->setTheme(QGraphsTheme::Theme::MixSeries);
+    graph_theme->setBackgroundColor(Qt::black);
     layout_middle->addWidget(graph_view);
 
     QVBoxLayout *layout_options = new QVBoxLayout();
@@ -218,6 +221,30 @@ void MainWindow::create_graph() {
     update_timer();
 
     // Create Graph
+
+    map<Language, QLineSeries *> line_series_map;
+
+    for (const Commit &commit : commits) {
+        for (const auto &[lang, lines] : commit.language_map) {
+            QLineSeries *series;
+            series->setName(QString::fromStdString(lang.name));
+            if (line_series_map.find(lang) == line_series_map.end())
+                series = new QLineSeries();
+            else
+                series = line_series_map[lang];
+            series->append(commit.date * 1000, lines);
+        }
+    }
+
+    QList<QLineSeries *> series_list;
+    for (const auto &[lang, series] : line_series_map)
+        series_list.append(series);
+
+    graph_view->setInitialProperties({
+        {"theme", QVariant::fromValue(graph_theme)},
+        {"seriesList", QVariant::fromValue(series_list)}
+    });
+    graph_view->loadFromModule("QtGraphs", "GraphsView");
 
     start_button->setEnabled(true);
 
