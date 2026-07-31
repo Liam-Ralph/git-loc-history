@@ -38,6 +38,7 @@ using namespace std;
 MainWindow::MainWindow() : QMainWindow() {
 
     setWindowTitle("Git LoC History");
+    setWindowIcon(QIcon(QString::fromStdString(Definitions::get_path_logo())));
     setWindowState(Qt::WindowMaximized);
 
     // Create Window
