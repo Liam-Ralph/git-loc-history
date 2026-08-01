@@ -32,6 +32,13 @@ class MainWindow : public QMainWindow {
         MainWindow();
         ~MainWindow();
 
+    private:
+
+        void show_info();
+        void open_path_dialog();
+        void create_graph();
+        void update_timer();
+
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;
 
@@ -45,15 +52,7 @@ class MainWindow : public QMainWindow {
         QLabel *timer_label;
 
         std::clock_t start;
-        bool kill_thread_flag;
-
-    private:
-
-        void show_info();
-        void open_path_dialog();
-        void create_graph();
-        void progress_tracker( std::array<std::atomic<int>, 6> *progress_ptr, bool cloning);
-        void update_timer();
+        std::array<std::atomic<int>, 6> *progress_ptr;
 
 };
 
