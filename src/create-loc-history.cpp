@@ -19,6 +19,17 @@
 using namespace std;
 
 
+// Definitions
+
+#define OBJECTS_PCT 0.1
+#define DELTAS_PCT 0.05
+#define COMMITS_PCT 0.85
+
+#define OBJECTS_STR "Cloning: Receiving Objects..."
+#define DELTAS_STR "Cloning: Resolving Deltas..."
+#define COMMITS_STR "Processing Commits..."
+
+
 // Language Variables
 
 const Language python = Language("Python", {"py"}, "#", {"\"\"\"", "\"\"\""});
@@ -51,7 +62,8 @@ bool operator<(const Language &a, const Language &b) {
 // Functions
 
 vector<Commit> create_loc_history(
-    string git_repo_path, vector<string> excluded_paths, array<atomic<int>, 6> *progress_ptr
+    string git_repo_path, vector<string> excluded_paths,
+    function<void(double)> on_progress = nullptr, function<void(string)> on_section_change = nullptr
 ) {
 
     vector<Commit> commits = {};
@@ -64,7 +76,9 @@ vector<Commit> create_loc_history(
 
     // Get Repository Name
 
-    if (git_repo_path.substr(0, 4).compare("http") == 0) {
+    const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
+
+    if (cloning) {
 
         // git_repo_path is a URL
 
@@ -77,27 +91,51 @@ vector<Commit> create_loc_history(
 
         git_clone_options *opts_ptr = nullptr;
 
-        if (progress_ptr != nullptr) {
+        if (on_progress != nullptr) {
 
-            auto progress_callback = [](const git_transfer_progress* stats, void* payload) -> int {
-                array<int, 6> *progress_ptr = static_cast<array<int, 6> *>(payload);
-                if (progress_ptr != nullptr) {
-                    if (stats->total_objects > 0) {
-                        (*progress_ptr)[0] = stats->received_objects;
-                        (*progress_ptr)[1] = stats->total_objects;
+            class CallbackFunctions {
+                public:
+                    CallbackFunctions(
+                        function<void(double)> on_progress, function<void(string)> on_section_change
+                    ) : on_progress(on_progress), on_section_change(on_section_change) {}
+                    function<void(double)> on_progress;
+                    function<void(string)> on_section_change;
+            };
+            CallbackFunctions callbacks = CallbackFunctions(on_progress, on_section_change);
+
+            auto progress_callback = [](const git_transfer_progress *stats, void *payload) -> int {
+
+                static CallbackFunctions callbacks = *static_cast<CallbackFunctions *>(payload);
+                static function<void(double)> on_progress = callbacks.on_progress;
+                static function<void(string)> on_section_change = callbacks.on_section_change;
+
+                static bool notified_objects = false;
+                static bool notified_deltas = false;
+
+                if (stats->total_objects > 0) {
+                    on_progress(OBJECTS_PCT * stats->received_objects / stats->total_objects);
+                    if (!notified_objects) {
+                        notified_objects = true;
+                        on_section_change(OBJECTS_STR);
                     }
-                    if (stats->total_deltas > 0) {
-                        (*progress_ptr)[2] = stats->indexed_deltas;
-                        (*progress_ptr)[3] = stats->total_deltas;
+                } else {
+                    on_progress(
+                        OBJECTS_PCT + DELTAS_PCT * stats->indexed_deltas / stats->total_deltas
+                    );
+                    if (!notified_deltas) {
+                        notified_deltas = true;
+                        on_section_change(DELTAS_STR);
                     }
                 }
+
                 return 0;
+                
             };
 
             git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
             opts.fetch_opts.callbacks.transfer_progress =
                 static_cast<git_transfer_progress_cb>(progress_callback);
-            opts.fetch_opts.callbacks.payload = progress_ptr;
+            opts.fetch_opts.callbacks.payload = &callbacks;
 
             opts_ptr = &opts;
 
@@ -132,11 +170,6 @@ vector<Commit> create_loc_history(
             );
         }
 
-        if (progress_ptr != nullptr) {
-            (*progress_ptr)[0] = 1;
-            (*progress_ptr)[1] = 1;
-        }
-
     }
 
     // Get Commit History
@@ -149,14 +182,14 @@ vector<Commit> create_loc_history(
     git_revwalk_new(&repo_walker, repo);
     git_revwalk_push_head(repo_walker);
 
-    if (progress_ptr != nullptr) {
-        while (git_revwalk_next(&oid, repo_walker) == 0) {
-            if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
-                (*progress_ptr)[5]++;
-            }
-        }
-        (*progress_ptr)[5]--;
+    int total_commits = 0;
+    int commits_processed = 0;
+    if (on_progress != nullptr) {
+        while (git_revwalk_next(&oid, repo_walker) == 0)
+            if (git_commit_lookup(&git_commit, repo, &oid) == 0)
+                total_commits++;
         git_revwalk_push_head(repo_walker);
+        on_section_change(COMMITS_STR);
     }
 
     // File Processing Function
@@ -348,7 +381,12 @@ vector<Commit> create_loc_history(
             commits.push_back(commit);
             git_commit_free(git_commit);
 
-            if (progress_ptr != nullptr) (*progress_ptr)[4]++;
+            if (on_progress != nullptr) {
+                commits_processed++;
+                bool progress = commits_processed / total_commits;
+                if (cloning) progress = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress;
+                on_progress(progress);
+            }
 
         }
 
