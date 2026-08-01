@@ -37,7 +37,7 @@ class MainWindow : public QMainWindow {
 
         QQuickWidget *graph_view;
         QGraphsTheme *graph_theme;
-        
+
         QPushButton *start_button;
         QCheckBox *progress_check;
         QProgressBar *progress_bar;
