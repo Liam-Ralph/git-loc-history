@@ -52,7 +52,6 @@ class MainWindow : public QMainWindow {
         QLabel *timer_label;
 
         std::clock_t start;
-        std::array<std::atomic<int>, 6> *progress_ptr;
 
 };
 
