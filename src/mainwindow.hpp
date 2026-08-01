@@ -1,6 +1,6 @@
 #pragma once
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MAINWINDOW_HPP
+#define MAINWINDOW_HPP
 
 
 // Includes

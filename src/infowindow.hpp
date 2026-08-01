@@ -1,6 +1,6 @@
 #pragma once
-#ifndef INFOWINDOW_H
-#define INFOWINDOW_H
+#ifndef INFOWINDOW_HPP
+#define INFOWINDOW_HPP
 
 
 // Includes
