@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
     vector<string> excluded_paths;
 
     array<atomic<int>, 6> progress;
-    array<atomic<int>, 6> *progress_ptr = NULL;
+    array<atomic<int>, 6> *progress_ptr = nullptr;
 
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
     vector<Commit> commits;
 
     unique_ptr<thread> t_ptr;
-    if (progress_ptr != NULL)
+    if (progress_ptr != nullptr)
         t_ptr = unique_ptr<thread>(
             new thread(
                 progress_tracker,
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (progress_ptr != NULL)
+    if (progress_ptr != nullptr)
         (*t_ptr).join();
 
     string elapsed_time = format_time(start) + "s ";

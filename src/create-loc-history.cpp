@@ -59,7 +59,7 @@ vector<Commit> create_loc_history(
     // Repository Setup
 
     git_libgit2_init();
-    git_repository *repo = NULL;
+    git_repository *repo = nullptr;
     filesystem::path repo_path;
 
     // Get Repository Name
@@ -75,13 +75,13 @@ vector<Commit> create_loc_history(
         repo_path = "/tmp/git-loc-history/" + repo_name;
         filesystem::remove_all(repo_path);
 
-        git_clone_options *opts_ptr = NULL;
+        git_clone_options *opts_ptr = nullptr;
 
-        if (progress_ptr != NULL) {
+        if (progress_ptr != nullptr) {
 
             auto progress_callback = [](const git_transfer_progress* stats, void* payload) -> int {
                 array<int, 6> *progress_ptr = static_cast<array<int, 6> *>(payload);
-                if (progress_ptr != NULL) {
+                if (progress_ptr != nullptr) {
                     if (stats->total_objects > 0) {
                         (*progress_ptr)[0] = stats->received_objects;
                         (*progress_ptr)[1] = stats->total_objects;
@@ -132,7 +132,7 @@ vector<Commit> create_loc_history(
             );
         }
 
-        if (progress_ptr != NULL) {
+        if (progress_ptr != nullptr) {
             (*progress_ptr)[0] = 1;
             (*progress_ptr)[1] = 1;
         }
@@ -141,15 +141,15 @@ vector<Commit> create_loc_history(
 
     // Get Commit History
 
-    git_checkout_head(repo, NULL);
+    git_checkout_head(repo, nullptr);
 
-    git_revwalk *repo_walker = NULL;
+    git_revwalk *repo_walker = nullptr;
     git_oid oid;
-    git_commit *git_commit = NULL;
+    git_commit *git_commit = nullptr;
     git_revwalk_new(&repo_walker, repo);
     git_revwalk_push_head(repo_walker);
 
-    if (progress_ptr != NULL) {
+    if (progress_ptr != nullptr) {
         while (git_revwalk_next(&oid, repo_walker) == 0) {
             if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
                 (*progress_ptr)[5]++;
@@ -315,9 +315,9 @@ vector<Commit> create_loc_history(
             Commit commit = Commit(
                 oid_str, git_commit_message(git_commit), git_commit_time(git_commit)
             );
-            git_tree *commit_tree = NULL;
+            git_tree *commit_tree = nullptr;
 
-            if (git_commit_tree(&commit_tree, git_commit) == 0 && commit_tree != NULL) {
+            if (git_commit_tree(&commit_tree, git_commit) == 0 && commit_tree != nullptr) {
 
                 // Checkout Commit
 
@@ -348,7 +348,7 @@ vector<Commit> create_loc_history(
             commits.push_back(commit);
             git_commit_free(git_commit);
 
-            if (progress_ptr != NULL) (*progress_ptr)[4]++;
+            if (progress_ptr != nullptr) (*progress_ptr)[4]++;
 
         }
 
