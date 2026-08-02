@@ -46,7 +46,7 @@ using namespace std;
 
 string format_time(clock_t start) {
     stringstream ss;
-    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC;
+    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC << "s";
     return ss.str();
 }
 
@@ -67,7 +67,7 @@ void on_progress(double progress, const clock_t start) {
     int bars = int(round(progress * columns));
 
     if (bars != prev_bars) {
-        string text = "\033[3A\033[2K\r" + format_time(start) + "s\033[2B\033[2K\r";
+        string text = "\033[3A\033[2K\r" + format_time(start) + "\033[2B\033[2K\r";
         for (int i = 0; i < columns; i++) {
             if (i < bars) text += "█";
             else text += "▒";
@@ -79,7 +79,7 @@ void on_progress(double progress, const clock_t start) {
 }
 
 void on_section_change(string section, const clock_t start) {
-    cout << "\033[3A\033[2K" + format_time(start) + "s\033[1B\033[2K\r" + section;
+    cout << "\033[3A\033[2K" + format_time(start) + "\033[1B\033[2K\r" + section;
     flush(cout);
 }
 
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    string elapsed_time = format_time(start) + "s ";
+    string elapsed_time = format_time(start) + " ";
 
     // Create Graph
 

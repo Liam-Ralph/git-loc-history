@@ -70,7 +70,8 @@ vector<Commit> create_loc_history(
     const clock_t start
 ) {
 
-    on_section_change(SETUP_STR, start);
+    if (on_section_change != nullptr)
+        on_section_change(SETUP_STR, start);
 
     vector<Commit> commits = {};
 
@@ -94,8 +95,8 @@ vector<Commit> create_loc_history(
 
         repo_path = "/tmp/git-loc-history/" + repo_name;
         filesystem::remove_all(repo_path);
-
-        git_clone_options *opts_ptr = nullptr;
+        filesystem::create_directories(repo_path);
+        int error;
 
         if (on_progress != nullptr) {
 
@@ -144,7 +145,7 @@ vector<Commit> create_loc_history(
                 }
 
                 return 0;
-                
+
             };
 
             git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
@@ -152,12 +153,14 @@ vector<Commit> create_loc_history(
                 static_cast<git_transfer_progress_cb>(progress_callback);
             opts.fetch_opts.callbacks.payload = &captures;
 
-            opts_ptr = &opts;
+            error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), &opts);
+
+        } else {
+
+            error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), nullptr);
 
         }
 
-        filesystem::create_directories(repo_path);
-        int error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), opts_ptr);
         if (error != 0) {
             const git_error *e = git_error_last();
             throw runtime_error(

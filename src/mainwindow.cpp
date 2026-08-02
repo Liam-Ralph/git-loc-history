@@ -174,8 +174,6 @@ void MainWindow::create_graph() {
 
     string git_repo_path = path_entry->text().toStdString();
 
-
-
     try {
         if (progress_check->isChecked()) {
             function<void(double, clock_t)> on_progress_func = bind(
@@ -188,8 +186,9 @@ void MainWindow::create_graph() {
                 git_repo_path, excluded_paths,
                 on_progress_func, on_section_change_func, start
             );
-        } else
+        } else {
             commits = create_loc_history(git_repo_path, excluded_paths, nullptr, nullptr, start);
+        }
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
         QMessageBox::critical(this, "Error Calculating Lines of Code", e.what());
@@ -248,6 +247,6 @@ void MainWindow::on_section_change(string section, const clock_t start) {
 
 void MainWindow::update_timer(const clock_t start) {
     stringstream ss;
-    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC;
-    timer_label->setText(QString::fromStdString(ss.str() + "s"));
+    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC << "s";
+    timer_label->setText(QString::fromStdString(ss.str()));
 }
