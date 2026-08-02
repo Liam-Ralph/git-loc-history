@@ -16,7 +16,7 @@ find_package(Curses REQUIRED)
 if(MSVC)
     add_compile_options(/W4)
 else()
-    add_compile_options(-Wall)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 add_executable(git-loc-history

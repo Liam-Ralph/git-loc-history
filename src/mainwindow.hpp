@@ -19,6 +19,7 @@
 #include <array>
 #include <atomic>
 #include <ctime>
+#include <string>
 
 
 // MainWindow Class
@@ -33,14 +34,14 @@ class MainWindow : public QMainWindow {
         ~MainWindow();
 
         void on_progress(double progress, std::clock_t start);
-        void on_section_change(string section, std::clock_t start);
+        void on_section_change(std::string section, std::clock_t start);
 
     private:
 
         void show_info();
         void open_path_dialog();
         void create_graph();
-        void update_timer();
+        void update_timer(std::clock_t start);
 
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;

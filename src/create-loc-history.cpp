@@ -26,6 +26,7 @@ using namespace std;
 #define DELTAS_PCT 0.05
 #define COMMITS_PCT 0.85
 
+#define SETUP_STR "Setup..."
 #define OBJECTS_STR "Cloning: Receiving Objects..."
 #define DELTAS_STR "Cloning: Resolving Deltas..."
 #define COMMITS_STR "Processing Commits..."
@@ -68,6 +69,8 @@ vector<Commit> create_loc_history(
     function<void(string, clock_t)> on_section_change,
     const clock_t start
 ) {
+
+    on_section_change(SETUP_STR, start);
 
     vector<Commit> commits = {};
 
@@ -395,7 +398,7 @@ vector<Commit> create_loc_history(
 
             if (on_progress != nullptr) {
                 commits_processed++;
-                bool progress = commits_processed / total_commits;
+                double progress = double(commits_processed) / total_commits;
                 if (cloning) progress = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress;
                 on_progress(progress, start);
             }

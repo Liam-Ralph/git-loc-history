@@ -67,7 +67,7 @@ void on_progress(double progress, const clock_t start) {
     int bars = int(round(progress * columns));
 
     if (bars != prev_bars) {
-        string text = "\033[3A\033[2K" + format_time(start) + "s\033[2B\033[2K";
+        string text = "\033[3A\033[2K\r" + format_time(start) + "s\033[2B\033[2K\r";
         for (int i = 0; i < columns; i++) {
             if (i < bars) text += "█";
             else text += "▒";
@@ -79,7 +79,7 @@ void on_progress(double progress, const clock_t start) {
 }
 
 void on_section_change(string section, const clock_t start) {
-    cout << "\033[3A\033[2K" + format_time(start) + "s\033[1B\033[2K" + section;
+    cout << "\033[3A\033[2K" + format_time(start) + "s\033[1B\033[2K\r" + section;
     flush(cout);
 }
 
@@ -170,6 +170,10 @@ int main(int argc, char *argv[]) {
 
     vector<Commit> commits;
 
+    system("clear");
+    cout << "\n\n\n";
+    flush(cout);
+
     try {
         if (show_progress)
             commits = create_loc_history(
@@ -203,13 +207,13 @@ int main(int argc, char *argv[]) {
 
     // Create Graph Bars
 
-    int max_lines = 0;
+    size_t max_lines = 0;
     for (const Commit &commit : commits) if (commit.lines > max_lines) max_lines = commit.lines;
 
     vector<vector<string>> graph_bars(commits.size(), vector<string>());
     array<string, 7> block_chars = {"▁", "▂", "▃", "▄", "▅", "▆", "▇"};
 
-    for (int i = 0; i < commits.size(); i++) {
+    for (size_t i = 0; i < commits.size(); i++) {
 
         // Get Commit and Bar
 

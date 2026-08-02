@@ -174,13 +174,21 @@ void MainWindow::create_graph() {
 
     string git_repo_path = path_entry->text().toStdString();
 
+
+
     try {
-        if (progress_check->isChecked())
+        if (progress_check->isChecked()) {
+            function<void(double, clock_t)> on_progress_func = bind(
+                &MainWindow::on_progress, this, placeholders::_1, placeholders::_2
+            );
+            function<void(string, clock_t)> on_section_change_func = bind(
+                &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
+            );
             commits = create_loc_history(
                 git_repo_path, excluded_paths,
-                MainWindow::on_progress, MainWindow::on_section_change, start
+                on_progress_func, on_section_change_func, start
             );
-        else
+        } else
             commits = create_loc_history(git_repo_path, excluded_paths, nullptr, nullptr, start);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
@@ -191,7 +199,7 @@ void MainWindow::create_graph() {
 
     section_label->setText("Finished");
     progress_bar->setValue(100);
-    update_timer();
+    update_timer(start);
 
     // Create Graph
 
@@ -224,11 +232,18 @@ void MainWindow::create_graph() {
 }
 
 void MainWindow::on_progress(double progress, const clock_t start) {
-
+    update_timer(start);
+    static int progress_int_prev = 0;
+    int progress_int = int(round(progress * 100));
+    if (progress_int > progress_int_prev) {
+        progress_int_prev = progress_int;
+        progress_bar->setValue(progress_int);
+    }
 }
 
 void MainWindow::on_section_change(string section, const clock_t start) {
-
+    update_timer(start);
+    section_label->setText(QString::fromStdString(section));
 }
 
 void MainWindow::update_timer(const clock_t start) {
