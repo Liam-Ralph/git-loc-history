@@ -202,29 +202,33 @@ void MainWindow::create_graph() {
 
     // Create Graph
 
-    // map<Language, QLineSeries *> line_series_map;
+    map<Language, QLineSeries *> line_series_map;
 
-    // for (const Commit &commit : commits) {
-    //     for (const auto &[lang, lines] : commit.language_map) {
-    //         QLineSeries *series;
-    //         series->setName(QString::fromStdString(lang.name));
-    //         if (line_series_map.find(lang) == line_series_map.end())
-    //             series = new QLineSeries();
-    //         else
-    //             series = line_series_map[lang];
-    //         series->append(commit.date * 1000, lines);
-    //     }
-    // }
+    for (const Commit &commit : commits) {
+        for (const auto &[lang, lines] : commit.language_map) {
+            QLineSeries *series;
+            bool append = false;
+            if (line_series_map.find(lang) == line_series_map.end()) {
+                series = new QLineSeries();
+                append = true;
+            } else {
+                series = line_series_map[lang];
+            }
+            series->setName(QString::fromStdString(lang.name));
+            series->append(commit.date * 1000, lines);
+            if (append) line_series_map.emplace(lang, series);
+        }
+    }
 
-    // QList<QLineSeries *> series_list;
-    // for (const auto &[lang, series] : line_series_map)
-    //     series_list.append(series);
+    QList<QLineSeries *> series_list;
+    for (const auto &[lang, series] : line_series_map)
+        series_list.append(series);
 
-    // graph_view->setInitialProperties({
-    //     {"theme", QVariant::fromValue(graph_theme)},
-    //     {"seriesList", QVariant::fromValue(series_list)}
-    // });
-    // graph_view->loadFromModule("QtGraphs", "GraphsView");
+    graph_view->setInitialProperties({
+        {"theme", QVariant::fromValue(graph_theme)},
+        {"seriesList", QVariant::fromValue(series_list)}
+    });
+    graph_view->loadFromModule("QtGraphs", "GraphsView");
 
     start_button->setEnabled(true);
 
