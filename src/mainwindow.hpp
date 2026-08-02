@@ -18,7 +18,7 @@
 
 #include <array>
 #include <atomic>
-#include <chrono>
+#include <ctime>
 
 
 // MainWindow Class
@@ -31,6 +31,9 @@ class MainWindow : public QMainWindow {
 
         MainWindow();
         ~MainWindow();
+
+        void on_progress(double progress, std::clock_t start);
+        void on_section_change(string section, std::clock_t start);
 
     private:
 
@@ -50,8 +53,6 @@ class MainWindow : public QMainWindow {
         QProgressBar *progress_bar;
         QLabel *section_label;
         QLabel *timer_label;
-
-        std::clock_t start;
 
 };
 

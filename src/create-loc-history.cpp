@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <ctime>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -63,7 +64,9 @@ bool operator<(const Language &a, const Language &b) {
 
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,
-    function<void(double)> on_progress = nullptr, function<void(string)> on_section_change = nullptr
+    function<void(double, clock_t)> on_progress,
+    function<void(string, clock_t)> on_section_change,
+    const clock_t start
 ) {
 
     vector<Commit> commits = {};
@@ -93,38 +96,47 @@ vector<Commit> create_loc_history(
 
         if (on_progress != nullptr) {
 
-            class CallbackFunctions {
+            class Captures {
                 public:
-                    CallbackFunctions(
-                        function<void(double)> on_progress, function<void(string)> on_section_change
-                    ) : on_progress(on_progress), on_section_change(on_section_change) {}
-                    function<void(double)> on_progress;
-                    function<void(string)> on_section_change;
+                    Captures(
+                        function<void(double, clock_t)> on_progress,
+                        function<void(string, clock_t)> on_section_change,
+                        const clock_t start
+                    ) : on_progress(on_progress), on_section_change(on_section_change),
+                    start(start) {}
+                    function<void(double, clock_t)> on_progress;
+                    function<void(string, clock_t)> on_section_change;
+                    const clock_t start;
             };
-            CallbackFunctions callbacks = CallbackFunctions(on_progress, on_section_change);
+            Captures captures = Captures(on_progress, on_section_change, start);
 
             auto progress_callback = [](const git_transfer_progress *stats, void *payload) -> int {
 
-                static CallbackFunctions callbacks = *static_cast<CallbackFunctions *>(payload);
-                static function<void(double)> on_progress = callbacks.on_progress;
-                static function<void(string)> on_section_change = callbacks.on_section_change;
+                static Captures captures = *static_cast<Captures *>(payload);
+                static function<void(double, clock_t)> on_progress = captures.on_progress;
+                static function<void(string, clock_t)> on_section_change =
+                    captures.on_section_change;
+                static clock_t start = captures.start;
 
                 static bool notified_objects = false;
                 static bool notified_deltas = false;
 
                 if (stats->total_objects > 0) {
-                    on_progress(OBJECTS_PCT * stats->received_objects / stats->total_objects);
+                    on_progress(
+                        OBJECTS_PCT * stats->received_objects / stats->total_objects, start
+                    );
                     if (!notified_objects) {
                         notified_objects = true;
-                        on_section_change(OBJECTS_STR);
+                        on_section_change(OBJECTS_STR, start);
                     }
                 } else {
                     on_progress(
-                        OBJECTS_PCT + DELTAS_PCT * stats->indexed_deltas / stats->total_deltas
+                        OBJECTS_PCT + DELTAS_PCT * stats->indexed_deltas / stats->total_deltas,
+                        start
                     );
                     if (!notified_deltas) {
                         notified_deltas = true;
-                        on_section_change(DELTAS_STR);
+                        on_section_change(DELTAS_STR, start);
                     }
                 }
 
@@ -135,7 +147,7 @@ vector<Commit> create_loc_history(
             git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
             opts.fetch_opts.callbacks.transfer_progress =
                 static_cast<git_transfer_progress_cb>(progress_callback);
-            opts.fetch_opts.callbacks.payload = &callbacks;
+            opts.fetch_opts.callbacks.payload = &captures;
 
             opts_ptr = &opts;
 
@@ -189,7 +201,7 @@ vector<Commit> create_loc_history(
             if (git_commit_lookup(&git_commit, repo, &oid) == 0)
                 total_commits++;
         git_revwalk_push_head(repo_walker);
-        on_section_change(COMMITS_STR);
+        on_section_change(COMMITS_STR, start);
     }
 
     // File Processing Function
@@ -385,7 +397,7 @@ vector<Commit> create_loc_history(
                 commits_processed++;
                 bool progress = commits_processed / total_commits;
                 if (cloning) progress = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress;
-                on_progress(progress);
+                on_progress(progress, start);
             }
 
         }

@@ -20,8 +20,8 @@ code across its history.
 #include <array>
 #include <algorithm>
 #include <atomic>
-#include <chrono>
 #include <cmath>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <getopt.h>
@@ -55,47 +55,32 @@ bool is_in(T first, vector<T> values) {
     return find(values.begin(), values.end(), first) != values.end();
 }
 
-void progress_tracker(array<atomic<int>, 6> *progress_ptr, bool cloning, clock_t start) {
+void on_progress(double progress, const clock_t start) {
 
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    int columns = min(int(w.ws_col), 50);
+    static int columns = []() {
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        return min(int(w.ws_col), 50);
+    }();
 
-    system("clear");
-    string text = format_time(start) + " Setup...\n";
-    for (int i = 0; i < columns; i++) text += "▒";
-    cout << text << endl;
+    static int prev_bars = 0;
+    int bars = int(round(progress * columns));
 
-    while (true) {
-
-        this_thread::sleep_for(chrono::milliseconds(100));
-
-        double progress_pct;
-        if (cloning) {
-            progress_pct =
-                0.1 * (*progress_ptr)[0] / (*progress_ptr)[1] +
-                0.05 * (*progress_ptr)[2] / (*progress_ptr)[3] +
-                0.85 * (*progress_ptr)[4] / (*progress_ptr)[5];
-        } else progress_pct = (*progress_ptr)[4] / (*progress_ptr)[5];
-
-        text = format_time(start) + " ";
-        if ((*progress_ptr)[4] > 0) text += "Processing Commits...\n";
-        else if ((*progress_ptr)[2] > 0) text += "Cloning: Resolving Deltas...\n";
-        else if ((*progress_ptr)[0] > 0) text += "Cloning: Receiving Objects...\n";
-        else text += "Setup...\n";
-        int bars = int(round(progress_pct * columns));
+    if (bars != prev_bars) {
+        string text = "\033[3A\033[2K" + format_time(start) + "s\033[2B\033[2K";
         for (int i = 0; i < columns; i++) {
             if (i < bars) text += "█";
             else text += "▒";
         }
-
-        system("clear");
         cout << text << endl;
-
-        if ((*progress_ptr)[4] == (*progress_ptr)[5]) break;
-
+        flush(cout);
     }
 
+}
+
+void on_section_change(string section, const clock_t start) {
+    cout << "\033[3A\033[2K" + format_time(start) + "s\033[1B\033[2K" + section;
+    flush(cout);
 }
 
 
@@ -107,9 +92,7 @@ int main(int argc, char *argv[]) {
 
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
-
-    array<atomic<int>, 6> progress;
-    array<atomic<int>, 6> *progress_ptr = nullptr;
+    bool show_progress = false;
 
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
@@ -148,13 +131,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case 'p': {
-                progress[0] = 0;
-                progress[1] = 1;
-                progress[2] = 0;
-                progress[3] = 1;
-                progress[4] = 0;
-                progress[5] = 1;
-                progress_ptr = &progress;
+                show_progress = true;
                 break;
             }
             case 'v':
@@ -193,24 +170,17 @@ int main(int argc, char *argv[]) {
 
     vector<Commit> commits;
 
-    unique_ptr<thread> t_ptr;
-    if (progress_ptr != nullptr)
-        t_ptr = unique_ptr<thread>(
-            new thread(
-                progress_tracker,
-                progress_ptr, git_repo_path.substr(0, 4).compare("http") == 0, start
-            )
-        );
-
     try {
-        commits = create_loc_history(git_repo_path, excluded_paths, progress_ptr);
+        if (show_progress)
+            commits = create_loc_history(
+                git_repo_path, excluded_paths, on_progress, on_section_change, start
+            );
+        else
+            commits = create_loc_history(git_repo_path, excluded_paths, nullptr, nullptr, start);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
         return 1;
     }
-
-    if (progress_ptr != nullptr)
-        (*t_ptr).join();
 
     string elapsed_time = format_time(start) + "s ";
 
@@ -283,13 +253,13 @@ int main(int argc, char *argv[]) {
                 if (first_block_part->second == 8)
                     // Full Block of One Color
                     graph_bar.push_back(
-                        "\u001b[48;5;" + language_colors[first_block_part->first] + "m "
+                        "\033[48;5;" + language_colors[first_block_part->first] + "m "
                     );
 
                 else {
                     // Partial Block of One Color, Top of Bar
                     graph_bar.push_back(
-                        "\u001b[m\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
+                        "\033[m\033[38;5;" + language_colors[first_block_part->first] + "m" +
                         block_chars[first_block_part->second - 1]
                     );
                     break;
@@ -298,8 +268,8 @@ int main(int argc, char *argv[]) {
             } else if (block_parts.size() == 2) {
                 // Block Has Two Colors
                 graph_bar.push_back(
-                    "\u001b[38;5;" + language_colors[first_block_part->first] + "m" +
-                    "\u001b[48;5;" + language_colors[block_parts.rbegin()->first] + "m" +
+                    "\033[38;5;" + language_colors[first_block_part->first] + "m" +
+                    "\033[48;5;" + language_colors[block_parts.rbegin()->first] + "m" +
                     block_chars[first_block_part->second - 1]
                 );
 
@@ -353,13 +323,13 @@ int main(int argc, char *argv[]) {
 
                 if (first_char < 8)
                     graph_bar.push_back(
-                        "\u001b[38;5;" + language_colors[*first_lang] + "m" +
-                        "\u001b[48;5;" + language_colors[*second_lang] + "m" +
+                        "\033[38;5;" + language_colors[*first_lang] + "m" +
+                        "\033[48;5;" + language_colors[*second_lang] + "m" +
                         block_chars[first_char - 1]
                     );
                 else
                     graph_bar.push_back(
-                        "\u001b[48;5;" + language_colors[*first_lang] + "m "
+                        "\033[48;5;" + language_colors[*first_lang] + "m "
                     );
 
             }
@@ -395,7 +365,7 @@ int main(int argc, char *argv[]) {
             project_langs.push_back(lang);
     string legend = "";
     for (const Language &lang : project_langs)
-        legend += "\u001b[48;5;" + language_colors[lang] + "m" + lang.name + "\u001b[m ";
+        legend += "\033[48;5;" + language_colors[lang] + "m" + lang.name + "\033[m ";
 
     // Print Graph
 
@@ -419,9 +389,9 @@ int main(int argc, char *argv[]) {
                     int index = graph_bars.size() - 1 - ii;
                     if (graph_bars[index].size() > i)
                         cout << graph_bars[index][i];
-                    else cout << "\u001b[m ";
+                    else cout << "\033[m ";
                 }
-                cout << "\u001b[m\n";
+                cout << "\033[m\n";
             }
             cout <<
                 "l/< and r/>: Move window. L and R: Move window to end. q: Quit program." << endl;
@@ -455,9 +425,9 @@ int main(int argc, char *argv[]) {
             for (int ii = graph_bars.size() - 1; ii >= 0; ii--) {
                 if (graph_bars[ii].size() > i)
                     cout << graph_bars[ii][i];
-                else cout << "\u001b[m ";
+                else cout << "\033[m ";
             }
-            cout << "\u001b[m\n";
+            cout << "\033[m\n";
         }
         flush(cout);
     }

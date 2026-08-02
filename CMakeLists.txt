@@ -13,6 +13,12 @@ add_subdirectory(libgit2-1.9.6)
 find_package(Qt6 COMPONENTS Core Gui Widgets Graphs QuickWidgets REQUIRED)
 find_package(Curses REQUIRED)
 
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall)
+endif()
+
 add_executable(git-loc-history
     src/git-loc-history.cpp
     src/definitions.cpp

@@ -8,6 +8,7 @@
 #include <array>
 #include <atomic>
 #include <ctime>
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -84,7 +85,9 @@ class Commit {
 
 std::vector<Commit> create_loc_history(
     std::string git_repo_path, std::vector<std::string> excluded_paths,
-    std::array<std::atomic<int>, 6> *progress_ptr
+    std::function<void(double, clock_t)> on_progress,
+    std::function<void(std::string, clock_t)> on_section_change,
+    const std::clock_t start
 );
 
 

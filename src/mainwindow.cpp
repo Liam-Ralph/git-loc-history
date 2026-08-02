@@ -24,7 +24,7 @@
 #include <QtQuickWidgets/QQuickWidget>
 
 #include <array>
-#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -161,7 +161,6 @@ void MainWindow::create_graph() {
     // Create LoC History
 
     progress_bar->setValue(0);
-    const bool show_progress = progress_check->isChecked();
 
     vector<string> excluded_paths;
     string entry_text = excluded_paths_entry->toPlainText().toStdString();
@@ -169,14 +168,20 @@ void MainWindow::create_graph() {
     string to;
     while (getline(ss, to, '\n')) if (to.length() != 0) excluded_paths.push_back(to);
 
-    start = clock();
+    clock_t start = clock();
 
     vector<Commit> commits;
 
     string git_repo_path = path_entry->text().toStdString();
 
     try {
-        commits = create_loc_history(git_repo_path, excluded_paths);
+        if (progress_check->isChecked())
+            commits = create_loc_history(
+                git_repo_path, excluded_paths,
+                MainWindow::on_progress, MainWindow::on_section_change, start
+            );
+        else
+            commits = create_loc_history(git_repo_path, excluded_paths, nullptr, nullptr, start);
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
         QMessageBox::critical(this, "Error Calculating Lines of Code", e.what());
@@ -218,7 +223,15 @@ void MainWindow::create_graph() {
 
 }
 
-void MainWindow::update_timer() {
+void MainWindow::on_progress(double progress, const clock_t start) {
+
+}
+
+void MainWindow::on_section_change(string section, const clock_t start) {
+
+}
+
+void MainWindow::update_timer(const clock_t start) {
     stringstream ss;
     ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC;
     timer_label->setText(QString::fromStdString(ss.str() + "s"));
