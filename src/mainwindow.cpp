@@ -201,6 +201,7 @@ void MainWindow::create_graph() {
     // Create Graph
 
     QChart *chart = new QChart();
+
     map<Language, QLineSeries *> line_series_map;
 
     for (const Commit &commit : commits) {
