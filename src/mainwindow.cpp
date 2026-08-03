@@ -203,8 +203,10 @@ void MainWindow::create_graph() {
     QChart *chart = new QChart();
 
     map<Language, QLineSeries *> line_series_map;
+    size_t max_lines = 0;
 
     for (const Commit &commit : commits) {
+        if (commit.lines > max_lines) max_lines = commit.lines;
         for (const auto &[lang, lines] : commit.language_map) {
             QLineSeries *series;
             bool emplace = false;
@@ -221,13 +223,21 @@ void MainWindow::create_graph() {
         }
     }
 
-    for (auto &[lang, series] : line_series_map)
-        chart->addSeries(series);
-
     QDateTimeAxis *axis_x = new QDateTimeAxis();
+    axis_x->setMin(QDateTime::fromSecsSinceEpoch(commits.back().date));
+    axis_x->setMax(QDateTime::fromSecsSinceEpoch(commits.front().date));
     chart->addAxis(axis_x, Qt::AlignBottom);
     QValueAxis *axis_y = new QValueAxis();
+    axis_y->setMin(0);
+    axis_y->setMax(max_lines);
+    axis_y->setLabelFormat("%i");
     chart->addAxis(axis_y, Qt::AlignLeft);
+
+    for (auto &[lang, series] : line_series_map) {
+        chart->addSeries(series);
+        series->attachAxis(axis_x);
+        series->attachAxis(axis_y);
+    }
 
     chart_view->setChart(chart);
 
