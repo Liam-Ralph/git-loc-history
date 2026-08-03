@@ -13,8 +13,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 
-#include <QtGraphs/QGraphsTheme>
-#include <QtQuickWidgets/QQuickWidget>
+#include <QtCharts/QChartView>
 
 #include <array>
 #include <atomic>
@@ -46,8 +45,7 @@ class MainWindow : public QMainWindow {
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;
 
-        QQuickWidget *graph_view;
-        QGraphsTheme *graph_theme;
+        QChartView *chart_view;
 
         QPushButton *start_button;
         QCheckBox *progress_check;

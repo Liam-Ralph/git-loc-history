@@ -19,11 +19,10 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <QtGraphs/QDateTimeAxis>
-#include <QtGraphs/QGraphsTheme>
-#include <QtGraphs/QLineSeries>
-#include <QtGraphs/QValueAxis>
-#include <QtQuickWidgets/QQuickWidget>
+#include <QtCharts/QChartView>
+#include <QtCharts/QDateTimeAxis>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
 
 #include <array>
 #include <ctime>
@@ -83,13 +82,8 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_excluded_paths->addWidget(excluded_paths_entry);
     layout_middle->addLayout(layout_excluded_paths);
 
-    graph_view = new QQuickWidget();
-    graph_view->setMinimumSize(400, 400);
-    graph_view->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    graph_theme = new QGraphsTheme(graph_view);
-    graph_theme->setTheme(QGraphsTheme::Theme::MixSeries);
-    graph_theme->setBackgroundColor(Qt::black);
-    layout_middle->addWidget(graph_view);
+    chart_view = new QChartView(window);
+    layout_middle->addWidget(chart_view);
 
     QVBoxLayout *layout_options = new QVBoxLayout();
     QLabel *options_label = new QLabel("Options");
@@ -206,6 +200,7 @@ void MainWindow::create_graph() {
 
     // Create Graph
 
+    QChart *chart = new QChart();
     map<Language, QLineSeries *> line_series_map;
 
     for (const Commit &commit : commits) {
@@ -213,7 +208,7 @@ void MainWindow::create_graph() {
             QLineSeries *series;
             bool emplace = false;
             if (line_series_map.find(lang) == line_series_map.end()) {
-                series = new QLineSeries(graph_view);
+                series = new QLineSeries();
                 series->setName(QString::fromStdString(lang.name));
                 series->setColor(Qt::red);
                 emplace = true;
@@ -225,24 +220,15 @@ void MainWindow::create_graph() {
         }
     }
 
-    QDateTimeAxis *axis_x = new QDateTimeAxis(graph_view);
-    axis_x->setMin(QDateTime::fromSecsSinceEpoch(commits.front().date));
-    axis_x->setMax(QDateTime::fromSecsSinceEpoch(commits.back().date));
-    QValueAxis *axis_y = new QValueAxis(graph_view);
-    axis_y->setMin(0);
-    axis_y->setMax(2000);
+    for (auto &[lang, series] : line_series_map)
+        chart->addSeries(series);
 
-    QList<QObject *> series_list;
-    for (const auto &[lang, series] : line_series_map)
-        series_list.append(series);
+    QDateTimeAxis *axis_x = new QDateTimeAxis();
+    chart->addAxis(axis_x, Qt::AlignBottom);
+    QValueAxis *axis_y = new QValueAxis();
+    chart->addAxis(axis_y, Qt::AlignLeft);
 
-    graph_view->setInitialProperties({
-        {"theme", QVariant::fromValue(graph_theme)},
-        {"seriesList", QVariant::fromValue(series_list)},
-        {"axisX", QVariant::fromValue(axis_x)},
-        {"axisY", QVariant::fromValue(axis_y)}
-    });
-    graph_view->loadFromModule("QtGraphs", "GraphsView");
+    chart_view->setChart(chart);
 
     start_button->setEnabled(true);
 
