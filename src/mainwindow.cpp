@@ -19,8 +19,10 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <QtGraphs/QDateTimeAxis>
 #include <QtGraphs/QGraphsTheme>
 #include <QtGraphs/QLineSeries>
+#include <QtGraphs/QValueAxis>
 #include <QtQuickWidgets/QQuickWidget>
 
 #include <array>
@@ -118,6 +120,8 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_back->addLayout(layout_progress);
 
     section_label = new QLabel("Not Running");
+    section_label->setMinimumWidth(300);
+    section_label->setAlignment(Qt::AlignCenter);
     layout_back->addWidget(section_label);
     layout_back->setAlignment(section_label, Qt::AlignCenter);
 
@@ -207,26 +211,36 @@ void MainWindow::create_graph() {
     for (const Commit &commit : commits) {
         for (const auto &[lang, lines] : commit.language_map) {
             QLineSeries *series;
-            bool append = false;
+            bool emplace = false;
             if (line_series_map.find(lang) == line_series_map.end()) {
-                series = new QLineSeries();
-                append = true;
+                series = new QLineSeries(graph_view);
+                series->setName(QString::fromStdString(lang.name));
+                series->setColor(Qt::red);
+                emplace = true;
             } else {
                 series = line_series_map[lang];
             }
-            series->setName(QString::fromStdString(lang.name));
-            series->append(commit.date * 1000, lines);
-            if (append) line_series_map.emplace(lang, series);
+            series->append(qint64(commit.date) * 1000, lines);
+            if (emplace) line_series_map.emplace(lang, series);
         }
     }
 
-    QList<QLineSeries *> series_list;
+    QDateTimeAxis *axis_x = new QDateTimeAxis(graph_view);
+    axis_x->setMin(QDateTime::fromSecsSinceEpoch(commits.front().date));
+    axis_x->setMax(QDateTime::fromSecsSinceEpoch(commits.back().date));
+    QValueAxis *axis_y = new QValueAxis(graph_view);
+    axis_y->setMin(0);
+    axis_y->setMax(2000);
+
+    QList<QObject *> series_list;
     for (const auto &[lang, series] : line_series_map)
         series_list.append(series);
 
     graph_view->setInitialProperties({
         {"theme", QVariant::fromValue(graph_theme)},
-        {"seriesList", QVariant::fromValue(series_list)}
+        {"seriesList", QVariant::fromValue(series_list)},
+        {"axisX", QVariant::fromValue(axis_x)},
+        {"axisY", QVariant::fromValue(axis_y)}
     });
     graph_view->loadFromModule("QtGraphs", "GraphsView");
 
