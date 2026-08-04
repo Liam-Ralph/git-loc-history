@@ -1,2 +1,0 @@
-fix progress not showing on second run
-add current commit stats in text

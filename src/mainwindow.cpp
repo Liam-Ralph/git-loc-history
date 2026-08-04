@@ -71,6 +71,11 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_path_entry->setColumnStretch(2, 1);
     layout_back->addLayout(layout_path_entry);
 
+    commit_info_label = new QLabel("");
+    commit_info_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    layout_back->addWidget(commit_info_label);
+    layout_back->setAlignment(commit_info_label, Qt::AlignCenter);
+
     // Middle
 
     QHBoxLayout *layout_middle = new QHBoxLayout();
@@ -137,6 +142,7 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_back->setAlignment(section_label, Qt::AlignCenter);
 
     timer_label = new QLabel("0.0s");
+    timer_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
     layout_back->addWidget(timer_label);
     layout_back->setAlignment(timer_label, Qt::AlignCenter);
 
@@ -176,6 +182,8 @@ void MainWindow::open_path_dialog() {
 void MainWindow::create_graph() {
 
     start_button->setEnabled(false);
+    section_label->setText("Starting...");
+    timer_label->setText("0.0s");
 
     // Create LoC History
 
@@ -195,10 +203,10 @@ void MainWindow::create_graph() {
 
     try {
         if (progress_check->isChecked()) {
-            function<void(double, clock_t)> on_progress_func = bind(
+            static function<void(double, clock_t)> on_progress_func = bind(
                 &MainWindow::on_progress, this, placeholders::_1, placeholders::_2
             );
-            function<void(string, clock_t)> on_section_change_func = bind(
+            static function<void(string, clock_t)> on_section_change_func = bind(
                 &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
             );
             commits = create_loc_history(
@@ -220,6 +228,15 @@ void MainWindow::create_graph() {
     update_timer(start);
 
     // Create Graph
+
+    const Commit &last_commit = commits[0];
+    string last_commit_line = "Last Commit: " + to_string(last_commit.lines) + " LoC";
+    for (auto &[lang, lines] : last_commit.language_map) {
+        stringstream ss;
+        ss << fixed << setprecision(1) << double(lines) / last_commit.lines * 100;
+        last_commit_line += ", " + lang.name + ": " + to_string(lines) + " LoC (" + ss.str() + "%)";
+    }
+    commit_info_label->setText(QString::fromStdString(last_commit_line));
 
     QChart *chart = new QChart();
     chart_view->setBackgroundBrush(Qt::transparent);
@@ -332,8 +349,6 @@ void MainWindow::create_graph() {
         }
 
         QValueAxis *axis_x = new QValueAxis();
-        axis_x->setMin(0);
-        axis_x->setMax(commits.size() - 1);
         axis_x->setLabelFormat("%i");
         chart->addAxis(axis_x, Qt::AlignBottom);
         QValueAxis *axis_y = new QValueAxis();
@@ -358,14 +373,9 @@ void MainWindow::create_graph() {
 
 }
 
-void MainWindow::on_progress(double progress, const clock_t start) {
+void MainWindow::on_progress(int progress, const clock_t start) {
     update_timer(start);
-    static int progress_int_prev = 0;
-    int progress_int = int(round(progress * 100));
-    if (progress_int > progress_int_prev) {
-        progress_int_prev = progress_int;
-        progress_bar->setValue(progress_int);
-    }
+    progress_bar->setValue(progress);
 }
 
 void MainWindow::on_section_change(string section, const clock_t start) {

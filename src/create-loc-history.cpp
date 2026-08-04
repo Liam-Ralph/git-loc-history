@@ -8,6 +8,7 @@
 #include <array>
 #include <atomic>
 #include <ctime>
+#include <cmath>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -65,7 +66,7 @@ bool operator<(const Language &a, const Language &b) {
 
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,
-    function<void(double, clock_t)> on_progress,
+    function<void(int, clock_t)> on_progress,
     function<void(string, clock_t)> on_section_change,
     const clock_t start
 ) {
@@ -103,12 +104,12 @@ vector<Commit> create_loc_history(
             class Captures {
                 public:
                     Captures(
-                        function<void(double, clock_t)> on_progress,
+                        function<void(int, clock_t)> on_progress,
                         function<void(string, clock_t)> on_section_change,
                         const clock_t start
                     ) : on_progress(on_progress), on_section_change(on_section_change),
                     start(start) {}
-                    function<void(double, clock_t)> on_progress;
+                    function<void(int, clock_t)> on_progress;
                     function<void(string, clock_t)> on_section_change;
                     const clock_t start;
             };
@@ -126,18 +127,18 @@ vector<Commit> create_loc_history(
                 static bool notified_deltas = false;
 
                 if (stats->total_objects > 0) {
-                    on_progress(
-                        OBJECTS_PCT * stats->received_objects / stats->total_objects, start
-                    );
+                    on_progress(int(round(
+                        OBJECTS_PCT * stats->received_objects / stats->total_objects * 100
+                    )), start);
                     if (!notified_objects) {
                         notified_objects = true;
                         on_section_change(OBJECTS_STR, start);
                     }
                 } else {
-                    on_progress(
-                        OBJECTS_PCT + DELTAS_PCT * stats->indexed_deltas / stats->total_deltas,
-                        start
-                    );
+                    on_progress(int(round(
+                        (OBJECTS_PCT + DELTAS_PCT * stats->indexed_deltas / stats->total_deltas) *
+                        100
+                    )), start);
                     if (!notified_deltas) {
                         notified_deltas = true;
                         on_section_change(DELTAS_STR, start);
@@ -356,6 +357,8 @@ vector<Commit> create_loc_history(
 
     };
 
+    int prev_progress = cloning ? (OBJECTS_PCT + DELTAS_PCT) * 100 : 0;
+
     while (git_revwalk_next(&oid, repo_walker) == 0) {
 
         if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
@@ -401,9 +404,13 @@ vector<Commit> create_loc_history(
 
             if (on_progress != nullptr) {
                 commits_processed++;
-                double progress = double(commits_processed) / total_commits;
-                if (cloning) progress = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress;
-                on_progress(progress, start);
+                double progress_dbl = double(commits_processed) / total_commits;
+                if (cloning) progress_dbl = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress_dbl;
+                int progress = int(round(progress_dbl * 100));
+                if (progress != prev_progress) {
+                    prev_progress = progress;
+                    on_progress(progress, start);
+                }
             }
 
         }

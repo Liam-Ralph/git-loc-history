@@ -33,7 +33,7 @@ class MainWindow : public QMainWindow {
         MainWindow();
         ~MainWindow();
 
-        void on_progress(double progress, std::clock_t start);
+        void on_progress(int progress, std::clock_t start);
         void on_section_change(std::string section, std::clock_t start);
 
     private:
@@ -43,6 +43,8 @@ class MainWindow : public QMainWindow {
         void open_path_dialog();
         void create_graph();
         void update_timer(std::clock_t start);
+
+        QLabel *commit_info_label;
 
         QLineEdit *path_entry;
         QTextEdit *excluded_paths_entry;
