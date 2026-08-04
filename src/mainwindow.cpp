@@ -8,12 +8,14 @@
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGridLayout>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QStyleHints>
 #include <QTextEdit>
 #include <QToolTip>
 #include <QVBoxLayout>
@@ -84,6 +86,10 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_middle->addLayout(layout_excluded_paths);
 
     chart_view = new QChartView(window);
+    if (is_dark_mode()) {
+        chart_view->setBackgroundBrush(Qt::black);
+        chart_view->setForegroundBrush(Qt::black);
+    }
     layout_middle->addWidget(chart_view);
 
     QVBoxLayout *layout_options = new QVBoxLayout();
@@ -137,6 +143,10 @@ MainWindow::MainWindow() : QMainWindow() {
 }
 
 MainWindow::~MainWindow() {}
+
+bool MainWindow::is_dark_mode() {
+    return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+}
 
 void MainWindow::show_info() {
     InfoWindow *info_window = new InfoWindow(this);
@@ -202,6 +212,10 @@ void MainWindow::create_graph() {
     // Create Graph
 
     QChart *chart = new QChart();
+    chart_view->setBackgroundBrush(Qt::transparent);
+    chart_view->setForegroundBrush(Qt::transparent);
+    if (MainWindow::is_dark_mode())
+        chart->setTheme(QChart::ChartTheme::ChartThemeDark);
 
     map<Language, QColor> language_colors = {
         {python, QColor::fromString("#0000AA")},

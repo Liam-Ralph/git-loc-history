@@ -1,3 +1,2 @@
-add theme setting for chart (might have to be an option)
 fix progress not showing on second run
 add current commit stats in text

@@ -45,10 +45,8 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
         for (int i = 0; i < 4; i++) {
             getline(file, line);
             if (i == 0) result += line.substr(2);
-            else {
-                result += line.substr(4);
-                if (i < 4) result += "\n";
-            }
+            else result += line.substr(3);
+            if (i < 4) result += "\n";
         }
         file.close();
         return result;

@@ -37,6 +37,7 @@ class MainWindow : public QMainWindow {
 
     private:
 
+        static bool is_dark_mode();
         void show_info();
         void open_path_dialog();
         void create_graph();
