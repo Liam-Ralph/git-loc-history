@@ -19,6 +19,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <QtCharts/QAreaSeries>
 #include <QtCharts/QChartView>
 #include <QtCharts/QDateTimeAxis>
 #include <QtCharts/QLineSeries>
@@ -202,24 +203,56 @@ void MainWindow::create_graph() {
 
     QChart *chart = new QChart();
 
-    map<Language, QLineSeries *> line_series_map;
+    map<Language, QColor> language_colors = {
+        {python, QColor::fromString("#0000AA")},
+        {java, QColor::fromString("#AA0000")},
+        {html, QColor::fromString("#DD4000")},
+        {css, QColor::fromString("#600090")},
+        {javascript, QColor::fromString("#DDAA00")},
+        {typescript, QColor::fromString("#4040FF")},
+        {c, QColor::fromString("#5050A0")},
+        {cpp, QColor::fromString("#202040")},
+        {c_sharp, QColor::fromString("#080820")},
+        {go, QColor::fromString("#8080FF")},
+        {rust, QColor::fromString("#FF8000")},
+        {shell, QColor::fromString("#808080")}
+    };
+
+    vector<Language> project_languages = {};
+    map<Language, QAreaSeries *> area_series_map;
+    for (const Language &lang : languages) {
+        bool lang_found = false;
+        for (const Commit &commit : commits) {
+            if (commit.language_map.find(lang) != commit.language_map.end()) {
+                lang_found = true;
+                break;
+            }
+        }
+        if (lang_found) {
+            project_languages.push_back(lang);
+            QAreaSeries *area_series = new QAreaSeries();
+            area_series->setLowerSeries(new QLineSeries());
+            area_series->setUpperSeries(new QLineSeries());
+            area_series->setName(QString::fromStdString(lang.name));
+            area_series->setColor(language_colors[lang]);
+            area_series->setBorderColor(Qt::transparent);
+            area_series_map.emplace(lang, area_series);
+        }
+    }
+
     size_t max_lines = 0;
 
     for (const Commit &commit : commits) {
         if (commit.lines > max_lines) max_lines = commit.lines;
-        for (const auto &[lang, lines] : commit.language_map) {
-            QLineSeries *series;
-            bool emplace = false;
-            if (line_series_map.find(lang) == line_series_map.end()) {
-                series = new QLineSeries();
-                series->setName(QString::fromStdString(lang.name));
-                series->setColor(Qt::red);
-                emplace = true;
-            } else {
-                series = line_series_map[lang];
-            }
-            series->append(qint64(commit.date) * 1000, lines);
-            if (emplace) line_series_map.emplace(lang, series);
+        size_t lower_lines = 0;
+        qreal date = qint64(commit.date) * 1000;
+        for (const Language &lang : project_languages) {
+            size_t lines = (commit.language_map.find(lang) != commit.language_map.end()) ?
+                commit.language_map.at(lang) : 0;
+            QAreaSeries *area_series = area_series_map[lang];
+            area_series->lowerSeries()->append(date, lower_lines);
+            area_series->upperSeries()->append(date, lower_lines + lines);
+            lower_lines += lines;
         }
     }
 
@@ -233,7 +266,7 @@ void MainWindow::create_graph() {
     axis_y->setLabelFormat("%i");
     chart->addAxis(axis_y, Qt::AlignLeft);
 
-    for (auto &[lang, series] : line_series_map) {
+    for (auto &[lang, series] : area_series_map) {
         chart->addSeries(series);
         series->attachAxis(axis_x);
         series->attachAxis(axis_y);
