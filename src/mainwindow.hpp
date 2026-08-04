@@ -6,6 +6,7 @@
 // Includes
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -47,9 +48,10 @@ class MainWindow : public QMainWindow {
         QTextEdit *excluded_paths_entry;
 
         QChartView *chart_view;
+        QCheckBox *progress_check;
+        QComboBox *chart_type_combo;
 
         QPushButton *start_button;
-        QCheckBox *progress_check;
         QProgressBar *progress_bar;
         QLabel *section_label;
         QLabel *timer_label;

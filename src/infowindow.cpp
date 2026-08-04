@@ -12,7 +12,6 @@ using namespace std;
 #include <QLabel>
 #include <QPushButton>
 #include <QScreen>
-#include <QSpacerItem>
 #include <QTextBrowser>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -46,7 +45,7 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
             getline(file, line);
             if (i == 0) result += line.substr(2);
             else result += line.substr(3);
-            if (i < 4) result += "\n";
+            if (i < 3) result += "\n";
         }
         file.close();
         return result;
@@ -57,7 +56,6 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
     project_info_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
     project_info_label->setAlignment(Qt::AlignHCenter);
     layout_back->addWidget(project_info_label);
-    layout_back->addSpacerItem(new QSpacerItem(0, 5));
 
     // Credits
 
@@ -79,7 +77,6 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
     credits_label->setOpenExternalLinks(true);
     credits_label->setAlignment(Qt::AlignHCenter);
     layout_back->addWidget(credits_label);
-    layout_back->addSpacerItem(new QSpacerItem(0, 5));
 
     // License
 
@@ -103,7 +100,6 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
     license_label->setOpenExternalLinks(true);
     license_label->setAlignment(Qt::AlignHCenter);
     layout_back->addWidget(license_label);
-    layout_back->addSpacerItem(new QSpacerItem(0, 5));
 
     // Doc Viewer
 

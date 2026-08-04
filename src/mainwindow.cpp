@@ -22,9 +22,11 @@
 #include <QWidget>
 
 #include <QtCharts/QAreaSeries>
+#include <QtCharts/QBarSet>
 #include <QtCharts/QChartView>
 #include <QtCharts/QDateTimeAxis>
 #include <QtCharts/QLineSeries>
+#include <QtCharts/QStackedBarSeries>
 #include <QtCharts/QValueAxis>
 
 #include <array>
@@ -42,6 +44,7 @@ MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Git LoC History");
     setWindowIcon(QIcon(QString::fromStdString(Definitions::get_path_logo())));
     setWindowState(Qt::WindowMaximized);
+    setMinimumSize(800, 550);
 
     // Create Window
 
@@ -86,6 +89,7 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_middle->addLayout(layout_excluded_paths);
 
     chart_view = new QChartView(window);
+    chart_view->setMinimumWidth(500);
     if (is_dark_mode()) {
         chart_view->setBackgroundBrush(Qt::black);
         chart_view->setForegroundBrush(Qt::black);
@@ -93,12 +97,18 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_middle->addWidget(chart_view);
 
     QVBoxLayout *layout_options = new QVBoxLayout();
+
     QLabel *options_label = new QLabel("Options");
-    options_label->setMaximumWidth(200);
     layout_options->addWidget(options_label);
+
     progress_check = new QCheckBox("Show Progress");
-    progress_check->setMaximumWidth(200);
     layout_options->addWidget(progress_check);
+
+    chart_type_combo = new QComboBox();
+    chart_type_combo->addItems({"Line", "Bar"});
+    chart_type_combo->setCurrentIndex(0);
+    layout_options->addWidget(chart_type_combo);
+
     layout_options->setAlignment(Qt::AlignTop);
     layout_middle->addLayout(layout_options);
 
@@ -232,58 +242,114 @@ void MainWindow::create_graph() {
         {shell, QColor::fromString("#808080")}
     };
 
-    vector<Language> project_languages = {};
-    map<Language, QAreaSeries *> area_series_map;
-    for (const Language &lang : languages) {
-        bool lang_found = false;
-        for (const Commit &commit : commits) {
-            if (commit.language_map.find(lang) != commit.language_map.end()) {
-                lang_found = true;
-                break;
+    if (chart_type_combo->currentIndex() == 0) {
+
+        vector<Language> project_languages = {};
+        map<Language, QAreaSeries *> area_series_map;
+        for (const Language &lang : languages) {
+            bool lang_found = false;
+            for (const Commit &commit : commits) {
+                if (commit.language_map.find(lang) != commit.language_map.end()) {
+                    lang_found = true;
+                    break;
+                }
+            }
+            if (lang_found) {
+                project_languages.push_back(lang);
+                QAreaSeries *area_series = new QAreaSeries();
+                area_series->setLowerSeries(new QLineSeries());
+                area_series->setUpperSeries(new QLineSeries());
+                area_series->setName(QString::fromStdString(lang.name));
+                area_series->setColor(language_colors[lang]);
+                area_series->setBorderColor(Qt::transparent);
+                area_series_map.emplace(lang, area_series);
             }
         }
-        if (lang_found) {
-            project_languages.push_back(lang);
-            QAreaSeries *area_series = new QAreaSeries();
-            area_series->setLowerSeries(new QLineSeries());
-            area_series->setUpperSeries(new QLineSeries());
-            area_series->setName(QString::fromStdString(lang.name));
-            area_series->setColor(language_colors[lang]);
-            area_series->setBorderColor(Qt::transparent);
-            area_series_map.emplace(lang, area_series);
+
+        size_t max_lines = 0;
+
+        for (const Commit &commit : commits) {
+            if (commit.lines > max_lines) max_lines = commit.lines;
+            size_t lower_lines = 0;
+            qreal date = qint64(commit.date) * 1000;
+            for (const Language &lang : project_languages) {
+                size_t lines = (commit.language_map.find(lang) != commit.language_map.end()) ?
+                    commit.language_map.at(lang) : 0;
+                QAreaSeries *area_series = area_series_map[lang];
+                area_series->lowerSeries()->append(date, lower_lines);
+                area_series->upperSeries()->append(date, lower_lines + lines);
+                lower_lines += lines;
+            }
         }
-    }
 
-    size_t max_lines = 0;
+        QDateTimeAxis *axis_x = new QDateTimeAxis();
+        axis_x->setMin(QDateTime::fromSecsSinceEpoch(commits.back().date));
+        axis_x->setMax(QDateTime::fromSecsSinceEpoch(commits.front().date));
+        chart->addAxis(axis_x, Qt::AlignBottom);
+        QValueAxis *axis_y = new QValueAxis();
+        axis_y->setMin(0);
+        axis_y->setMax(max_lines);
+        axis_y->setLabelFormat("%i");
+        chart->addAxis(axis_y, Qt::AlignLeft);
 
-    for (const Commit &commit : commits) {
-        if (commit.lines > max_lines) max_lines = commit.lines;
-        size_t lower_lines = 0;
-        qreal date = qint64(commit.date) * 1000;
-        for (const Language &lang : project_languages) {
-            size_t lines = (commit.language_map.find(lang) != commit.language_map.end()) ?
-                commit.language_map.at(lang) : 0;
-            QAreaSeries *area_series = area_series_map[lang];
-            area_series->lowerSeries()->append(date, lower_lines);
-            area_series->upperSeries()->append(date, lower_lines + lines);
-            lower_lines += lines;
+        for (auto &[lang, series] : area_series_map) {
+            chart->addSeries(series);
+            series->attachAxis(axis_x);
+            series->attachAxis(axis_y);
         }
-    }
 
-    QDateTimeAxis *axis_x = new QDateTimeAxis();
-    axis_x->setMin(QDateTime::fromSecsSinceEpoch(commits.back().date));
-    axis_x->setMax(QDateTime::fromSecsSinceEpoch(commits.front().date));
-    chart->addAxis(axis_x, Qt::AlignBottom);
-    QValueAxis *axis_y = new QValueAxis();
-    axis_y->setMin(0);
-    axis_y->setMax(max_lines);
-    axis_y->setLabelFormat("%i");
-    chart->addAxis(axis_y, Qt::AlignLeft);
+    } else {
 
-    for (auto &[lang, series] : area_series_map) {
-        chart->addSeries(series);
-        series->attachAxis(axis_x);
-        series->attachAxis(axis_y);
+        vector<Language> project_languages = {};
+        map<Language, QBarSet *> bar_set_map;
+        for (const Language &lang : languages) {
+            bool lang_found = false;
+            for (const Commit &commit : commits) {
+                if (commit.language_map.find(lang) != commit.language_map.end()) {
+                    lang_found = true;
+                    break;
+                }
+            }
+            if (lang_found) {
+                project_languages.push_back(lang);
+                QBarSet *bar_set = new QBarSet(QString::fromStdString(lang.name));
+                bar_set->setColor(language_colors[lang]);
+                bar_set->setBorderColor(Qt::transparent);
+                bar_set_map.emplace(lang, bar_set);
+            }
+        }
+
+        size_t max_lines = 0;
+
+        for (size_t i = commits.size() - 1; i-- > 0; ) {
+            const Commit &commit = commits[i];
+            if (commit.lines > max_lines) max_lines = commit.lines;
+            for (const Language &lang : project_languages)
+                bar_set_map[lang]->append(
+                    (commit.language_map.find(lang) != commit.language_map.end()) ?
+                    commit.language_map.at(lang) : 0
+                );
+        }
+
+        QValueAxis *axis_x = new QValueAxis();
+        axis_x->setMin(0);
+        axis_x->setMax(commits.size() - 1);
+        axis_x->setLabelFormat("%i");
+        chart->addAxis(axis_x, Qt::AlignBottom);
+        QValueAxis *axis_y = new QValueAxis();
+        axis_y->setMin(0);
+        axis_y->setMax(max_lines);
+        axis_y->setLabelFormat("%i");
+        chart->addAxis(axis_y, Qt::AlignLeft);
+
+        QStackedBarSeries *bar_series = new QStackedBarSeries();
+        bar_series->setBarWidth(1);
+        for (auto &[lang, bar_set] : bar_set_map)
+            bar_series->append(bar_set);
+        chart->addSeries(bar_series);
+        bar_series->attachAxis(axis_x);
+        bar_series->attachAxis(axis_y);
+
     }
 
     chart_view->setChart(chart);
