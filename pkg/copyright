@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://github.com/liam-ralph/git-loc-history
+Upstream-Name: Git LoC History
+Upstream-Contact: Liam Ralph <liamralph@tutamail.com>
+Comment: The Git Loc History logo is modified from the Git logo created by Jason Long, and licensed under CC BY 3.0.
+
+Files:
+ *
+Copyright: 2026 Liam Ralph
+License: Expat

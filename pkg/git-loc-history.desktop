@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Git LoC History
+Type=Application
+Version=VERSION
+Exec=git-loc-history
+Icon=git-loc-history
+GenericName=Git LoC History
+Comment=An application to view repo's lines of code per commit.
+Keywords=git-loc-history;git;lines of code
+Categories=Utility
