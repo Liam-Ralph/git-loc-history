@@ -5,3 +5,6 @@ git-loc-history
 .vscode
 /build
 libgit2-1.9.6*
+/pkg/usr
+/pkg/*.deb
+/pkg/*.rpm
