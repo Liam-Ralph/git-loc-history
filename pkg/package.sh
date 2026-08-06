@@ -22,6 +22,9 @@ if [[ $1 == "debian" ]]; then
     sed -i -e "s/INSTALLED_SIZE/$(du -s $build_path/usr | awk '{print $1}')/g" \
         $build_path/DEBIAN/control
 
+    if [ -e "${build_path}.deb" ]; then
+        rm -f $build_path.deb
+    fi
     dpkg -b $build_path
     rm -rf $build_path
 
@@ -40,8 +43,8 @@ elif [[ $1 == "fedora" ]]; then
     cp fedora/git-loc-history.spec $build_path/SPECS/git-loc-history.spec
     sed -i -e "s/VERSION/$version/g" $build_path/SPECS/git-loc-history.spec
 
-    if [ -d "~/rpmbuild" ]; then
-        mv ~/rpmbuild/ ~/rpmbuild-backup/
+    if [ -e "~/rpmbuild" ]; then
+        mv ~/rpmbuild ~/rpmbuild-backup
     fi
 
     mv $build_path ~/rpmbuild/
