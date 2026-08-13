@@ -42,8 +42,10 @@ Below are the required dependencies to build on each distro goup.
  - qt6-charts-dev
  - qt6-declarative-dev
 
-### Fedore (dnf)
-
+### Fedora (dnf)
+ - rpmdevtools
+ - qt6-qtbase-devel
+ - qt6-qtcharts-devel
 
 ### Arch (pacman)
  - base-devel
