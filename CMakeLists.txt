@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.4)
+cmake_minimum_required(VERSION 3.25)
 project(git-loc-history)
 
 set(CMAKE_CXX_STANDARD 20)
