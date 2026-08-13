@@ -11,7 +11,6 @@ add_subdirectory(libgit2-1.9.6)
 # Taken from https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.6.tar.gz
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
-find_package(Curses REQUIRED)
 
 if(MSVC)
     add_compile_options(/W4)
@@ -41,4 +40,4 @@ add_executable(git-loc-history-cli
 target_link_libraries(
     git-loc-history git2 Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets
 )
-target_link_libraries(git-loc-history-cli curses git2)
+target_link_libraries(git-loc-history-cli git2)
