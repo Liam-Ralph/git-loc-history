@@ -31,10 +31,9 @@ if [[ $1 == "debian" ]]; then
 elif [[ $1 == "fedora" ]]; then
 
     build_path="rpmbuild"
-    mkdir -p $build_path/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+    mkdir -p $build_path/{BUILD,RPMS,SOURCES/${source_dir},SPECS,SRPMS}
 
     source_dir=git-loc-history-$version
-    mkdir $build_path/SOURCES/$source_dir
     cp -a usr $build_path/SOURCES/$source_dir/usr
     cd $build_path/SOURCES/
     tar -czf $source_dir.tar.gz $source_dir
@@ -55,7 +54,29 @@ elif [[ $1 == "fedora" ]]; then
     mv $build_path/RPMS/x86_64/git-loc-history-*.rpm ./git-loc-history_${version}_x86_64.rpm
     rm -rf $build_path
 
+elif [[ $1 == "arch" ]]; then
+
+    build_path="package-build"
+    mkdir -p $build_path/git-loc-history-$version/usr
+
+    cp -a usr $build_path/git-loc-history-$version/usr
+    cd $build_path
+    tar -czf git-loc-history-$version.tar.gz git-loc-history-$version
+    rm -rf git-loc-history-$version
+    cd ..
+
+    cp arch/bin/PKGBUILD $build_path/PKGBUILD
+    sed -i -e  "s/VERSION/$version/g" $build_path/PKGBUILD
+    sha256sum=$(sha256sum $build_path/git-loc-history-$version.tar.gz | awk '{print $1}')
+    sed -i -e "s/SHA256SUM/$sha256sum/g" $build_path/PKGBUILD
+
+    cd $build_path
+    makepkg
+    cd ..
+    mv $build_path/git-loc-history-bin-${version}*.pkg.tar.zst \
+        ./git-loc-history-bin_${version}_x86_64.pkg.tar.zst
+
 else
-    echo -e "Unknown argument, must be \"debian\" or \"fedora\"."
+    echo -e "Unknown argument, must be \"debian\", \"fedora\", or \"arch\"."
     exit 1
 fi
