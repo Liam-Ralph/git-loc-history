@@ -70,7 +70,7 @@ void on_progress(double progress, const clock_t start) {
         string text = "\033[3A\033[2K\r" + format_time(start) + "\033[2B\033[2K\r";
         for (int i = 0; i < columns; i++) {
             if (i < bars) text += "█";
-            else text += "▒";
+            else text += "_";
         }
         cout << text << endl;
         flush(cout);
