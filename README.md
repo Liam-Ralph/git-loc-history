@@ -46,6 +46,7 @@ greater is required. At the time of writing, unsuported distros include Debian
 
 ### Fedora (dnf)
  - rpmdevtools
+ - cmake
  - qt6-qtbase-devel
  - qt6-qtcharts-devel
 
