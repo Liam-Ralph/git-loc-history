@@ -41,6 +41,7 @@ greater is required. At the time of writing, unsupported distros include Debian
 ### Debian (apt)
  - build-essential
  - cmake
+ - libgit2
  - libssl-dev
  - qt6-base-dev
  - qt6-charts-dev
@@ -57,5 +58,6 @@ greater is required. At the time of writing, unsupported distros include Debian
 ### Arch (pacman)
  - base-devel
  - cmake
+ - libgit2
  - qt6-base
  - qt6-charts
