@@ -18,19 +18,19 @@ An application for viewing a git repo's lines of code across its history.
 %autosetup
 
 %install
-install -Dm755 usr/bin/git-loc-history -t $RPM_BUILD_ROOT/usr/bin/git-loc-history
-install -Dm755 usr/bin/git-loc-history-cli -t $RPM_BUILD_ROOT/usr/bin/git-loc-history-cli
-install -Dm644 usr/share/applications/git-loc-history.desktop -t \
+install -Dm755 usr/bin/git-loc-history $RPM_BUILD_ROOT/usr/bin/git-loc-history
+install -Dm755 usr/bin/git-loc-history-cli $RPM_BUILD_ROOT/usr/bin/git-loc-history-cli
+install -Dm644 usr/share/applications/git-loc-history.desktop \
     $RPM_BUILD_ROOT/usr/share/applications/git-loc-history.desktop
-install -Dm644 usr/share/doc/git-loc-history/copyright -t \
+install -Dm644 usr/share/doc/git-loc-history/copyright \
     $RPM_BUILD_ROOT/usr/share/doc/git-loc-history/copyright
-install -Dm644 usr/share/doc/git-loc-history/README.md -t \
+install -Dm644 usr/share/doc/git-loc-history/README.md \
     $RPM_BUILD_ROOT/usr/share/doc/git-loc-history/README.md
-install -Dm644 usr/share/doc/git-loc-history/CHANGELOG.md -t \
+install -Dm644 usr/share/doc/git-loc-history/CHANGELOG.md \
     $RPM_BUILD_ROOT/usr/share/doc/git-loc-history/CHANGELOG.md
-install -Dm644 usr/share/icons/hicolor/512x512/git-loc-history.png -t \
+install -Dm644 usr/share/icons/hicolor/512x512/git-loc-history.png \
     $RPM_BUILD_ROOT/usr/share/icons/hicolor/512x512/git-loc-history.png
-install -Dm644 usr/share/licenses/git-loc-history/LICENSE -t \
+install -Dm644 usr/share/licenses/git-loc-history/LICENSE \
     $RPM_BUILD_ROOT/usr/share/licenses/git-loc-history/LICENSE
 
 %clean
