@@ -22,8 +22,8 @@ created by Jason Long, and licensed under the
 
 ## Installation
 
-Packages can be found on this repository's GitHub page under releases. Two
-packages are provided for arch
+Packages can be found on this repository's GitHub page under releases. Qt6 v6.5
+or greater is required
 
 <br/>
 
@@ -33,7 +33,9 @@ You can use the scripts under pkg to create Linux packages. Note that the
 regular Arch packages builds from source, so only editing the PKGBUILD is
 needed, but scripts can be used to build the git-loc-history-bin package.
 
-Below are the required dependencies to build on each distro goup.
+Below are the required dependencies to build on each distro group. Qt6 v6.5 or
+greater is required. At the time of writing, unsuported distros include Debian
+12 and Ubuntu 22.04.
 
 ### Debian (apt)
  - cmake
