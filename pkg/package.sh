@@ -14,6 +14,7 @@ fi
 if [[ $1 == "debian" ]]; then
 
     build_path="git-loc-history_${version}_x86_64"
+    rm -rf $build_path
     mkdir -p $build_path/DEBIAN
 
     cp -a usr $build_path/usr
@@ -31,6 +32,7 @@ if [[ $1 == "debian" ]]; then
 elif [[ $1 == "fedora" ]]; then
 
     build_path="rpmbuild"
+    rm -rf $build_path
     source_dir=git-loc-history-$version
     mkdir -p $build_path/{BUILD,RPMS,SOURCES/${source_dir},SPECS,SRPMS}
 
@@ -57,7 +59,8 @@ elif [[ $1 == "fedora" ]]; then
 elif [[ $1 == "arch" ]]; then
 
     build_path="package-build"
-    mkdir -p $build_path/git-loc-history-bin-$version/usr
+    rm -rf $build_path
+    mkdir -p $build_path/git-loc-history-bin-$version
 
     cp -a usr $build_path/git-loc-history-bin-$version/usr
     cd $build_path
@@ -73,7 +76,7 @@ elif [[ $1 == "arch" ]]; then
     cd $build_path
     makepkg
     cd ..
-    mv "$build_path/git-loc-history-bin-$version*.pkg.tar.zst" \
+    mv $build_path/git-loc-history-bin-${version}*.pkg.tar.zst \
         ./git-loc-history-bin_${version}_x86_64.pkg.tar.zst
 
 else
