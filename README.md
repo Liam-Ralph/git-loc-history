@@ -49,6 +49,7 @@ greater is required. At the time of writing, unsupported distros include Debian
  - rpmdevtools
  - cmake
  - openssl-devel
+ - libgit2-devel
  - qt6-qtbase-devel
  - qt6-qtcharts-devel
 
