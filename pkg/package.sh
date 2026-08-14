@@ -57,17 +57,17 @@ elif [[ $1 == "fedora" ]]; then
 elif [[ $1 == "arch" ]]; then
 
     build_path="package-build"
-    mkdir -p $build_path/git-loc-history-$version/usr
+    mkdir -p $build_path/git-loc-history-bin-$version/usr
 
-    cp -a usr $build_path/git-loc-history-$version/usr
+    cp -a usr $build_path/git-loc-history-bin-$version/usr
     cd $build_path
-    tar -czf git-loc-history-$version.tar.gz git-loc-history-$version
-    rm -rf git-loc-history-$version
+    tar -czf git-loc-history-bin-$version.tar.gz git-loc-history-bin-$version
+    rm -rf git-loc-history-bin-$version
     cd ..
 
     cp arch/bin/PKGBUILD $build_path/PKGBUILD
     sed -i -e  "s/VERSION/$version/g" $build_path/PKGBUILD
-    sha256sum=$(sha256sum $build_path/git-loc-history-$version.tar.gz | awk '{print $1}')
+    sha256sum=$(sha256sum $build_path/git-loc-history-bin-$version.tar.gz | awk '{print $1}')
     sed -i -e "s/SHA256SUM/$sha256sum/g" $build_path/PKGBUILD
 
     cd $build_path
