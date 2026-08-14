@@ -73,7 +73,7 @@ elif [[ $1 == "arch" ]]; then
     cd $build_path
     makepkg
     cd ..
-    mv $build_path/git-loc-history-bin-${version}*.pkg.tar.zst \
+    mv "$build_path/git-loc-history-bin-$version*.pkg.tar.zst" \
         ./git-loc-history-bin_${version}_x86_64.pkg.tar.zst
 
 else

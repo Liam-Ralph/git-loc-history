@@ -13,13 +13,18 @@ sha256sums=("SHA256SUM")
 
 package() {
     cd $pkgname-$pkgver
-    install -Dm755 build/git-loc-history $pkgdir/usr/bin/git-loc-history
-    install -Dm755 build/git-loc-history-cli $pkgdir/usr/bin/git-loc-history-cli
-    install -Dm644 pkg/resources/git-loc-history.desktop \
+    install -Dm755 usr/bin/git-loc-history $pkgdir/usr/bin/git-loc-history
+    install -Dm755 usr/bin/git-loc-history-cli $pkgdir/usr/bin/git-loc-history-cli
+    install -Dm644 usr/share/applications/git-loc-history.desktop \
         $pkgdir/usr/share/applications/git-loc-history.desktop
-    install -Dm644 pkg/resources/copyright $pkgdir/usr/share/doc/git-loc-history/copyright
-    install -Dm644 README.md $pkgdir/usr/share/doc/git-loc-history/README.md
-    install -Dm644 CHANGELOG.md $pkgdir/usr/share/doc/git-loc-history/CHANGELOG.md
-    install -Dm644 logo.png $pkgdir/usr/share/icons/hicolor/512x512/apps/git-loc-history.png
-    install -Dm644 LICENSE $pkgdir/usr/share/licenses/git-loc-history/LICENSE
+    install -Dm644 usr/share/doc/git-loc-history/copyright \
+        $pkgdir/usr/share/doc/git-loc-history/copyright
+    install -Dm644 usr/share/doc/git-loc-history/README.md \
+        $pkgdir/usr/share/doc/git-loc-history/README.md
+    install -Dm644 usr/share/doc/git-loc-history/CHANGELOG.md \
+        $pkgdir/usr/share/doc/git-loc-history/CHANGELOG.md
+    install -Dm644 usr/share/icons/hicolor/512x512/apps/git-loc-history.png \
+        $pkgdir/usr/share/icons/hicolor/512x512/apps/git-loc-history.png
+    install -Dm644 usr/share/licenses/git-loc-history/LICENSE \
+        $pkgdir/usr/share/licenses/git-loc-history/LICENSE
 }
