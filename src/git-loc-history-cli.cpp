@@ -37,11 +37,6 @@ code across its history.
 using namespace std;
 
 
-// Definitions
-
-#define README_PATH "../README.md" // "/usr/share/doc/git-loc-history/README.md"
-
-
 // Functions
 
 string format_time(clock_t start) {
@@ -55,7 +50,7 @@ bool is_in(T first, vector<T> values) {
     return find(values.begin(), values.end(), first) != values.end();
 }
 
-void on_progress(double progress, const clock_t start) {
+void on_progress(int progress, const clock_t start) {
 
     static int columns = []() {
         struct winsize w;
@@ -64,13 +59,13 @@ void on_progress(double progress, const clock_t start) {
     }();
 
     static int prev_bars = 0;
-    int bars = int(round(progress * columns));
+    int bars = int(round(double(progress) / 100 * columns));
 
     if (bars != prev_bars) {
         string text = "\033[3A\033[2K\r" + format_time(start) + "\033[2B\033[2K\r";
         for (int i = 0; i < columns; i++) {
             if (i < bars) text += "█";
-            else text += "_";
+            else text += "░";
         }
         cout << text << endl;
         flush(cout);
