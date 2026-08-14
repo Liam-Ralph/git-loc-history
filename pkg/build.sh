@@ -36,4 +36,3 @@ install -Dm644 README.md pkg/usr/share/doc/git-loc-history/README.md
 install -Dm644 CHANGELOG.md pkg/usr/share/doc/git-loc-history/CHANGELOG.md
 install -Dm644 logo.png pkg/usr/share/icons/hicolor/512x512/apps/git-loc-history.png
 install -Dm644 LICENSE pkg/usr/share/licenses/git-loc-history/LICENSE
-

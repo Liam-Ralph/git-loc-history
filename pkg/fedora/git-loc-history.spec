@@ -28,8 +28,8 @@ install -Dm644 usr/share/doc/git-loc-history/README.md \
     $RPM_BUILD_ROOT/usr/share/doc/git-loc-history/README.md
 install -Dm644 usr/share/doc/git-loc-history/CHANGELOG.md \
     $RPM_BUILD_ROOT/usr/share/doc/git-loc-history/CHANGELOG.md
-install -Dm644 usr/share/icons/hicolor/512x512/git-loc-history.png \
-    $RPM_BUILD_ROOT/usr/share/icons/hicolor/512x512/git-loc-history.png
+install -Dm644 usr/share/icons/hicolor/512x512/apps/git-loc-history.png \
+    $RPM_BUILD_ROOT/usr/share/icons/hicolor/512x512/apps/git-loc-history.png
 install -Dm644 usr/share/licenses/git-loc-history/LICENSE \
     $RPM_BUILD_ROOT/usr/share/licenses/git-loc-history/LICENSE
 
@@ -43,7 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/doc/git-loc-history/copyright
 /usr/share/doc/git-loc-history/README.md
 /usr/share/doc/git-loc-history/CHANGELOG.md
-/usr/share/icons/hicolor/512x512/git-loc-history.png
+/usr/share/icons/hicolor/512x512/apps/git-loc-history.png
 /usr/share/licenses/git-loc-history/LICENSE
 
 %changelog
