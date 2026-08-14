@@ -31,9 +31,9 @@ if [[ $1 == "debian" ]]; then
 elif [[ $1 == "fedora" ]]; then
 
     build_path="rpmbuild"
+    source_dir=git-loc-history-$version
     mkdir -p $build_path/{BUILD,RPMS,SOURCES/${source_dir},SPECS,SRPMS}
 
-    source_dir=git-loc-history-$version
     cp -a usr $build_path/SOURCES/$source_dir/usr
     cd $build_path/SOURCES/
     tar -czf $source_dir.tar.gz $source_dir
