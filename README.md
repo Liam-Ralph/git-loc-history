@@ -36,7 +36,7 @@ needed, but scripts can be used to build the git-loc-history-bin package.
 
 Below are the required dependencies to build on each distro group. Qt 6.5 or
 greater is required. At the time of writing, unsupported distros include Debian
-12 and Ubuntu 22.04.
+12, Ubuntu, and Linux Mint.
 
 ### Debian (apt)
  - build-essential
