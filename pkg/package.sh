@@ -60,24 +60,24 @@ elif [[ $1 == "arch" ]]; then
 
     build_path="package-build"
     rm -rf $build_path
-    mkdir -p $build_path/git-loc-history-bin-$version
+    mkdir -p $build_path/git-loc-history-$version
 
-    cp -a usr $build_path/git-loc-history-bin-$version/usr
+    cp -a usr $build_path/git-loc-history-$version/usr
     cd $build_path
-    tar -czf git-loc-history-bin-$version.tar.gz git-loc-history-bin-$version
-    rm -rf git-loc-history-bin-$version
+    tar -czf git-loc-history-$version.tar.gz git-loc-history-$version
+    rm -rf git-loc-history-$version
     cd ..
 
-    cp arch/bin/PKGBUILD $build_path/PKGBUILD
+    cp arch/PKGBUILD $build_path/PKGBUILD
     sed -i -e "s/VERSION/$version/g" $build_path/PKGBUILD
-    sha256sum=$(sha256sum $build_path/git-loc-history-bin-$version.tar.gz | awk '{print $1}')
+    sha256sum=$(sha256sum $build_path/git-loc-history-$version.tar.gz | awk '{print $1}')
     sed -i -e "s/SHA256SUM/$sha256sum/g" $build_path/PKGBUILD
 
     cd $build_path
     makepkg
     cd ..
-    mv $build_path/git-loc-history-bin-${version}*.pkg.tar.zst \
-        ./git-loc-history-bin_${version}_x86_64.pkg.tar.zst
+    mv $build_path/git-loc-history-${version}*.pkg.tar.zst \
+        ./git-loc-history_${version}_x86_64.pkg.tar.zst
 
 else
     echo -e "Unknown argument, must be \"debian\", \"fedora\", or \"arch\"."
