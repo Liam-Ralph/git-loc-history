@@ -1,6 +1,11 @@
 #!/bin/bash
 
-version="1.0.0"
+while read p; do
+    if [[ $p == "### Version "* ]]; then
+        version=${p:12}
+        break
+    fi
+done < ../README.md
 
 if [ "$#" -eq 1 ]; then
     if [ ! -d "usr" ]; then

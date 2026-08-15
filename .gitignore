@@ -4,7 +4,8 @@ git-loc-history
 /dev/test.cpp
 .vscode
 /build
-libgit2-1.9.6*
+/libgit2*
+/*.tar.gz
 /pkg/usr
 /pkg/*.deb
 /pkg/*.rpm

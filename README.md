@@ -1,6 +1,6 @@
 # Git LoC History
 ### Released August 2026
-### Version 1.0.0
+### Version 1.0.1
 ### Updated August 2026
 
 <br/>
