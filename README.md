@@ -30,9 +30,7 @@ or greater is required.
 
 ## Packaging
 
-You can use the scripts under pkg to create Linux packages. Note that the
-regular Arch package builds from source, so only editing the PKGBUILD is
-needed, but scripts can be used to build the git-loc-history-bin package.
+You can use the scripts under pkg to create Linux packages.
 
 Below are the required dependencies to build on each distro group. Qt 6.5 or
 greater is required. At the time of writing, unsupported distros include Debian

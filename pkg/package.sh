@@ -69,7 +69,7 @@ elif [[ $1 == "arch" ]]; then
     cd ..
 
     cp arch/bin/PKGBUILD $build_path/PKGBUILD
-    sed -i -e  "s/VERSION/$version/g" $build_path/PKGBUILD
+    sed -i -e "s/VERSION/$version/g" $build_path/PKGBUILD
     sha256sum=$(sha256sum $build_path/git-loc-history-bin-$version.tar.gz | awk '{print $1}')
     sed -i -e "s/SHA256SUM/$sha256sum/g" $build_path/PKGBUILD
 
