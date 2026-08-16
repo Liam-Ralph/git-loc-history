@@ -64,7 +64,7 @@ MainWindow::MainWindow() : QMainWindow() {
     path_entry->setPlaceholderText("Enter Local Path");
     path_entry->setMinimumWidth(300);
     layout_path_entry->addWidget(path_entry, 0, 1, Qt::AlignHCenter);
-    QPushButton *path_button = new QPushButton("Choose Local Path");
+    QPushButton *path_button = new QPushButton("Choose Repository Path");
     connect(path_button, &QPushButton::clicked, this, &MainWindow::open_path_dialog);
     layout_path_entry->addWidget(path_button, 0, 2, Qt::AlignLeft);
     layout_path_entry->setColumnStretch(0, 1);

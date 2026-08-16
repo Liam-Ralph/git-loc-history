@@ -211,10 +211,12 @@ vector<Commit> create_loc_history(
         on_section_change(COMMITS_STR, start);
     }
 
+    Commit *prev_commit_ptr = nullptr;
+
     // File Processing Function
 
     function<void(const filesystem::path&, Commit&)> process_files_recursive =
-    [&process_files_recursive, &excluded_paths, &git_repo_path]
+    [&process_files_recursive, &excluded_paths, &git_repo_path, &prev_commit_ptr]
     (const filesystem::path &base_path, Commit &commit) {
 
         for (const filesystem::directory_entry &entry : filesystem::directory_iterator(base_path)) {
@@ -261,6 +263,28 @@ vector<Commit> create_loc_history(
                         string contents(
                             (istreambuf_iterator<char>(f)), istreambuf_iterator<char>()
                         );
+
+                        file.contents = contents;
+
+                        // Search for File in Previous Commit
+
+                        if (prev_commit_ptr != nullptr) {
+                            bool found = false;
+                            for (const File &prev_file : prev_commit_ptr->files) {
+                                if (
+                                    prev_file.path.compare(file.path) == 0 &&
+                                    prev_file.contents.compare(file.contents) == 0
+                                ) {
+                                    file.lines = prev_file.lines;
+                                    commit.lines += file.lines;
+                                    commit.language_map[lang] += file.lines;
+                                    commit.files.push_back(file);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found) break;
+                        }
 
                         // Remove Indents and Newlines
 
@@ -335,14 +359,11 @@ vector<Commit> create_loc_history(
                         }
                         file.lines = lines;
                         commit.lines += lines;
+                        commit.language_map[lang] += lines;
 
                         // Add File to Commit
 
                         commit.files.push_back(file);
-
-                        // Update Commit Language Map
-
-                        commit.language_map[lang] += lines;
 
                         break;
 
@@ -386,8 +407,9 @@ vector<Commit> create_loc_history(
                     );
                 }
 
-                // Iterate over Files
+                // Process Files
 
+                if (commits.size() > 0) prev_commit_ptr = &(commits[commits.size() - 1]);
                 process_files_recursive(repo_path, commit);
 
                 git_tree_free(commit_tree);

@@ -53,11 +53,13 @@ class File {
 
     public:
 
-        File(std::string path, Language language) : path(path), language(language), lines(0) {}
+        File(std::string path, Language language) :
+            path(path), language(language), lines(0), contents("") {}
 
         std::string path;
         Language language;
         size_t lines;
+        std::string contents;
 
 };
 

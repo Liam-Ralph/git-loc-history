@@ -165,9 +165,11 @@ int main(int argc, char *argv[]) {
 
     vector<Commit> commits;
 
-    system("clear");
-    cout << "\n\n\n";
-    flush(cout);
+    if (show_progress) {
+        system("clear");
+        cout << "\n\n\n";
+        flush(cout);
+    }
 
     try {
         if (show_progress)
