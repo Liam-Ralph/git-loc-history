@@ -16,9 +16,9 @@ commit in its history.
 
 Run the following commands to install libgit2 v1.9.7:
 ```
-wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7
-tar -xzf v1.9.7
-rm -rf v1.9.7
+wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
+tar -xzf v1.9.7.tar.gz
+rm -rf v1.9.7.tar.gz
 cd libgit2-1.9.7
 mkdir build
 cd build
@@ -26,6 +26,7 @@ cmake ..
 make
 sudo make install
 sudo ldconfig
+cd../../
 ```
 libgit2 can be installed as a system package, which should work as well, but
 distros are inconsistent with what version they ship.
