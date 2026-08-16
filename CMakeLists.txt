@@ -6,9 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-
-#add_subdirectory(libgit2-1.9.7)
-# Taken from https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
+set(LIBGIT2_USE_STATIC_LIBS ON)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
 find_package(libgit2 REQUIRED)
@@ -37,8 +35,6 @@ add_executable(git-loc-history-cli
     src/create-loc-history.cpp
     src/create-loc-history.hpp
 )
-
-set(LIBGIT2_USE_STATIC_LIBS ON)
 
 target_link_libraries(
     git-loc-history git2 Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets

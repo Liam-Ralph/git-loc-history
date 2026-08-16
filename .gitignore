@@ -9,6 +9,7 @@ git-loc-history
 /build
 
 libgit2-*
+/v1.9.*
 
 /pkg/usr
 /pkg/*.deb
