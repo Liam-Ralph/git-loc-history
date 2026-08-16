@@ -9,18 +9,30 @@ if [ ! -e "libgit2-1.9.7" ]; then
 fi
 
 if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; then
+
     sed -i -e "s/#define ABSOLUTE_PATHS false/#define ABSOLUTE_PATHS true/g" src/definitions.cpp
     if [ -e "build" ]; then
         rm -rf build/*
     else
         mkdir build
     fi
+
+    cd libgit2-1.9.7
+    mkdir build
+    cd build
+    cmake ..
+    make
+    make install
+    ldconfig
+    cd ../..
+
     cd build
     cmake ..
     cmake --build . --parallel $(nproc) --config Release
     strip git-loc-history git-loc-history-cli
     cd ..
     sed -i -e "s/#define ABSOLUTE_PATHS true/#define ABSOLUTE_PATHS false/g" src/definitions.cpp
+
 fi
 
 if [ -e "pkg/usr" ]; then
