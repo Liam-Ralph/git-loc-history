@@ -23,7 +23,7 @@ created by Jason Long, and licensed under the
 
 ## Installation
 
-Packages can be found on this repository's GitHub page under releases. Qt 6.5
+Packages can be found on this repository's GitHub page under releases. Qt 6.4
 or greater is required.
 
 <br/>
@@ -32,7 +32,7 @@ or greater is required.
 
 You can use the scripts under pkg to create Linux packages.
 
-Below are the required dependencies to build on each distro group. Qt 6.5 or
+Below are the required dependencies to build on each distro group. Qt 6.4 or
 greater is required. At the time of writing, unsupported distros include Debian
 12, Ubuntu, and Linux Mint.
 

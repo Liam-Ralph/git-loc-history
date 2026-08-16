@@ -6,7 +6,7 @@ Summary: An application for view a git repo's lines of code across its history.
 
 License: MIT
 URL: https://github.com/liam-ralph/git-loc-history
-Requires: qt6-qtbase >= 6.5, qt6-qtcharts >= 6.5
+Requires: qt6-qtbase >= 6.4, qt6-qtcharts >= 6.4
 Source0: %{name}-%{version}.tar.gz
 
 %description

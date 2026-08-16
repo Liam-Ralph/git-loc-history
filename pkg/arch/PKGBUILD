@@ -6,7 +6,7 @@ pkgdesc="An application for viewing a git repo's lines of code across its histor
 arch=(x86_64)
 url="https://github.com/liam-ralph/git-loc-history"
 license=("MIT")
-depends=("qt6-base>=6.5" "qt6-charts>=6.5")
+depends=("qt6-base>=6.4" "qt6-charts>=6.4")
 source=("$pkgname-$pkgver.tar.gz")
 sha256sums=("SHA256SUM")
 
