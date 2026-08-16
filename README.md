@@ -39,7 +39,7 @@ greater is required. At the time of writing, unsupported distros include Debian
 ### Debian (apt)
  - build-essential
  - cmake
- - libgit2
+ - libgit2-1.9 (older version seem to work as well)
  - libssl-dev
  - qt6-base-dev
  - qt6-charts-dev
