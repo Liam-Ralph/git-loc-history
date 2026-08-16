@@ -22,8 +22,8 @@ if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; the
     cd build
     cmake ..
     make
-    make install
-    ldconfig
+    sudo make install
+    sudo ldconfig
     cd ../..
 
     cd build

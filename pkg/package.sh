@@ -83,6 +83,7 @@ elif [[ $1 == "arch" ]]; then
     cd ..
     mv $build_path/git-loc-history-${version}*.pkg.tar.zst \
         ./git-loc-history_${version}_x86_64.pkg.tar.zst
+    rm -rf $build_path
 
 else
     echo -e "Unknown argument, must be \"debian\", \"fedora\", or \"arch\"."
