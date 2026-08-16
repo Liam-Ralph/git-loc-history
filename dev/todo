@@ -1,5 +1,5 @@
-add file caching
 add result caching
 fix .h file case
 add branch choosing
 add warning for local paths (checkout can be destructive)
+add color blind friendly color set and option
