@@ -161,7 +161,16 @@ MainWindow::MainWindow() : QMainWindow() {
 MainWindow::~MainWindow() {}
 
 bool MainWindow::is_dark_mode() {
-    return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    static bool is_dark_mode = []() {
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+            return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+        #else
+            const QPalette defaultPalette;
+            return defaultPalette.color(QPalette::WindowText).lightness() >
+                defaultPalette.color(QPalette::Window).lightness();
+        #endif
+    }();
+    return is_dark_mode;
 }
 
 void MainWindow::show_info() {
