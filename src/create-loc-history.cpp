@@ -65,7 +65,7 @@ bool operator<(const Language &a, const Language &b) {
 // Functions
 
 vector<Commit> create_loc_history(
-    string git_repo_path, vector<string> excluded_paths,
+    string git_repo_path, vector<string> excluded_paths, const bool cloning,
     function<void(int, clock_t)> on_progress,
     function<void(string, clock_t)> on_section_change,
     const clock_t start
@@ -84,8 +84,6 @@ vector<Commit> create_loc_history(
 
     // Get Repository Name
 
-    const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
-
     if (cloning) {
 
         // git_repo_path is a URL
@@ -94,7 +92,11 @@ vector<Commit> create_loc_history(
         if (repo_name.rfind(".git") == repo_name.length() - 4)
             repo_name = repo_name.substr(0, repo_name.length() - 4);
 
-        repo_path = "/tmp/git-loc-history/" + repo_name;
+        repo_path = "/tmp/git-loc-history/" + repo_name +
+            to_string(
+                chrono::duration_cast<chrono::milliseconds>
+                (chrono::system_clock::now().time_since_epoch()).count()
+            );
         filesystem::remove_all(repo_path);
         filesystem::create_directories(repo_path);
         int error;
@@ -442,6 +444,9 @@ vector<Commit> create_loc_history(
     git_revwalk_free(repo_walker);
     git_repository_free(repo);
     git_libgit2_shutdown();
+
+    if (cloning)
+        filesystem::remove_all(repo_path);
 
     return commits;
 

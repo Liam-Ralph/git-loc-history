@@ -44,6 +44,8 @@ class MainWindow : public QMainWindow {
         void create_graph();
         void update_timer(std::clock_t start);
 
+        bool warned_local_path;
+
         QLabel *commit_info_label;
 
         QLineEdit *path_entry;

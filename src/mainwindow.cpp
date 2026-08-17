@@ -46,6 +46,8 @@ MainWindow::MainWindow() : QMainWindow() {
     setWindowState(Qt::WindowMaximized);
     setMinimumSize(800, 550);
 
+    warned_local_path = false;
+
     // Create Window
 
     QWidget *window = new QWidget();
@@ -161,7 +163,7 @@ MainWindow::MainWindow() : QMainWindow() {
 MainWindow::~MainWindow() {}
 
 bool MainWindow::is_dark_mode() {
-    static bool is_dark_mode = []() {
+    static bool dark_mode = []() {
         #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
             return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
         #else
@@ -170,7 +172,7 @@ bool MainWindow::is_dark_mode() {
                 defaultPalette.color(QPalette::Window).lightness();
         #endif
     }();
-    return is_dark_mode;
+    return dark_mode;
 }
 
 void MainWindow::show_info() {
@@ -194,6 +196,25 @@ void MainWindow::create_graph() {
     section_label->setText("Starting...");
     timer_label->setText("0.0s");
 
+    string git_repo_path = path_entry->text().toStdString();
+    const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
+    if (!cloning && !warned_local_path) {
+        warned_local_path = true;
+        if (
+            QMessageBox::question(
+                this,
+                "Warning: Local Path Chosen",
+                "While there are no known issues, "
+                "it is recommended to use a fresh clone or to create a backup first. "
+                "Continue?",
+                QMessageBox::Yes|QMessageBox::No
+            ) == QMessageBox::No
+        ) {
+            start_button->setEnabled(true);
+            return;
+        }
+    }
+
     // Create LoC History
 
     progress_bar->setValue(0);
@@ -208,8 +229,6 @@ void MainWindow::create_graph() {
 
     vector<Commit> commits;
 
-    string git_repo_path = path_entry->text().toStdString();
-
     try {
         if (progress_check->isChecked()) {
             static function<void(double, clock_t)> on_progress_func = bind(
@@ -219,11 +238,13 @@ void MainWindow::create_graph() {
                 &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
             );
             commits = create_loc_history(
-                git_repo_path, excluded_paths,
+                git_repo_path, excluded_paths, cloning,
                 on_progress_func, on_section_change_func, start
             );
         } else {
-            commits = create_loc_history(git_repo_path, excluded_paths, nullptr, nullptr, start);
+            commits = create_loc_history(
+                git_repo_path, excluded_paths, cloning, nullptr, nullptr, start
+            );
         }
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;

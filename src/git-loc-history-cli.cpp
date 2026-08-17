@@ -46,8 +46,8 @@ string format_time(clock_t start) {
 }
 
 template<typename T>
-bool is_in(T first, vector<T> values) {
-    return find(values.begin(), values.end(), first) != values.end();
+bool is_in(T target, vector<T> values) {
+    return find(values.begin(), values.end(), target) != values.end();
 }
 
 void on_progress(int progress, const clock_t start) {
@@ -88,11 +88,13 @@ int main(int argc, char *argv[]) {
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
     bool show_progress = false;
+    bool yes = false;
 
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
         {"exclude-from", required_argument, 0, 'X'},
         {"progress", no_argument, 0, 'p'},
+        {"yes", no_argument, 0, 'y'},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'}
     };
@@ -100,7 +102,7 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
     int opt;
 
-    while ((opt = getopt_long(argc, argv, "x:X:pvh", flag_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "x:X:pyvh", flag_options, &option_index)) != -1) {
         switch (opt) {
             case 'x':
                 excluded_paths.push_back(optarg);
@@ -125,32 +127,35 @@ int main(int argc, char *argv[]) {
                 file.close();
                 break;
             }
-            case 'p': {
+            case 'p':
                 show_progress = true;
                 break;
-            }
+            case 'y':
+                yes = true;
+                break;
             case 'v':
                 cout << Definitions::get_version() << endl;
                 return 0;
             case 'h':
                 cout <<
                     "Usage: git-loc-history-cli <git_repo_path>\n"
-                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-v] [-h]\n\n"
+                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-p] [-y] [-v] [-h]\n\n"
                     "Display a git repo's lines of code across its history.\n\n"
                     "\t-x, --exclude=<path>       Exclude <path> from results\n"
                     "\t-X, --exclude-from=<file>  Exclude all paths in <file> from results\n"
+                    "\t-y, --yes                  Skip all confirmations\n"
                     "\t-v, --version              Print version and exit\n"
                     "\t-h, --help                 Display this help and exit\n\n"
                     "<git_repo_path> must be a url or a path to a local folder.\n"
-                    "<path> format follows .gitignore format.\n"
-                    "Paths are not absolute by default (e.g. foo will exclude /foo and /bar/foo).\n"
+                    "<path>s are not absolute by default\n"
+                    "(e.g. foo will exclude /foo and /bar/foo).\n"
                     "Absolute paths (e.g. /foo) are relative to repository path."
                 << endl;
                 return 0;
             case '?':
                 cout <<
                     "Usage: git-loc-history-cli <git_repo_path>\n"
-                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-v] [-h]\n"
+                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-p] [-y] [-v] [-h]\n"
                     "More information can be found using --help."
                 << endl;
                 return 1;
@@ -158,6 +163,17 @@ int main(int argc, char *argv[]) {
     }
 
     git_repo_path = argv[optind];
+    const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
+
+    if (!yes && !cloning) {
+        cout <<
+            "While there are no known issues,\n"
+            "it is recommended to use a fresh clone or to create a backup first.\n"
+            "Continue [Y/n]: ";
+        char response;
+        cin >> response;
+        if (!is_in(response, {'y', 'Y'})) return 0;
+    }
 
     // Create LoC History
 
@@ -174,10 +190,12 @@ int main(int argc, char *argv[]) {
     try {
         if (show_progress)
             commits = create_loc_history(
-                git_repo_path, excluded_paths, on_progress, on_section_change, start
+                git_repo_path, excluded_paths, cloning, on_progress, on_section_change, start
             );
         else
-            commits = create_loc_history(git_repo_path, excluded_paths, nullptr, nullptr, start);
+            commits = create_loc_history(
+                git_repo_path, excluded_paths, cloning, nullptr, nullptr, start
+            );
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;
         return 1;
