@@ -84,6 +84,10 @@ void on_section_change(string section, const clock_t start) {
 
 int main(int argc, char *argv[]) {
 
+    // Get Settings
+
+    unordered_map<string, string> settings_map = Definitions::get_config();
+
     // Parse Args
 
     string git_repo_path; // Path (filesystem or url) passed by user
@@ -142,15 +146,13 @@ int main(int argc, char *argv[]) {
             case 'y':
                 yes = true;
                 break;
-            case 'S': {
-                unordered_map<string, string> settings_map = Definitions::get_config();
+            case 'S':
                 if (settings_map.find(optarg) != settings_map.end()) {
                     cout << optarg << "=" << settings_map[optarg] << endl;
                     return 0;
                 }
                 cout << "Setting " << optarg << " not found." << endl;
                 return 1;
-            }
             case 'C':
                 if (is_in(optarg, {"true", "True", "1"})) {
                     Definitions::set_config("cache_results", "true");
@@ -216,15 +218,21 @@ int main(int argc, char *argv[]) {
     git_repo_path = argv[optind];
     const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
 
-    if (!yes && !cloning) {
+    if (settings_map["show_warnings"].compare("true") == 0 && !yes && !cloning) {
+
         cout <<
             "While there are no known issues,\n"
             "it is recommended to use a fresh clone or to create a backup first.\n"
             "Continue [Y/n]: ";
         flush(cout);
+
+        if (settings_map["warn_local_path"].compare("true") == 0)
+            Definitions::set_config("warn_local_path", "false");
+
         char response;
         cin >> response;
         if (!is_in(response, {'y', 'Y'})) return 0;
+
     }
 
     // Create LoC History
