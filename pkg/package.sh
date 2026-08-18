@@ -24,6 +24,7 @@ if [[ $1 == "debian" ]]; then
 
     cp -a usr $build_path/usr
     cp debian/control $build_path/DEBIAN
+    cp debian/conffile $build_path/conffile
     sed -i -e "s/VERSION/$version/g" $build_path/DEBIAN/control
     sed -i -e "s/INSTALLED_SIZE/$(du -s $build_path/usr | awk '{print $1}')/g" \
         $build_path/DEBIAN/control

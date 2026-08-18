@@ -20,6 +20,8 @@ An application for viewing a git repo's lines of code across its history.
 %install
 install -Dm755 usr/bin/git-loc-history "$RPM_BUILD_ROOT/usr/bin/git-loc-history"
 install -Dm755 usr/bin/git-loc-history-cli $"RPM_BUILD_ROOT/usr/bin/git-loc-history-cli"
+install -Dm644 usr/share/git-loc-history/defaults.conf \
+    "$pkgdir/usr/share/git-loc-history/defaults.conf"
 install -Dm644 usr/share/applications/git-loc-history.desktop \
     "$RPM_BUILD_ROOT/usr/share/applications/git-loc-history.desktop"
 install -Dm644 usr/share/doc/git-loc-history/copyright \
@@ -39,12 +41,16 @@ rm -rf $RPM_BUILD_ROOT
 %files
 /usr/bin/git-loc-history
 /usr/bin/git-loc-history-cli
+/usr/share/git-loc-history/defaults.conf
 /usr/share/applications/git-loc-history.desktop
 /usr/share/doc/git-loc-history/copyright
 /usr/share/doc/git-loc-history/README.md
 /usr/share/doc/git-loc-history/CHANGELOG.md
 /usr/share/icons/hicolor/512x512/apps/git-loc-history.png
 /usr/share/licenses/git-loc-history/LICENSE
+
+%config(noreplace)
+~/.config/git-loc-history.conf
 
 %changelog
 %autochangelog
