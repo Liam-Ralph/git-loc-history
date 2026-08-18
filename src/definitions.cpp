@@ -84,7 +84,7 @@ unordered_map<string, string> Definitions::get_config() {
     unordered_map<string, string> config_map;
     string line;
     while (getline(file, line)) {
-        if (line.compare("") != 0) {
+        if (line.length() > 0 && line[1] != '#') {
             size_t equal_pos = line.find('=');
             config_map.emplace(line.substr(0, equal_pos), line.substr(equal_pos + 1));
         }

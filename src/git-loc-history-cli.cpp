@@ -95,6 +95,8 @@ int main(int argc, char *argv[]) {
         {"exclude-from", required_argument, 0, 'X'},
         {"progress", no_argument, 0, 'p'},
         {"yes", no_argument, 0, 'y'},
+        {"set-warnings", required_argument, 0, 'w'},
+        {"set-caching", required_argument, 0, 'c'}
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'}
     };
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
     int opt;
 
-    while ((opt = getopt_long(argc, argv, "x:X:pyvh", flag_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "x:X:pys:vh", flag_options, &option_index)) != -1) {
         switch (opt) {
             case 'x':
                 excluded_paths.push_back(optarg);
@@ -133,6 +135,7 @@ int main(int argc, char *argv[]) {
             case 'y':
                 yes = true;
                 break;
+            
             case 'v':
                 cout << Definitions::get_version() << endl;
                 return 0;
@@ -143,7 +146,10 @@ int main(int argc, char *argv[]) {
                     "Display a git repo's lines of code across its history.\n\n"
                     "\t-x, --exclude=<path>       Exclude <path> from results\n"
                     "\t-X, --exclude-from=<file>  Exclude all paths in <file> from results\n"
-                    "\t-y, --yes                  Skip all confirmations\n"
+                    "\t-y, --yes                  Skip all confirmations\n\n"
+                    "\t-w, --set-warnings=<value> "
+                        "Set warnings to <value> (0/false or 1/true) and exit.\n"
+                    "\t-"
                     "\t-v, --version              Print version and exit\n"
                     "\t-h, --help                 Display this help and exit\n\n"
                     "<git_repo_path> must be a url or a path to a local folder.\n"
@@ -155,7 +161,7 @@ int main(int argc, char *argv[]) {
             case '?':
                 cout <<
                     "Usage: git-loc-history-cli <git_repo_path>\n"
-                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-p] [-y] [-v] [-h]\n"
+                    "    [-x <path>] [-X <file>] [-p] [-y] [-v] [-h]\n"
                     "More information can be found using --help."
                 << endl;
                 return 1;
