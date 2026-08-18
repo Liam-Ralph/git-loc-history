@@ -104,23 +104,27 @@ int Definitions::set_config(string setting, string value) {
         ifile.open(config_path);
     }
     if (!ifile.is_open()) {
-        cerr << "Error opening." << endl;
+        cerr << "Error opening file " << config_path << " (read)." << endl;
         return 1;
     }
 
+    bool found = false;
     string lines = "";
     string line;
     while (getline(ifile, line)) {
-        if (line.find(setting) == 0)
+        if (line.find(setting) == 0) {
             lines += setting + "=" + value + "\n";
-        else
+            found = true;
+        } else {
             lines += line + "\n";
+        }
     }
     ifile.close();
+    if (!found) return 1;
 
     ofstream ofile(config_path);
     if (!ofile.is_open()) {
-        cerr << "Error opening config file." << endl;
+        cerr << "Error opening file " << config_path << " (write)." << endl;
         return 1;
     }
     ofile << lines;

@@ -33,6 +33,7 @@ code across its history.
 #include <sys/ioctl.h>
 #include <thread>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 using namespace std;
 
@@ -88,15 +89,18 @@ int main(int argc, char *argv[]) {
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
     bool show_progress = false;
+    bool cache_result = false;
     bool yes = false;
 
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
         {"exclude-from", required_argument, 0, 'X'},
         {"progress", no_argument, 0, 'p'},
+        {"cache-result", no_argument, 0, 'c'},
         {"yes", no_argument, 0, 'y'},
-        {"set-warnings", required_argument, 0, 'w'},
-        {"set-caching", required_argument, 0, 'c'}
+        {"show-setting", required_argument, 0, 'S'},
+        {"set-warnings", required_argument, 0, 'W'},
+        {"set-caching", required_argument, 0, 'C'},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'}
     };
@@ -104,7 +108,7 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
     int opt;
 
-    while ((opt = getopt_long(argc, argv, "x:X:pys:vh", flag_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "x:X:pcyS:W:C:vh", flag_options, &option_index)) != -1) {
         switch (opt) {
             case 'x':
                 excluded_paths.push_back(optarg);
@@ -129,29 +133,70 @@ int main(int argc, char *argv[]) {
                 file.close();
                 break;
             }
+            case 'c':
+                cache_result = true;
+                break;
             case 'p':
                 show_progress = true;
                 break;
             case 'y':
                 yes = true;
                 break;
-            
+            case 'S': {
+                unordered_map<string, string> settings_map = Definitions::get_config();
+                if (settings_map.find(optarg) != settings_map.end()) {
+                    cout << optarg << "=" << settings_map[optarg] << endl;
+                    return 0;
+                }
+                cout << "Setting " << optarg << " not found." << endl;
+                return 1;
+            }
+            case 'C':
+                if (is_in(optarg, {"true", "True", "1"})) {
+                    Definitions::set_config("cache_results", "true");
+                } else if (is_in(optarg, {"false", "False", "0"})) {
+                    Definitions::set_config("cache_results", "false");
+                } else {
+                    cerr << "Invalid value for cache_results: " << optarg << endl;
+                    return 1;
+                }
+                return 0;
+            case 'W':
+                if (is_in(optarg, {"true", "True", "1"})) {
+                    Definitions::set_config("show_warnings", "true");
+                } else if (is_in(optarg, {"false", "False", "0"})) {
+                    Definitions::set_config("show_warnings", "false");
+                } else {
+                    cerr << "Invalid value for show_warnings: " << optarg << endl;
+                    return 1;
+                }
+                return 0;
             case 'v':
                 cout << Definitions::get_version() << endl;
                 return 0;
             case 'h':
                 cout <<
-                    "Usage: git-loc-history-cli <git_repo_path>\n"
-                    "    [-x, --exclude <path>] [-X, --exclude-from <file>] [-p] [-y] [-v] [-h]\n\n"
+                    "Usage:\n"
+                    "git-loc-history-cli <git_repo_path> [-x <path>] [-X <file>] [-p] [-c] [-y]\n"
+                    "OR git-loc-history-cli [-S] [-W] [-C] [-v] [-h]\n\n"
+
                     "Display a git repo's lines of code across its history.\n\n"
-                    "\t-x, --exclude=<path>       Exclude <path> from results\n"
-                    "\t-X, --exclude-from=<file>  Exclude all paths in <file> from results\n"
-                    "\t-y, --yes                  Skip all confirmations\n\n"
-                    "\t-w, --set-warnings=<value> "
-                        "Set warnings to <value> (0/false or 1/true) and exit.\n"
-                    "\t-"
-                    "\t-v, --version              Print version and exit\n"
-                    "\t-h, --help                 Display this help and exit\n\n"
+
+                    "\t-x, --exclude=<path>         Exclude <path> from results.\n"
+                    "\t-X, --exclude-from=<file>    Exclude all paths in <file> from results.\n"
+                    "\t-y, --yes                    "
+                        "Skip all confirmations, overrides show_warnings.\n"
+                    "\t-c, --cache-results          Cache results, overrides cache_results.\n"
+
+                    "\t-S, --show-setting=<setting> Show the value of <setting> and exit.\n"
+                    "\t-C, --set-caching=<value>    "
+                        "Set cache_results to <value> (0/false or 1/true) and exit.\n"
+                    "\t-W, --set-warnings=<value>   "
+                        "Set show_warnings to <value> (0/false or 1/true) and exit.\n\n"
+
+                    "\t-v, --version                Print version and exit.\n"
+                    "\t-h, --help                   Display this help and exit.\n\n"
+
                     "<git_repo_path> must be a url or a path to a local folder.\n"
                     "<path>s are not absolute by default\n"
                     "(e.g. foo will exclude /foo and /bar/foo).\n"
@@ -160,9 +205,9 @@ int main(int argc, char *argv[]) {
                 return 0;
             case '?':
                 cout <<
-                    "Usage: git-loc-history-cli <git_repo_path>\n"
-                    "    [-x <path>] [-X <file>] [-p] [-y] [-v] [-h]\n"
-                    "More information can be found using --help."
+                    "Usage:\n"
+                    "git-loc-history-cli <git_repo_path> [-x <path>] [-X <file>] [-p] [-c] [-y]\n"
+                    "OR git-loc-history-cli [-S] [-W] [-C] [-v] [-h]"
                 << endl;
                 return 1;
         }
@@ -176,6 +221,7 @@ int main(int argc, char *argv[]) {
             "While there are no known issues,\n"
             "it is recommended to use a fresh clone or to create a backup first.\n"
             "Continue [Y/n]: ";
+        flush(cout);
         char response;
         cin >> response;
         if (!is_in(response, {'y', 'Y'})) return 0;
