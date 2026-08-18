@@ -10,7 +10,7 @@ fi
 
 if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; then
 
-    sed -i -e "s/#define ABSOLUTE_PATHS false/#define ABSOLUTE_PATHS true/g" src/definitions.cpp
+    sed -i -e "s/#define RELEASE_PATHS false/#define RELEASE_PATHS true/g" src/definitions.cpp
     if [ -e "build" ]; then
         rm -rf build/*
     else
@@ -31,7 +31,7 @@ if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; the
     cmake --build . --parallel $(nproc) --config Release
     strip git-loc-history git-loc-history-cli
     cd ..
-    sed -i -e "s/#define ABSOLUTE_PATHS true/#define ABSOLUTE_PATHS false/g" src/definitions.cpp
+    sed -i -e "s/#define RELEASE_PATHS true/#define RELEASE_PATHS false/g" src/definitions.cpp
 
 fi
 

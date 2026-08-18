@@ -52,7 +52,7 @@ const array<Language, 12> languages = {
 };
 
 
-// Language < Operator
+// Language Operators
 
 bool operator==(const Language &a, const Language &b) {
     return a.name.compare(b.name) == 0;
