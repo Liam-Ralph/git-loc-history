@@ -38,6 +38,10 @@ install -Dm644 usr/share/licenses/git-loc-history/LICENSE \
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%postun
+rm -f /home/*/.config/git-loc-history.conf
+rm -rf /home/*/.cache/git-loc-history
+
 %files
 /usr/bin/git-loc-history
 /usr/bin/git-loc-history-cli
@@ -48,9 +52,6 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/doc/git-loc-history/CHANGELOG.md
 /usr/share/icons/hicolor/512x512/apps/git-loc-history.png
 /usr/share/licenses/git-loc-history/LICENSE
-
-%config(noreplace)
-~/.config/git-loc-history.conf
 
 %changelog
 %autochangelog

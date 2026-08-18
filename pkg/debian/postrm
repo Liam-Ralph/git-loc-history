@@ -1,0 +1,3 @@
+#!/bin/bash
+rm -f /home/*/.config/git-loc-history.conf
+rm -rf /home/*/.cache/git-loc-history
