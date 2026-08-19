@@ -105,6 +105,8 @@ int main(int argc, char *argv[]) {
         {"show-setting", required_argument, 0, 'S'},
         {"set-warnings", required_argument, 0, 'W'},
         {"set-caching", required_argument, 0, 'C'},
+        {"view-cache", no_argument, 0, 'V'},
+        {"clear-cache", no_argument, 0, 'R'},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'}
     };
@@ -173,6 +175,13 @@ int main(int argc, char *argv[]) {
                     return 1;
                 }
                 return 0;
+            case 'V':
+                cout << "Cache Size: " << Definitions::get_cache_size() << endl;
+                return 0;
+            case 'R':
+                filesystem::remove_all(Definitions::get_path_cache());
+                cout << "Cache cleared." << endl;
+                return 0;
             case 'v':
                 cout << Definitions::get_version() << endl;
                 return 0;
@@ -180,7 +189,7 @@ int main(int argc, char *argv[]) {
                 cout <<
                     "Usage:\n"
                     "git-loc-history-cli <git_repo_path> [-x <path>] [-X <file>] [-p] [-c] [-y]\n"
-                    "OR git-loc-history-cli [-S] [-W] [-C] [-v] [-h]\n\n"
+                    "OR git-loc-history-cli [one of -S, -W, -C, -V, -R, -v, -h]\n\n"
 
                     "Display a git repo's lines of code across its history.\n\n"
 
@@ -194,7 +203,9 @@ int main(int argc, char *argv[]) {
                     "\t-C, --set-caching=<value>    "
                         "Set cache_results to <value> (0/false or 1/true) and exit.\n"
                     "\t-W, --set-warnings=<value>   "
-                        "Set show_warnings to <value> (0/false or 1/true) and exit.\n\n"
+                        "Set show_warnings to <value> (0/false or 1/true) and exit.\n"
+                    "\t-V, --view-cache             Display cache size and exit.\n"
+                    "\t-R, --clear-cache            Clear cache and exit.\n\n"
 
                     "\t-v, --version                Print version and exit.\n"
                     "\t-h, --help                   Display this help and exit.\n\n"
@@ -209,7 +220,7 @@ int main(int argc, char *argv[]) {
                 cout <<
                     "Usage:\n"
                     "git-loc-history-cli <git_repo_path> [-x <path>] [-X <file>] [-p] [-c] [-y]\n"
-                    "OR git-loc-history-cli [-S] [-W] [-C] [-v] [-h]"
+                    "OR git-loc-history-cli [one of -S, -W, -C, -V, -R, -v, -h]"
                 << endl;
                 return 1;
         }

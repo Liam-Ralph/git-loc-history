@@ -1,4 +1,3 @@
-implement cache viewing and clearing in cli
 parse return value of set_config in gui
 change cache path for postrm scripts
 use XDG_CONFIG_HOME in postrm scripts
