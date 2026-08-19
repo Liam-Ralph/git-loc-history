@@ -137,11 +137,11 @@ int main(int argc, char *argv[]) {
                 file.close();
                 break;
             }
-            case 'c':
-                cache_result = true;
-                break;
             case 'p':
                 show_progress = true;
+                break;
+            case 'c':
+                cache_result = true;
                 break;
             case 'y':
                 yes = true;
@@ -154,9 +154,9 @@ int main(int argc, char *argv[]) {
                 cout << "Setting " << optarg << " not found." << endl;
                 return 1;
             case 'C':
-                if (is_in(optarg, {"true", "True", "1"})) {
+                if (is_in(string(optarg), {"true", "True", "1"})) {
                     Definitions::set_config("cache_results", "true");
-                } else if (is_in(optarg, {"false", "False", "0"})) {
+                } else if (is_in(string(optarg), {"false", "False", "0"})) {
                     Definitions::set_config("cache_results", "false");
                 } else {
                     cerr << "Invalid value for cache_results: " << optarg << endl;
@@ -164,9 +164,9 @@ int main(int argc, char *argv[]) {
                 }
                 return 0;
             case 'W':
-                if (is_in(optarg, {"true", "True", "1"})) {
+                if (is_in(string(optarg), {"true", "True", "1"})) {
                     Definitions::set_config("show_warnings", "true");
-                } else if (is_in(optarg, {"false", "False", "0"})) {
+                } else if (is_in(string(optarg), {"false", "False", "0"})) {
                     Definitions::set_config("show_warnings", "false");
                 } else {
                     cerr << "Invalid value for show_warnings: " << optarg << endl;
@@ -186,9 +186,9 @@ int main(int argc, char *argv[]) {
 
                     "\t-x, --exclude=<path>         Exclude <path> from results.\n"
                     "\t-X, --exclude-from=<file>    Exclude all paths in <file> from results.\n"
+                    "\t-c, --cache-results          Cache results, overrides cache_results.\n"
                     "\t-y, --yes                    "
                         "Skip all confirmations, overrides show_warnings.\n"
-                    "\t-c, --cache-results          Cache results, overrides cache_results.\n"
 
                     "\t-S, --show-setting=<setting> Show the value of <setting> and exit.\n"
                     "\t-C, --set-caching=<value>    "

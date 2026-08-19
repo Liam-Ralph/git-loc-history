@@ -33,6 +33,7 @@
 #include <ctime>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 using namespace std;
 
@@ -46,7 +47,9 @@ MainWindow::MainWindow() : QMainWindow() {
     setWindowState(Qt::WindowMaximized);
     setMinimumSize(800, 550);
 
-    warned_local_path = false;
+    // Get Settings
+
+    settings_map = Definitions::get_config();
 
     // Create Window
 
@@ -105,8 +108,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
     QVBoxLayout *layout_options = new QVBoxLayout();
 
-    QLabel *options_label = new QLabel("Options");
-    layout_options->addWidget(options_label);
+    layout_options->addWidget(new QLabel("Run Options"));
 
     progress_check = new QCheckBox("Show Progress");
     layout_options->addWidget(progress_check);
@@ -115,6 +117,34 @@ MainWindow::MainWindow() : QMainWindow() {
     chart_type_combo->addItems({"Line", "Bar"});
     chart_type_combo->setCurrentIndex(0);
     layout_options->addWidget(chart_type_combo);
+
+    layout_options->addWidget(new QLabel("Program Options"));
+
+    QCheckBox *cache_results_check = new QCheckBox("Cache Results");
+    if (settings_map["cache_results"].compare("true") == 0)
+        cache_results_check->setChecked(true);
+    connect(
+        cache_results_check, &QCheckBox::checkStateChanged, this,
+        [this, cache_results_check]() {
+            const string state = cache_results_check->isChecked() ? "true" : "false";
+            Definitions::set_config("cache_results", state);
+            settings_map["cache_results"] = state;
+        }
+    );
+    layout_options->addWidget(cache_results_check);
+
+    QCheckBox *show_warnings_check = new QCheckBox("Show Warnings");
+    if (settings_map["show_warnings"].compare("true") == 0)
+        show_warnings_check->setChecked(true);
+    connect(
+        show_warnings_check, &QCheckBox::checkStateChanged, this,
+        [this, show_warnings_check]() {
+            const string state = show_warnings_check->isChecked() ? "true" : "false";
+            Definitions::set_config("show_warnings", state);
+            settings_map["show_warnings"] = state;
+        }
+    );
+    layout_options->addWidget(show_warnings_check);
 
     layout_options->setAlignment(Qt::AlignTop);
     layout_middle->addLayout(layout_options);
@@ -163,16 +193,13 @@ MainWindow::MainWindow() : QMainWindow() {
 MainWindow::~MainWindow() {}
 
 bool MainWindow::is_dark_mode() {
-    static bool dark_mode = []() {
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-            return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
-        #else
-            const QPalette defaultPalette;
-            return defaultPalette.color(QPalette::WindowText).lightness() >
-                defaultPalette.color(QPalette::Window).lightness();
-        #endif
-    }();
-    return dark_mode;
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    #else
+        const QPalette defaultPalette;
+        return defaultPalette.color(QPalette::WindowText).lightness() >
+            defaultPalette.color(QPalette::Window).lightness();
+    #endif
 }
 
 void MainWindow::show_info() {
@@ -198,8 +225,12 @@ void MainWindow::create_graph() {
 
     string git_repo_path = path_entry->text().toStdString();
     const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
-    if (!cloning && !warned_local_path) {
-        warned_local_path = true;
+    if (
+        settings_map["show_warnings"].compare("true") == 0 && !cloning &&
+        settings_map["warn_local_path"].compare("true") == 0
+    ) {
+        Definitions::set_config("warn_local_path", "false");
+        settings_map = Definitions::get_config();
         if (
             QMessageBox::question(
                 this,
@@ -271,7 +302,7 @@ void MainWindow::create_graph() {
     QChart *chart = new QChart();
     chart_view->setBackgroundBrush(Qt::transparent);
     chart_view->setForegroundBrush(Qt::transparent);
-    if (MainWindow::is_dark_mode())
+    if (is_dark_mode())
         chart->setTheme(QChart::ChartTheme::ChartThemeDark);
 
     map<Language, QColor> language_colors = {

@@ -3,3 +3,4 @@ fix .h file case
 add branch choosing
 add color blind friendly color set and option
 add warnings to gui when cerr
+add is_true for settings_map entries

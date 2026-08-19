@@ -20,6 +20,7 @@
 #include <atomic>
 #include <ctime>
 #include <string>
+#include <unordered_map>
 
 
 // MainWindow Class
@@ -44,7 +45,7 @@ class MainWindow : public QMainWindow {
         void create_graph();
         void update_timer(std::clock_t start);
 
-        bool warned_local_path;
+        std::unordered_map<std::string, std::string> settings_map;
 
         QLabel *commit_info_label;
 
