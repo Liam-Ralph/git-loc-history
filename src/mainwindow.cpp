@@ -146,6 +146,17 @@ MainWindow::MainWindow() : QMainWindow() {
     );
     layout_options->addWidget(show_warnings_check);
 
+    cache_size_label = new QLabel();
+    update_cache_size();
+    layout_options->addWidget(cache_size_label);
+
+    QPushButton *clear_cache_button = new QPushButton("Clear Cache");
+    connect(clear_cache_button, &QPushButton::clicked, this, [this]() {
+        filesystem::remove_all(Definitions::get_path_cache());
+        update_cache_size();
+    });
+    layout_options->addWidget(clear_cache_button);
+
     layout_options->setAlignment(Qt::AlignTop);
     layout_middle->addLayout(layout_options);
 
@@ -448,4 +459,10 @@ void MainWindow::update_timer(const clock_t start) {
     stringstream ss;
     ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC << "s";
     timer_label->setText(QString::fromStdString(ss.str()));
+}
+
+void MainWindow::update_cache_size() {
+    cache_size_label->setText(
+        QString::fromStdString("Cache Size: " + Definitions::get_cache_size())
+    );
 }

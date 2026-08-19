@@ -44,6 +44,7 @@ class MainWindow : public QMainWindow {
         void open_path_dialog();
         void create_graph();
         void update_timer(std::clock_t start);
+        void update_cache_size();
 
         std::unordered_map<std::string, std::string> settings_map;
 
@@ -55,6 +56,7 @@ class MainWindow : public QMainWindow {
         QChartView *chart_view;
         QCheckBox *progress_check;
         QComboBox *chart_type_combo;
+        QLabel *cache_size_label;
 
         QPushButton *start_button;
         QProgressBar *progress_bar;

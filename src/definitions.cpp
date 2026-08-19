@@ -2,10 +2,14 @@
 
 #include "definitions.hpp"
 
+#include <array>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 using namespace std;
@@ -55,7 +59,7 @@ string Definitions::get_version() {
     return version;
 }
 
-string Definitions::get_config_path() {
+string Definitions::get_path_config() {
     static string config_path = []() {
         if (!RELEASE_PATHS) return string("../src/defaults.conf");
         char *env_var = getenv("XDG_CONFIG_HOME");
@@ -69,7 +73,7 @@ string Definitions::get_config_path() {
 
 unordered_map<string, string> Definitions::get_config() {
 
-    const string config_path = get_config_path();
+    const string config_path = get_path_config();
     ifstream file(config_path);
     if (!file.is_open() && RELEASE_PATHS) {
         filesystem::copy_file("/usr/share/git-loc-history/defaults.conf", config_path);
@@ -96,7 +100,7 @@ unordered_map<string, string> Definitions::get_config() {
 
 int Definitions::set_config(string setting, string value) {
 
-    const string config_path = get_config_path();
+    const string config_path = get_path_config();
     ifstream ifile(config_path);
     if (!ifile.is_open() && RELEASE_PATHS) {
         filesystem::copy_file("/usr/share/git-loc-history/defaults.conf", config_path);
@@ -131,4 +135,34 @@ int Definitions::set_config(string setting, string value) {
 
     return 0;
 
+}
+
+string Definitions::get_path_cache() {
+    static string cache_path = []() {
+        char *env_var = getenv("XDG_CONFIG_HOME");
+        if (env_var == nullptr) {
+            return string("~/.cache/git-loc-history");
+        }
+        return string(env_var) + "/git-loc-history";
+    }();
+    return cache_path;
+}
+
+string Definitions::get_cache_size() {
+    const filesystem::path path_cache = get_path_cache();
+    if (!filesystem::exists(path_cache)) {
+        return "0B";
+    }
+    long total_bytes = 0;
+    for (const filesystem::directory_entry &entry : filesystem::directory_iterator(path_cache))
+        if (filesystem::is_regular_file(entry.path()))
+            total_bytes += filesystem::file_size(entry.path());
+    const array<string, 7> suffixes = {"B", "kiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
+    int exp = 0;
+    while (total_bytes >= pow(1024, exp + 1)) exp++;
+    stringstream ss;
+    ss <<
+        fixed << setprecision(1) <<
+        round(float(total_bytes) / pow(1024, exp) * 10) / 10 << suffixes[exp];
+    return ss.str();
 }

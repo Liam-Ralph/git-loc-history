@@ -20,9 +20,13 @@ class Definitions {
         static std::string get_path_license();
         static std::string get_path_readme();
         static std::string get_version();
-        static std::string get_config_path();
+
+        static std::string get_path_config();
         static std::unordered_map<std::string, std::string> get_config();
         static int set_config(std::string setting, std::string value);
+
+        static std::string get_path_cache();
+        static std::string get_cache_size();
 
 };
 

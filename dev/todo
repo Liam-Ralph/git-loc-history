@@ -1,6 +1,11 @@
+implement cache viewing and clearing in cli
+parse return value of set_config in gui
+change cache path for postrm scripts
+use XDG_CONFIG_HOME in postrm scripts
 add result caching
 fix .h file case
 add branch choosing
 add color blind friendly color set and option
 add warnings to gui when cerr
 add is_true for settings_map entries
+rework Definitions and create-loc-history

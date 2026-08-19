@@ -1,4 +1,4 @@
-## Version 1.0.1 (August 2026)
+## Version 1.1.0 (August 2026)
 
  - Switched to libgit2 v1.9.7.
  - Switched to static linking for libgit2.
@@ -6,6 +6,7 @@
  - Added file caching to improve speed.
  - Fixed error when running multiple instances with the same url.
  - Added a warning when a local path is chosen.
+ - Added persistent settings.
 
 ## Version 1.0.0 (August 2026)
 
