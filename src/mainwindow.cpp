@@ -110,6 +110,11 @@ MainWindow::MainWindow() : QMainWindow() {
 
     layout_options->addWidget(new QLabel("Run Options"));
 
+    branch_entry = new QLineEdit();
+    branch_entry->setPlaceholderText("Branch");
+    branch_entry->setMaximumWidth(200);
+    layout_options->addWidget(branch_entry);
+
     progress_check = new QCheckBox("Show Progress");
     layout_options->addWidget(progress_check);
 
@@ -280,12 +285,13 @@ void MainWindow::create_graph() {
                 &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
             );
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning,
+                git_repo_path, excluded_paths, cloning, branch_entry->text().toStdString(),
                 on_progress_func, on_section_change_func, start
             );
         } else {
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, nullptr, nullptr, start
+                git_repo_path, excluded_paths, cloning, branch_entry->text().toStdString(),
+                nullptr, nullptr, start
             );
         }
     } catch (const runtime_error &e) {

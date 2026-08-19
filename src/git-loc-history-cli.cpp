@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
 
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
+    string branch = "";
     bool show_progress = false;
     bool cache_result = false;
     bool yes = false;
@@ -99,6 +100,7 @@ int main(int argc, char *argv[]) {
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
         {"exclude-from", required_argument, 0, 'X'},
+        {"branch", required_argument, 0, 'b'},
         {"progress", no_argument, 0, 'p'},
         {"cache-result", no_argument, 0, 'c'},
         {"yes", no_argument, 0, 'y'},
@@ -114,7 +116,9 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
     int opt;
 
-    while ((opt = getopt_long(argc, argv, "x:X:pcyS:W:C:vh", flag_options, &option_index)) != -1) {
+    while (
+        (opt = getopt_long(argc, argv, "x:X:b:pcyS:W:C:VCvh", flag_options, &option_index)) != -1
+    ) {
         switch (opt) {
             case 'x':
                 excluded_paths.push_back(optarg);
@@ -139,6 +143,9 @@ int main(int argc, char *argv[]) {
                 file.close();
                 break;
             }
+            case 'b':
+                branch = optarg;
+                break;
             case 'p':
                 show_progress = true;
                 break;
@@ -188,13 +195,15 @@ int main(int argc, char *argv[]) {
             case 'h':
                 cout <<
                     "Usage:\n"
-                    "git-loc-history-cli <git_repo_path> [-x <path>] [-X <file>] [-p] [-c] [-y]\n"
+                    "git-loc-history-cli <git_repo_path>\n"
+                    "    [-x <path>] [-X <file>] [-b <branch>] [-p] [-c] [-y]\n"
                     "OR git-loc-history-cli [one of -S, -W, -C, -V, -R, -v, -h]\n\n"
 
                     "Display a git repo's lines of code across its history.\n\n"
 
                     "\t-x, --exclude=<path>         Exclude <path> from results.\n"
                     "\t-X, --exclude-from=<file>    Exclude all paths in <file> from results.\n"
+                    "\t-b, --branch=<branch>        Branch of git repo to checkout.\n"
                     "\t-c, --cache-results          Cache results, overrides cache_results.\n"
                     "\t-y, --yes                    "
                         "Skip all confirmations, overrides show_warnings.\n"
@@ -219,7 +228,8 @@ int main(int argc, char *argv[]) {
             case '?':
                 cout <<
                     "Usage:\n"
-                    "git-loc-history-cli <git_repo_path> [-x <path>] [-X <file>] [-p] [-c] [-y]\n"
+                    "git-loc-history-cli <git_repo_path>\n"
+                    "    [-x <path>] [-X <file>] [-b <branch>] [-p] [-c] [-y]\n"
                     "OR git-loc-history-cli [one of -S, -W, -C, -V, -R, -v, -h]"
                 << endl;
                 return 1;
@@ -261,11 +271,12 @@ int main(int argc, char *argv[]) {
     try {
         if (show_progress)
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, on_progress, on_section_change, start
+                git_repo_path, excluded_paths, cloning, branch,
+                on_progress, on_section_change, start
             );
         else
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, nullptr, nullptr, start
+                git_repo_path, excluded_paths, cloning, branch, nullptr, nullptr, start
             );
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;

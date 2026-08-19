@@ -65,7 +65,8 @@ bool operator<(const Language &a, const Language &b) {
 // Functions
 
 vector<Commit> create_loc_history(
-    string git_repo_path, vector<string> excluded_paths, const bool cloning,
+    string git_repo_path, vector<string> excluded_paths,
+    const bool cloning, const string branch,
     function<void(int, clock_t)> on_progress,
     function<void(string, clock_t)> on_section_change,
     const clock_t start
@@ -195,7 +196,24 @@ vector<Commit> create_loc_history(
 
     // Get Commit History
 
-    git_checkout_head(repo, nullptr);
+    if (branch.size() > 0) {
+        int error = git_repository_set_head(repo, ("refs/remotes/origin/" + branch).c_str());
+        if (error != 0) {
+            const git_error *e = git_error_last();
+            throw runtime_error(
+                "git_repository_set_head error " +
+                to_string(error) + "/" + to_string(e->klass) + ": " + e->message
+            );
+        }
+    }
+    int error = git_checkout_head(repo, nullptr);
+    if (error != 0) {
+        const git_error *e = git_error_last();
+        throw runtime_error(
+            "git_checkout_head error " +
+            to_string(error) + "/" + to_string(e->klass) + ": " + e->message
+        );
+    }
 
     git_revwalk *repo_walker = nullptr;
     git_oid oid;
