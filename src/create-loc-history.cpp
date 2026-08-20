@@ -198,6 +198,36 @@ vector<Commit> create_loc_history(
 
     }
 
+    // Search Results Cache
+
+    vector<Commit> cache_commits = {};
+    const string cache_dir = Definitions::get_path_cache();
+    const string cache_path = cache_dir + "/" + repo_name;
+
+    if (filesystem::exists(cache_path)) {
+        try {
+
+            ifstream file(cache_path);
+            string line;
+
+            getline(file, line);
+            if (stoi(line) != RESULTS_FORMAT_VERSION) goto exited_caching;
+
+            while (getline(file, line)) {
+                if (line.size() == 0) continue;
+                string oid;
+                getline(file, oid);
+                string date_str;
+                getline(file, date_str);
+                string num_langs_str;
+                getline(file, num_langs_str);
+                Commit commit = 
+            }
+
+        } catch (runtime_error) {}
+    }
+    exited_caching:
+
     // Get Commit History
 
     if (branch.size() > 0) {
@@ -480,7 +510,10 @@ vector<Commit> create_loc_history(
                 commit.oid + "\n" + to_string(commit.date) + "\n" + to_string(commit.lines) + "\n" +
                 to_string(commit.language_map.size()) + "\n";
             for (const auto &[language, lines] : commit.language_map)
-                cache_str += language.name + "\n" + to_string(lines) + "\n";
+                cache_str +=
+                    to_string(
+                        find(languages.begin(), languages.end(), language) - languages.begin()
+                    ) + "\n" + to_string(lines) + "\n";
             cache_str += to_string(commit.files.size()) + "\n";
             for (const File &file : commit.files) {
                 bool found_path = false;
@@ -496,15 +529,16 @@ vector<Commit> create_loc_history(
                 }
                 if (!found_path)
                     cache_str += file.path + "\n";
-                cache_str += file.language.name + "\n" + to_string(file.lines) + "\n";
+                cache_str +=
+                    to_string(
+                        find(languages.begin(), languages.end(), file.language) - languages.begin()
+                    ) + "\n" + to_string(file.lines) + "\n";
             }
         }
 
-        const string cache_dir = Definitions::get_path_cache();
         if (!filesystem::exists(cache_dir)) {
             filesystem::create_directory(cache_dir);
         }
-        const string cache_path = cache_dir + "/" + repo_name;
         ofstream file(cache_path);
         if (!file.is_open()) {
             cerr << "Error opening file " << cache_path << "." << endl;
