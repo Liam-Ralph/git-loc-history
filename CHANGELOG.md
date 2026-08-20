@@ -7,6 +7,7 @@
  - Fixed error when running multiple instances with the same url.
  - Added a warning when a local path is chosen.
  - Added persistent settings.
+ - Added branch choosing.
 
 ## Version 1.0.0 (August 2026)
 

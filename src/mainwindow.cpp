@@ -132,7 +132,8 @@ MainWindow::MainWindow() : QMainWindow() {
         cache_results_check, &QCheckBox::checkStateChanged, this,
         [this, cache_results_check]() {
             const string state = cache_results_check->isChecked() ? "true" : "false";
-            Definitions::set_config("cache_results", state);
+            int error = Definitions::set_config("cache_results", state);
+            if (error != 0) warn_set_config_error(error);
             settings_map["cache_results"] = state;
         }
     );
@@ -145,7 +146,8 @@ MainWindow::MainWindow() : QMainWindow() {
         show_warnings_check, &QCheckBox::checkStateChanged, this,
         [this, show_warnings_check]() {
             const string state = show_warnings_check->isChecked() ? "true" : "false";
-            Definitions::set_config("show_warnings", state);
+            int error = Definitions::set_config("show_warnings", state);
+            if (error != 0) warn_set_config_error(error);
             settings_map["show_warnings"] = state;
         }
     );
@@ -245,7 +247,8 @@ void MainWindow::create_graph() {
         settings_map["show_warnings"].compare("true") == 0 && !cloning &&
         settings_map["warn_local_path"].compare("true") == 0
     ) {
-        Definitions::set_config("warn_local_path", "false");
+        int error = Definitions::set_config("warn_local_path", "false");
+        if (error != 0) warn_set_config_error(error);
         settings_map = Definitions::get_config();
         if (
             QMessageBox::question(
@@ -470,5 +473,17 @@ void MainWindow::update_timer(const clock_t start) {
 void MainWindow::update_cache_size() {
     cache_size_label->setText(
         QString::fromStdString("Cache Size: " + Definitions::get_cache_size())
+    );
+}
+
+void MainWindow::warn_set_config_error(int error) {
+    array<string, 3> errors = {
+        "Error opening file " + Definitions::get_path_config() + " (read).",
+        "Setting not found.",
+        "Error opening file " + Definitions::get_path_config() + " (write)."
+    };
+    QMessageBox::warning(
+        this,
+        QString::fromStdString("Error Setting Config"), QString::fromStdString(errors[error - 1])
     );
 }

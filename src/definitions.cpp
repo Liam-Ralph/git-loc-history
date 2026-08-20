@@ -124,12 +124,12 @@ int Definitions::set_config(string setting, string value) {
         }
     }
     ifile.close();
-    if (!found) return 1;
+    if (!found) return 2;
 
     ofstream ofile(config_path);
     if (!ofile.is_open()) {
         cerr << "Error opening file " << config_path << " (write)." << endl;
-        return 1;
+        return 3;
     }
     ofile << lines;
 

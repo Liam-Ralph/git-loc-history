@@ -45,6 +45,7 @@ class MainWindow : public QMainWindow {
         void create_graph();
         void update_timer(std::clock_t start);
         void update_cache_size();
+        void warn_set_config_error(int error);
 
         std::unordered_map<std::string, std::string> settings_map;
 
