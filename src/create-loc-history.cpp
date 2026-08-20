@@ -1,6 +1,7 @@
 // Includes
 
 #include "create-loc-history.hpp"
+#include "definitions.hpp"
 
 #include <git2.h>
 
@@ -31,6 +32,9 @@ using namespace std;
 #define OBJECTS_STR "Cloning: Receiving Objects..."
 #define DELTAS_STR "Cloning: Resolving Deltas..."
 #define COMMITS_STR "Processing Commits..."
+#define CACHE_STR "Caching results..."
+
+#define RESULTS_FORMAT_VERSION 1
 
 
 // Language Variables
@@ -82,6 +86,7 @@ vector<Commit> create_loc_history(
     git_libgit2_init();
     git_repository *repo = nullptr;
     filesystem::path repo_path;
+    string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);;
 
     // Get Repository Name
 
@@ -89,7 +94,6 @@ vector<Commit> create_loc_history(
 
         // git_repo_path is a URL
 
-        string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
         if (repo_name.rfind(".git") == repo_name.length() - 4)
             repo_name = repo_name.substr(0, repo_name.length() - 4);
 
@@ -292,6 +296,7 @@ vector<Commit> create_loc_history(
                             bool found = false;
                             for (const File &prev_file : prev_commit_ptr->files) {
                                 if (
+                                    prev_file.contents.size() > 0 &&
                                     prev_file.path.compare(file.path) == 0 &&
                                     prev_file.contents.compare(file.contents) == 0
                                 ) {
@@ -404,12 +409,10 @@ vector<Commit> create_loc_history(
 
         if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
 
-            char oid_str[GIT_OID_HEXSZ + 1];
+            char oid_str[GIT_OID_SHA1_HEXSIZE + 1];
             git_oid_tostr(oid_str, sizeof(oid_str), &oid);
 
-            Commit commit = Commit(
-                oid_str, git_commit_message(git_commit), git_commit_time(git_commit)
-            );
+            Commit commit = Commit(oid_str, git_commit_time(git_commit));
             git_tree *commit_tree = nullptr;
 
             if (git_commit_tree(&commit_tree, git_commit) == 0 && commit_tree != nullptr) {
@@ -465,6 +468,51 @@ vector<Commit> create_loc_history(
 
     if (cloning)
         filesystem::remove_all(repo_path);
+
+    if (cache_results) {
+
+        if (on_section_change != nullptr) on_section_change(CACHE_STR, start);
+
+        string cache_str = to_string(RESULTS_FORMAT_VERSION) + "\n";
+        for (size_t i = 0; i < commits.size(); i++) {
+            const Commit &commit = commits[i];
+            cache_str +=
+                commit.oid + "\n" + to_string(commit.date) + "\n" + to_string(commit.lines) + "\n" +
+                to_string(commit.language_map.size()) + "\n";
+            for (const auto &[language, lines] : commit.language_map)
+                cache_str += language.name + "\n" + to_string(lines) + "\n";
+            cache_str += to_string(commit.files.size()) + "\n";
+            for (const File &file : commit.files) {
+                bool found_path = false;
+                if (i > 0) {
+                    const Commit &prev_commit = commits[i - 1];
+                    for (size_t ii = 0; ii < prev_commit.files.size(); ii++) {
+                        if (file.path.compare(prev_commit.files[ii].path) == 0) {
+                            cache_str += "//" + to_string(ii) + "\n";
+                            found_path = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found_path)
+                    cache_str += file.path + "\n";
+                cache_str += file.language.name + "\n" + to_string(file.lines) + "\n";
+            }
+        }
+
+        const string cache_dir = Definitions::get_path_cache();
+        if (!filesystem::exists(cache_dir)) {
+            filesystem::create_directory(cache_dir);
+        }
+        const string cache_path = cache_dir + "/" + repo_name;
+        ofstream file(cache_path);
+        if (!file.is_open()) {
+            cerr << "Error opening file " << cache_path << "." << endl;
+            return commits;
+        }
+        file << cache_str;
+
+    }
 
     return commits;
 

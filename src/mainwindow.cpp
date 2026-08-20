@@ -118,7 +118,7 @@ MainWindow::MainWindow() : QMainWindow() {
     progress_check = new QCheckBox("Show Progress");
     layout_options->addWidget(progress_check);
 
-    cache_this_check = new QCheckBox("Cache This Results");
+    cache_this_check = new QCheckBox("Cache This Result");
     layout_options->addWidget(cache_this_check);
 
     chart_type_combo = new QComboBox();
@@ -313,6 +313,7 @@ void MainWindow::create_graph() {
     section_label->setText("Finished");
     progress_bar->setValue(100);
     update_timer(start);
+    update_cache_size();
 
     // Create Graph
 

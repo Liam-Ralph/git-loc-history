@@ -139,6 +139,7 @@ int Definitions::set_config(string setting, string value) {
 
 string Definitions::get_path_cache() {
     static string cache_path = []() {
+        if (!RELEASE_PATHS) return string("../cache");
         char *env_var = getenv("XDG_CONFIG_HOME");
         if (env_var == nullptr) {
             return string("~/.cache/git-loc-history");
