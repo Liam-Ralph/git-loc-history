@@ -57,6 +57,7 @@ class MainWindow : public QMainWindow {
         QChartView *chart_view;
         QLineEdit *branch_entry;
         QCheckBox *progress_check;
+        QCheckBox *cache_this_check;
         QComboBox *chart_type_combo;
         QLabel *cache_size_label;
 

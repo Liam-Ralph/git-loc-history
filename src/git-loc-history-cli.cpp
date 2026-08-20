@@ -204,6 +204,7 @@ int main(int argc, char *argv[]) {
                     "\t-x, --exclude=<path>         Exclude <path> from results.\n"
                     "\t-X, --exclude-from=<file>    Exclude all paths in <file> from results.\n"
                     "\t-b, --branch=<branch>        Branch of git repo to checkout.\n"
+                    "\t-p, --progress               Show progress bar.\n"
                     "\t-c, --cache-results          Cache results, overrides cache_results.\n"
                     "\t-y, --yes                    "
                         "Skip all confirmations, overrides show_warnings.\n"
@@ -268,15 +269,17 @@ int main(int argc, char *argv[]) {
         flush(cout);
     }
 
+    bool cache_results = cache_result || (settings_map["cache_results"].compare("true") == 0);
     try {
         if (show_progress)
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, branch,
+                git_repo_path, excluded_paths, cloning, branch, cache_results,
                 on_progress, on_section_change, start
             );
         else
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, branch, nullptr, nullptr, start
+                git_repo_path, excluded_paths, cloning, branch, cache_results,
+                nullptr, nullptr, start
             );
     } catch (const runtime_error &e) {
         cerr << e.what() << endl;

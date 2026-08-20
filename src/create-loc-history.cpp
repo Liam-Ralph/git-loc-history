@@ -66,7 +66,7 @@ bool operator<(const Language &a, const Language &b) {
 
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,
-    const bool cloning, const string branch,
+    const bool cloning, const string branch, const bool cache_results,
     function<void(int, clock_t)> on_progress,
     function<void(string, clock_t)> on_section_change,
     const clock_t start

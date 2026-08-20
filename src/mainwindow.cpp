@@ -118,6 +118,9 @@ MainWindow::MainWindow() : QMainWindow() {
     progress_check = new QCheckBox("Show Progress");
     layout_options->addWidget(progress_check);
 
+    cache_this_check = new QCheckBox("Cache This Results");
+    layout_options->addWidget(cache_this_check);
+
     chart_type_combo = new QComboBox();
     chart_type_combo->addItems({"Line", "Bar"});
     chart_type_combo->setCurrentIndex(0);
@@ -279,6 +282,9 @@ void MainWindow::create_graph() {
 
     vector<Commit> commits;
 
+    string branch = branch_entry->text().toStdString();
+    bool cache_results =
+        cache_this_check->isChecked() || (settings_map["cache_results"].compare("true") == 0);
     try {
         if (progress_check->isChecked()) {
             static function<void(double, clock_t)> on_progress_func = bind(
@@ -288,12 +294,12 @@ void MainWindow::create_graph() {
                 &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
             );
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, branch_entry->text().toStdString(),
+                git_repo_path, excluded_paths, cloning, branch, cache_results,
                 on_progress_func, on_section_change_func, start
             );
         } else {
             commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, branch_entry->text().toStdString(),
+                git_repo_path, excluded_paths, cloning, branch, cache_results,
                 nullptr, nullptr, start
             );
         }
