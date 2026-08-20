@@ -31,6 +31,10 @@ package() {
 }
 
 post_remove() {
-    rm -f /home/*/.config/git-loc-history.conf
-    rm -rf /home/*/.cache/git-loc-history
+    if [[ -n $XDG_CONFIG_DIR && ! -z $XDG_CONFIG_DIR ]]; then
+        rm -rf "$XDG_CONFIG_DIR/git-loc-history.conf"
+    else
+        rm -rf /home/*/.config/git-loc-history.conf
+    fi
+    rm -rf /var/cache/git-loc-history
 }
