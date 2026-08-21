@@ -16,7 +16,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QStyleHints>
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QToolTip>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -66,10 +66,10 @@ MainWindow::MainWindow() : QMainWindow() {
 
     QGridLayout *layout_path_entry = new QGridLayout();
     path_entry = new QLineEdit();
-    path_entry->setPlaceholderText("Enter Local Path");
+    path_entry->setPlaceholderText("Enter Repository Path");
     path_entry->setMinimumWidth(300);
     layout_path_entry->addWidget(path_entry, 0, 1, Qt::AlignHCenter);
-    QPushButton *path_button = new QPushButton("Choose Repository Path");
+    QPushButton *path_button = new QPushButton("Choose Local Path");
     connect(path_button, &QPushButton::clicked, this, &MainWindow::open_path_dialog);
     layout_path_entry->addWidget(path_button, 0, 2, Qt::AlignLeft);
     layout_path_entry->setColumnStretch(0, 1);
@@ -87,7 +87,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
     QVBoxLayout *layout_excluded_paths = new QVBoxLayout();
     layout_excluded_paths->addWidget(new QLabel("Excluded Paths"));
-    excluded_paths_entry = new QTextEdit();
+    excluded_paths_entry = new QPlainTextEdit();
     excluded_paths_entry->setPlaceholderText("One path per line");
     excluded_paths_entry->setMinimumWidth(100);
     excluded_paths_entry->setMaximumWidth(400);
@@ -274,6 +274,7 @@ void MainWindow::create_graph() {
 
     vector<string> excluded_paths;
     string entry_text = excluded_paths_entry->toPlainText().toStdString();
+    entry_text.erase(std::remove(entry_text.begin(), entry_text.end(), '\"'), entry_text.end());
     stringstream ss(entry_text);
     string to;
     while (getline(ss, to, '\n')) if (to.length() != 0) excluded_paths.push_back(to);
@@ -347,6 +348,22 @@ void MainWindow::create_graph() {
         {shell, QColor::fromString("#808080")}
     };
 
+    auto calc_tick_interval = [this](size_t max_lines) {
+        int max_ticks = chart_view->height() > 500 ? 10 : 5;
+        array<int, 3> jumps = {1, 2, 5};
+        int power = 1;
+        int j = 0;
+        while (max_lines / (jumps[j] * pow(10, power)) > max_ticks) {
+            if (j == jumps.size() - 1) {
+                j = 0;
+                power++;
+            } else {
+                j++;
+            }
+        }
+        return size_t(jumps[j] * pow(10, power));
+    };
+
     if (chart_type_combo->currentIndex() == 0) {
 
         vector<Language> project_languages = {};
@@ -395,7 +412,7 @@ void MainWindow::create_graph() {
         axis_y->setMin(0);
         axis_y->setMax(max_lines);
         axis_y->setTickType(QValueAxis::TicksDynamic);
-        axis_y->setTickInterval(100);
+        axis_y->setTickInterval(calc_tick_interval(max_lines));
         axis_y->setLabelFormat("%i");
         chart->addAxis(axis_y, Qt::AlignLeft);
 
@@ -445,7 +462,7 @@ void MainWindow::create_graph() {
         axis_y->setMin(0);
         axis_y->setMax(max_lines);
         axis_y->setTickType(QValueAxis::TicksDynamic);
-        axis_y->setTickInterval(100);
+        axis_y->setTickInterval(calc_tick_interval(max_lines));
         axis_y->setLabelFormat("%i");
         chart->addAxis(axis_y, Qt::AlignLeft);
 

@@ -202,37 +202,57 @@ vector<Commit> create_loc_history(
         try {
 
             ifstream cache_file(cache_path);
-            string line;
 
-            getline(cache_file, line);
-            if (stoi(line) != RESULTS_FORMAT_VERSION) goto exited_caching;
+            // Results Format Version
 
-            while (getline(cache_file, line)) {
+            string format_version_str;
+            getline(cache_file, format_version_str);
+            if (stoi(format_version_str) != RESULTS_FORMAT_VERSION) goto exited_caching;
 
-                if (line.size() == 0) continue;
+            // Excluded Paths
+
+            vector<string> cache_excluded_paths = {};
+            string num_excluded_paths_str;
+            getline(cache_file, num_excluded_paths_str);
+            for (size_t i = 0; i < strtoul(num_excluded_paths_str.c_str(), nullptr, 10); i++) {
+                string path;
+                getline(cache_file, path);
+                cache_excluded_paths.push_back(path);
+            }
+            if (cache_excluded_paths.size() != excluded_paths.size()) goto exited_caching;
+            for (const string &path : excluded_paths)
+                if (
+                    find(cache_excluded_paths.begin(), cache_excluded_paths.end(), path) ==
+                    cache_excluded_paths.end()
+                ) goto exited_caching;
+
+            // Commits
+
+            string oid;
+            while (getline(cache_file, oid)) {
+
+                if (oid.size() == 0) continue;
 
                 // Commit
 
-                string oid;
-                getline(cache_file, oid);
                 string date_str;
                 getline(cache_file, date_str);
                 string lines_str;
                 getline(cache_file, lines_str);
-                Commit commit = Commit(oid, time_t(stol(date_str)));
-                commit.lines = stol(lines_str);
+                Commit commit = Commit(oid, time_t(strtoul(date_str.c_str(), nullptr, 10)));
+                commit.lines = strtoul(lines_str.c_str(), nullptr, 10);
 
                 // Language Map
 
                 string num_langs_str;
                 getline(cache_file, num_langs_str);
-                for (size_t i = 0; i < stol(num_langs_str); i++) {
+                for (size_t i = 0; i < strtoul(num_langs_str.c_str(), nullptr, 10); i++) {
                     string language_index_str;
                     getline(cache_file, language_index_str);
                     const Language *language = &(languages[stoi(language_index_str)]);
                     string lines_str;
                     getline(cache_file, lines_str);
-                    commit.language_map[*language] = stol(lines_str);
+                    commit.language_map[*language] = strtoul(lines_str.c_str(), nullptr, 10);
                 }
 
                 // Erase Extra Language Map Keys
@@ -244,25 +264,29 @@ vector<Commit> create_loc_history(
 
                 string num_files_str;
                 getline(cache_file, num_files_str);
-                for (size_t i = 0; i < stol(num_files_str); i++) {
+                for (size_t i = 0; i < strtoul(num_files_str.c_str(), nullptr, 10); i++) {
                     string path;
                     getline(cache_file, path);
                     if (path.size() > 2 && path[0] == '/' && path[1] == '/')
                         path = cache_commits[cache_commits.size() - 1]
-                            .files[stol(path.substr(2))].path;
+                            .files[strtoul(path.substr(2).c_str(), nullptr, 10)].path;
                     string language_index_str;
                     getline(cache_file, language_index_str);
                     const Language *language = &(languages[stoi(language_index_str)]);
                     File file = File(path, *language);
                     string lines_str;
                     getline(cache_file, lines_str);
-                    file.lines = stol(lines_str);
+                    file.lines = strtoul(lines_str.c_str(), nullptr, 10);
                     commit.files.push_back(file);
                 }
 
+                cache_commits.push_back(commit);
+
             }
 
-        } catch (runtime_error) {}
+        } catch (const runtime_error &e) {
+            cache_commits = {};
+        }
     }
     exited_caching:
 
@@ -307,9 +331,10 @@ vector<Commit> create_loc_history(
 
             bool excluded = false;
             for (const string &exc_path : excluded_paths) {
+                if (exc_path.size() == 0) continue;
                 if (exc_path[0] == '/') {
-                    string rel_path = exc_path;
-                    if (rel_path.replace(0, 1, git_repo_path).compare(path) == 0) {
+                    string rel_path = git_repo_path + exc_path;
+                    if (path.string().starts_with(rel_path)) {
                         excluded = true;
                         break;
                     }
@@ -329,7 +354,7 @@ vector<Commit> create_loc_history(
                 string ext = path.extension().string();
                 if (ext.length() > 0 && ext[0] == '.') ext = ext.substr(1);
 
-                for (Language lang : languages) {
+                for (const Language &lang : languages) {
                     if (find(lang.ext.begin(), lang.ext.end(), ext) != lang.ext.end()) {
 
                         // Create File
@@ -471,28 +496,43 @@ vector<Commit> create_loc_history(
             Commit commit = Commit(oid_str, git_commit_time(git_commit));
             git_tree *commit_tree = nullptr;
 
-            if (git_commit_tree(&commit_tree, git_commit) == 0 && commit_tree != nullptr) {
+            // Check for Commit in Cache
 
-                // Checkout Commit
-
-                git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
-                opts.checkout_strategy = GIT_CHECKOUT_FORCE;
-                int error = git_checkout_tree(repo, (const git_object *)commit_tree, &opts);
-                if (error != 0) throw_git_error("git_checkout_tree", error);
-
-                // Process Files
-
-                if (commits.size() > 0) prev_commit_ptr = &(commits[commits.size() - 1]);
-                process_files_recursive(repo_path, commit);
-
-                git_tree_free(commit_tree);
-
+            bool found_commit = false;
+            for (const Commit &cache_commit : cache_commits) {
+                if (commit.oid.compare(cache_commit.oid) == 0 && commit.date == cache_commit.date) {
+                    commit = cache_commit;
+                    found_commit = true;
+                    break;
+                }
             }
 
-            // Erase Extra Language Map Keys
+            if (!found_commit) {
 
-            for (const Language &lang : languages)
-                if (commit.language_map[lang] == 0) commit.language_map.erase(lang);
+                if (git_commit_tree(&commit_tree, git_commit) == 0 && commit_tree != nullptr) {
+
+                    // Checkout Commit
+
+                    git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
+                    opts.checkout_strategy = GIT_CHECKOUT_FORCE;
+                    int error = git_checkout_tree(repo, (const git_object *)commit_tree, &opts);
+                    if (error != 0) throw_git_error("git_checkout_tree", error);
+
+                    // Process Files
+
+                    if (commits.size() > 0) prev_commit_ptr = &(commits[commits.size() - 1]);
+                    process_files_recursive(repo_path, commit);
+
+                    git_tree_free(commit_tree);
+
+                }
+
+                // Erase Extra Language Map Keys
+
+                for (const Language &lang : languages)
+                    if (commit.language_map[lang] == 0) commit.language_map.erase(lang);
+
+            }
 
             // Add Commit to Commits
 
@@ -525,9 +565,23 @@ vector<Commit> create_loc_history(
 
         if (on_section_change != nullptr) on_section_change(CACHE_STR, start);
 
-        string cache_str = to_string(RESULTS_FORMAT_VERSION) + "\n";
-        for (size_t i = 0; i < commits.size(); i++) {
-            const Commit &commit = commits[i];
+        for (const Commit &commit : commits) {
+            bool found_commit = false;
+            for (const Commit &cache_commit : cache_commits)
+                if (commit.oid.compare(cache_commit.oid) == 0)
+                    found_commit = true;
+            if (!found_commit) cache_commits.push_back(commit);
+        }
+
+        string cache_str =
+            to_string(RESULTS_FORMAT_VERSION) + "\n" + to_string(excluded_paths.size()) + "\n";
+        for (string &path : excluded_paths) {
+            replace(path.begin(), path.end(), '\n', 'n');
+            cache_str += path + "\n";
+        }
+
+        for (size_t i = 0; i < cache_commits.size(); i++) {
+            const Commit &commit = cache_commits[i];
             cache_str +=
                 commit.oid + "\n" + to_string(commit.date) + "\n" + to_string(commit.lines) + "\n" +
                 to_string(commit.language_map.size()) + "\n";
@@ -540,7 +594,7 @@ vector<Commit> create_loc_history(
             for (const File &file : commit.files) {
                 bool found_path = false;
                 if (i > 0) {
-                    const Commit &prev_commit = commits[i - 1];
+                    const Commit &prev_commit = cache_commits[i - 1];
                     for (size_t ii = 0; ii < prev_commit.files.size(); ii++) {
                         if (file.path.compare(prev_commit.files[ii].path) == 0) {
                             cache_str += "//" + to_string(ii) + "\n";

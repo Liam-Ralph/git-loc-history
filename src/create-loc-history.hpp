@@ -92,5 +92,7 @@ std::vector<Commit> create_loc_history(
     const std::clock_t start
 );
 
+void throw_git_error(std::string function_name, int error);
+
 
 #endif

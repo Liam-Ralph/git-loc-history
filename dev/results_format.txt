@@ -1,4 +1,5 @@
 RESULTS_FORMAT_VERSION
+excluded paths
 Commit
     oid
     date

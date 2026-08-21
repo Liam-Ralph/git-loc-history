@@ -12,7 +12,7 @@
 #include <QMainWindow>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QTextEdit>
+#include <QPlainTextEdit>
 
 #include <QtCharts/QChartView>
 
@@ -52,7 +52,7 @@ class MainWindow : public QMainWindow {
         QLabel *commit_info_label;
 
         QLineEdit *path_entry;
-        QTextEdit *excluded_paths_entry;
+        QPlainTextEdit *excluded_paths_entry;
 
         QChartView *chart_view;
         QLineEdit *branch_entry;
