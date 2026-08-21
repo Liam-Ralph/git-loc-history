@@ -207,21 +207,65 @@ vector<Commit> create_loc_history(
     if (filesystem::exists(cache_path)) {
         try {
 
-            ifstream file(cache_path);
+            ifstream cache_file(cache_path);
             string line;
 
-            getline(file, line);
+            getline(cache_file, line);
             if (stoi(line) != RESULTS_FORMAT_VERSION) goto exited_caching;
 
-            while (getline(file, line)) {
+            while (getline(cache_file, line)) {
+
                 if (line.size() == 0) continue;
+
+                // Commit
+
                 string oid;
-                getline(file, oid);
+                getline(cache_file, oid);
                 string date_str;
-                getline(file, date_str);
+                getline(cache_file, date_str);
+                string lines_str;
+                getline(cache_file, lines_str);
+                Commit commit = Commit(oid, time_t(stol(date_str)));
+                commit.lines = stol(lines_str);
+
+                // Language Map
+
                 string num_langs_str;
-                getline(file, num_langs_str);
-                Commit commit = 
+                getline(cache_file, num_langs_str);
+                for (size_t i = 0; i < stol(num_langs_str); i++) {
+                    string language_index_str;
+                    getline(cache_file, language_index_str);
+                    const Language *language = &(languages[stoi(language_index_str)]);
+                    string lines_str;
+                    getline(cache_file, lines_str);
+                    commit.language_map[*language] = stol(lines_str);
+                }
+
+                // Erase Extra Language Map Keys
+
+                for (const Language &lang : languages)
+                    if (commit.language_map[lang] == 0) commit.language_map.erase(lang);
+
+                // Files
+
+                string num_files_str;
+                getline(cache_file, num_files_str);
+                for (size_t i = 0; i < stol(num_files_str); i++) {
+                    string path;
+                    getline(cache_file, path);
+                    if (path.size() > 2 && path[0] == '/' && path[1] == '/')
+                        path = cache_commits[cache_commits.size() - 1]
+                            .files[stol(path.substr(2))].path;
+                    string language_index_str;
+                    getline(cache_file, language_index_str);
+                    const Language *language = &(languages[stoi(language_index_str)]);
+                    File file = File(path, *language);
+                    string lines_str;
+                    getline(cache_file, lines_str);
+                    file.lines = stol(lines_str);
+                    commit.files.push_back(file);
+                }
+
             }
 
         } catch (runtime_error) {}
@@ -473,6 +517,8 @@ vector<Commit> create_loc_history(
 
             for (const Language &lang : languages)
                 if (commit.language_map[lang] == 0) commit.language_map.erase(lang);
+
+            // Add Commit to Commits
 
             commits.push_back(commit);
             git_commit_free(git_commit);
