@@ -394,6 +394,8 @@ void MainWindow::create_graph() {
         QValueAxis *axis_y = new QValueAxis();
         axis_y->setMin(0);
         axis_y->setMax(max_lines);
+        axis_y->setTickType(QValueAxis::TicksDynamic);
+        axis_y->setTickInterval(100);
         axis_y->setLabelFormat("%i");
         chart->addAxis(axis_y, Qt::AlignLeft);
 
@@ -442,6 +444,8 @@ void MainWindow::create_graph() {
         QValueAxis *axis_y = new QValueAxis();
         axis_y->setMin(0);
         axis_y->setMax(max_lines);
+        axis_y->setTickType(QValueAxis::TicksDynamic);
+        axis_y->setTickInterval(100);
         axis_y->setLabelFormat("%i");
         chart->addAxis(axis_y, Qt::AlignLeft);
 

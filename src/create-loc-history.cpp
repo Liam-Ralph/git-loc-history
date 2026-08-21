@@ -188,13 +188,7 @@ vector<Commit> create_loc_history(
         repo_path = git_repo_path;
 
         int error = git_repository_open(&repo, repo_path.c_str());
-        if (error != 0) {
-            const git_error *e = git_error_last();
-            throw runtime_error(
-                "git_repository_open error " +
-                to_string(error) + "/" + to_string(e->klass) + ": " + e->message
-            );
-        }
+        if (error != 0) throw_git_error("git_repository_open", error);
 
     }
 
@@ -276,22 +270,10 @@ vector<Commit> create_loc_history(
 
     if (branch.size() > 0) {
         int error = git_repository_set_head(repo, ("refs/remotes/origin/" + branch).c_str());
-        if (error != 0) {
-            const git_error *e = git_error_last();
-            throw runtime_error(
-                "git_repository_set_head error " +
-                to_string(error) + "/" + to_string(e->klass) + ": " + e->message
-            );
-        }
+        if (error != 0) throw_git_error("git_repository_set_head", error);
     }
     int error = git_checkout_head(repo, nullptr);
-    if (error != 0) {
-        const git_error *e = git_error_last();
-        throw runtime_error(
-            "git_checkout_head error " +
-            to_string(error) + "/" + to_string(e->klass) + ": " + e->message
-        );
-    }
+    if (error != 0) throw_git_error("git_checkout_head", error);
 
     git_revwalk *repo_walker = nullptr;
     git_oid oid;
@@ -496,13 +478,7 @@ vector<Commit> create_loc_history(
                 git_checkout_options opts = GIT_CHECKOUT_OPTIONS_INIT;
                 opts.checkout_strategy = GIT_CHECKOUT_FORCE;
                 int error = git_checkout_tree(repo, (const git_object *)commit_tree, &opts);
-                if (error != 0) {
-                    const git_error *e = git_error_last();
-                    throw runtime_error(
-                        "git_checkout_tree error " +
-                        to_string(error) + "/" + to_string(e->klass) + ": " + e->message
-                    );
-                }
+                if (error != 0) throw_git_error("git_checkout_tree", error);
 
                 // Process Files
 
@@ -596,4 +572,12 @@ vector<Commit> create_loc_history(
 
     return commits;
 
+}
+
+void throw_git_error(string function_name, int error) {
+    const git_error *e = git_error_last();
+    throw runtime_error(
+        function_name + " error " +
+        to_string(error) + "/" + to_string(e->klass) + ": " + e->message
+    );
 }
