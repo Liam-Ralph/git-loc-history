@@ -100,11 +100,7 @@ vector<Commit> create_loc_history(
         if (repo_name.rfind(".git") == repo_name.length() - 4)
             repo_name = repo_name.substr(0, repo_name.length() - 4);
 
-        repo_path = "/tmp/git-loc-history/" + repo_name +
-            to_string(
-                chrono::duration_cast<chrono::milliseconds>
-                (chrono::system_clock::now().time_since_epoch()).count()
-            );
+        repo_path = "/tmp/git-loc-history/" + repo_name + to_string(Definitions::get_time_ms());
         filesystem::remove_all(repo_path);
         filesystem::create_directories(repo_path);
         int error;

@@ -30,7 +30,6 @@
 #include <QtCharts/QValueAxis>
 
 #include <array>
-#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <unordered_map>

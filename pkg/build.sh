@@ -2,12 +2,6 @@
 
 cd ../
 
-if [ ! -e "libgit2-1.9.7" ]; then
-    wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
-    tar -xzf v1.9.7.tar.gz
-    rm -f v1.9.7.tar.gz
-fi
-
 if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; then
 
     sed -i -e "s/#define RELEASE_PATHS false/#define RELEASE_PATHS true/g" src/definitions.cpp
@@ -15,6 +9,12 @@ if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; the
         rm -rf build/*
     else
         mkdir build
+    fi
+
+    if [ ! -e "libgit2-1.9.7" ]; then
+        wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
+        tar -xzf v1.9.7.tar.gz
+        rm -f v1.9.7.tar.gz
     fi
 
     cd libgit2-1.9.7

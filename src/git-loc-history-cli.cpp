@@ -19,7 +19,6 @@ code across its history.
 
 #include <array>
 #include <algorithm>
-#include <chrono>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
