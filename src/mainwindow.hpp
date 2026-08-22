@@ -18,7 +18,6 @@
 
 #include <array>
 #include <atomic>
-#include <ctime>
 #include <string>
 #include <unordered_map>
 
@@ -34,8 +33,8 @@ class MainWindow : public QMainWindow {
         MainWindow();
         ~MainWindow();
 
-        void on_progress(int progress, std::clock_t start);
-        void on_section_change(std::string section, std::clock_t start);
+        void on_progress(int progress, long start);
+        void on_section_change(std::string section, long start);
 
     private:
 
@@ -43,7 +42,7 @@ class MainWindow : public QMainWindow {
         void show_info();
         void open_path_dialog();
         void create_graph();
-        void update_timer(std::clock_t start);
+        void update_timer(long start);
         void update_cache_size();
         void warn_set_config_error(int error);
 

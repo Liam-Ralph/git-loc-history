@@ -3,6 +3,7 @@
 #include "definitions.hpp"
 
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
@@ -21,6 +22,12 @@ using namespace std;
 
 
 // Definitions Class Functions
+
+long Definitions::get_time_ms() {
+    return chrono::duration_cast<chrono::milliseconds>(
+            chrono::system_clock::now().time_since_epoch()
+        ).count();
+}
 
 string Definitions::get_path_logo() {
     static string result = RELEASE_PATHS ?

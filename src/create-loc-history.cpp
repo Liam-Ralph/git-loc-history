@@ -36,6 +36,8 @@ using namespace std;
 
 #define RESULTS_FORMAT_VERSION 1
 
+#define UPDATE_DELAY 100
+
 
 // Language Variables
 
@@ -71,10 +73,12 @@ bool operator<(const Language &a, const Language &b) {
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,
     const bool cloning, const string branch, const bool cache_results,
-    function<void(int, clock_t)> on_progress,
-    function<void(string, clock_t)> on_section_change,
-    const clock_t start
+    function<void(int, long)> on_progress,
+    function<void(string, long)> on_section_change,
+    const long start
 ) {
+
+    long last_update = start;
 
     if (on_section_change != nullptr)
         on_section_change(SETUP_STR, start);
@@ -111,24 +115,24 @@ vector<Commit> create_loc_history(
             class Captures {
                 public:
                     Captures(
-                        function<void(int, clock_t)> on_progress,
-                        function<void(string, clock_t)> on_section_change,
-                        const clock_t start
+                        function<void(int, long)> on_progress,
+                        function<void(string, long)> on_section_change,
+                        const long start
                     ) : on_progress(on_progress), on_section_change(on_section_change),
                     start(start) {}
-                    function<void(int, clock_t)> on_progress;
-                    function<void(string, clock_t)> on_section_change;
-                    const clock_t start;
+                    function<void(int, long)> on_progress;
+                    function<void(string, long)> on_section_change;
+                    const long start;
             };
             Captures captures = Captures(on_progress, on_section_change, start);
 
             auto progress_callback = [](const git_transfer_progress *stats, void *payload) -> int {
 
                 static Captures captures = *static_cast<Captures *>(payload);
-                static function<void(double, clock_t)> on_progress = captures.on_progress;
-                static function<void(string, clock_t)> on_section_change =
+                static function<void(double, long)> on_progress = captures.on_progress;
+                static function<void(string, long)> on_section_change =
                     captures.on_section_change;
-                static clock_t start = captures.start;
+                static long start = captures.start;
 
                 static bool notified_objects = false;
                 static bool notified_deltas = false;
@@ -539,13 +543,15 @@ vector<Commit> create_loc_history(
             commits.push_back(commit);
             git_commit_free(git_commit);
 
-            if (on_progress != nullptr) {
+            const long time_now = Definitions::get_time_ms();
+            if (on_progress != nullptr && time_now - last_update > UPDATE_DELAY) {
                 commits_processed++;
                 double progress_dbl = double(commits_processed) / total_commits;
                 if (cloning) progress_dbl = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress_dbl;
                 int progress = int(round(progress_dbl * 100));
                 if (progress != prev_progress) {
                     prev_progress = progress;
+                    last_update = time_now;
                     on_progress(progress, start);
                 }
             }

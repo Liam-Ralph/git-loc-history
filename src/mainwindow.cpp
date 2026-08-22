@@ -30,7 +30,7 @@
 #include <QtCharts/QValueAxis>
 
 #include <array>
-#include <ctime>
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
@@ -279,7 +279,7 @@ void MainWindow::create_graph() {
     string to;
     while (getline(ss, to, '\n')) if (to.length() != 0) excluded_paths.push_back(to);
 
-    clock_t start = clock();
+    long start = Definitions::get_time_ms();
 
     vector<Commit> commits;
 
@@ -288,10 +288,10 @@ void MainWindow::create_graph() {
         cache_this_check->isChecked() || (settings_map["cache_results"].compare("true") == 0);
     try {
         if (progress_check->isChecked()) {
-            static function<void(double, clock_t)> on_progress_func = bind(
+            static function<void(double, long)> on_progress_func = bind(
                 &MainWindow::on_progress, this, placeholders::_1, placeholders::_2
             );
-            static function<void(string, clock_t)> on_section_change_func = bind(
+            static function<void(string, long)> on_section_change_func = bind(
                 &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
             );
             commits = create_loc_history(
@@ -482,20 +482,23 @@ void MainWindow::create_graph() {
 
 }
 
-void MainWindow::on_progress(int progress, const clock_t start) {
+void MainWindow::on_progress(int progress, const long start) {
     update_timer(start);
     progress_bar->setValue(progress);
+    progress_bar->update();
 }
 
-void MainWindow::on_section_change(string section, const clock_t start) {
+void MainWindow::on_section_change(string section, const long start) {
     update_timer(start);
     section_label->setText(QString::fromStdString(section));
+    section_label->update();
 }
 
-void MainWindow::update_timer(const clock_t start) {
+void MainWindow::update_timer(const long start) {
     stringstream ss;
-    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC << "s";
+    ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
     timer_label->setText(QString::fromStdString(ss.str()));
+    timer_label->update();
 }
 
 void MainWindow::update_cache_size() {

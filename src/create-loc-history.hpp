@@ -87,9 +87,9 @@ class Commit {
 std::vector<Commit> create_loc_history(
     std::string git_repo_path, std::vector<std::string> excluded_paths,
     const bool cloning, const std::string branch, const bool cache_results,
-    std::function<void(int, clock_t)> on_progress,
-    std::function<void(std::string, clock_t)> on_section_change,
-    const std::clock_t start
+    std::function<void(int, long)> on_progress,
+    std::function<void(std::string, long)> on_section_change,
+    const long start
 );
 
 void throw_git_error(std::string function_name, int error);

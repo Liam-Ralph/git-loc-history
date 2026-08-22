@@ -20,8 +20,8 @@ code across its history.
 #include <array>
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cmath>
-#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <getopt.h>
@@ -40,18 +40,18 @@ using namespace std;
 
 // Functions
 
-string format_time(clock_t start) {
-    stringstream ss;
-    ss << fixed << setprecision(2) << double(clock() - start) / CLOCKS_PER_SEC << "s";
-    return ss.str();
-}
-
 template<typename T>
 bool is_in(T target, vector<T> values) {
     return find(values.begin(), values.end(), target) != values.end();
 }
 
-void on_progress(int progress, const clock_t start) {
+string format_time(long start) {
+    stringstream ss;
+    ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
+    return ss.str();
+}
+
+void on_progress(int progress, const long start) {
 
     static int columns = []() {
         struct winsize w;
@@ -74,7 +74,7 @@ void on_progress(int progress, const clock_t start) {
 
 }
 
-void on_section_change(string section, const clock_t start) {
+void on_section_change(string section, const long start) {
     cout << "\033[3A\033[2K" + format_time(start) + "\033[1B\033[2K\r" + section;
     flush(cout);
 }
@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
 
     // Create LoC History
 
-    clock_t start = clock();
+    long start = Definitions::get_time_ms();
 
     vector<Commit> commits;
 
