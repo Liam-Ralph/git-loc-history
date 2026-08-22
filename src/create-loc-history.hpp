@@ -6,7 +6,6 @@
 // Includes
 
 #include <array>
-#include <atomic>
 #include <ctime>
 #include <functional>
 #include <map>

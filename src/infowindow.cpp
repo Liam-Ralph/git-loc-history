@@ -1,13 +1,7 @@
 // Includes
 
-#include "definitions.hpp"
 #include "infowindow.hpp"
-
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-using namespace std;
+#include "definitions.hpp"
 
 #include <QLabel>
 #include <QPushButton>
@@ -15,6 +9,12 @@ using namespace std;
 #include <QTextBrowser>
 #include <QVBoxLayout>
 #include <QWidget>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
 
 
 // Functions

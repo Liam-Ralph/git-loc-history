@@ -19,7 +19,6 @@ code across its history.
 
 #include <array>
 #include <algorithm>
-#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -31,7 +30,6 @@ code across its history.
 #include <sstream>
 #include <string>
 #include <sys/ioctl.h>
-#include <thread>
 #include <unistd.h>
 #include <unordered_map>
 #include <vector>
@@ -46,7 +44,7 @@ bool is_in(T target, vector<T> values) {
 }
 
 string format_time(long start) {
-    stringstream ss;
+    ostringstream ss;
     ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
     return ss.str();
 }
@@ -454,7 +452,7 @@ int main(int argc, char *argv[]) {
     const Commit &last_commit = commits[0];
     string last_commit_line = "Last Commit: " + to_string(last_commit.lines) + " LoC";
     for (auto &[lang, lines] : last_commit.language_map) {
-        stringstream ss;
+        ostringstream ss;
         ss << fixed << setprecision(1) << double(lines) / last_commit.lines * 100;
         last_commit_line += ", " + lang.name + ": " + to_string(lines) + " LoC (" + ss.str() + "%)";
     }

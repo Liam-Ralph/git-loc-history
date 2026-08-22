@@ -1,4 +1,3 @@
-clean includes
 fix progress only updating every few percent
 fix .h file case
 add color blind friendly color set and option

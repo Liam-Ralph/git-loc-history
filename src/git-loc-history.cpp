@@ -18,9 +18,7 @@ code across its history.
 #include "mainwindow.hpp"
 #include "create-loc-history.hpp"
 
-#include <iostream>
 #include <QApplication>
-using namespace std;
 
 
 // Definitions

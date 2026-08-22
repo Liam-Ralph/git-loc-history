@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <ctime>
 #include <cmath>
 #include <exception>

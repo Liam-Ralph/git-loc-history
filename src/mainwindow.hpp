@@ -10,14 +10,12 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
+#include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QPlainTextEdit>
 
 #include <QtCharts/QChartView>
 
-#include <array>
-#include <atomic>
 #include <string>
 #include <unordered_map>
 

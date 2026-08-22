@@ -13,10 +13,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QStyleHints>
-#include <QPlainTextEdit>
 #include <QToolTip>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -275,7 +275,7 @@ void MainWindow::create_graph() {
     vector<string> excluded_paths;
     string entry_text = excluded_paths_entry->toPlainText().toStdString();
     entry_text.erase(std::remove(entry_text.begin(), entry_text.end(), '\"'), entry_text.end());
-    stringstream ss(entry_text);
+    istringstream ss(entry_text);
     string to;
     while (getline(ss, to, '\n')) if (to.length() != 0) excluded_paths.push_back(to);
 
@@ -321,7 +321,7 @@ void MainWindow::create_graph() {
     const Commit &last_commit = commits[0];
     string last_commit_line = "Last Commit: " + to_string(last_commit.lines) + " LoC";
     for (auto &[lang, lines] : last_commit.language_map) {
-        stringstream ss;
+        ostringstream ss;
         ss << fixed << setprecision(1) << double(lines) / last_commit.lines * 100;
         last_commit_line += ", " + lang.name + ": " + to_string(lines) + " LoC (" + ss.str() + "%)";
     }
@@ -495,7 +495,7 @@ void MainWindow::on_section_change(string section, const long start) {
 }
 
 void MainWindow::update_timer(const long start) {
-    stringstream ss;
+    ostringstream ss;
     ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
     timer_label->setText(QString::fromStdString(ss.str()));
     timer_label->update();
