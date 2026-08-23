@@ -56,11 +56,9 @@ class File {
 
     public:
 
-        File(std::string path, const Language &language) :
-            path(path), language(&language), lines(0), contents("") {}
+        File(std::string path) : path(path), lines(0), contents("") {}
 
         std::string path; // Absolute path to file
-        const Language *language;
         size_t lines;
         std::string contents; // Empty when file retrieved from cache
 

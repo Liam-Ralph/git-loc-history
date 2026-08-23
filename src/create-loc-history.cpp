@@ -272,7 +272,6 @@ vector<Commit> create_loc_history(
         (int) Number of files in commit
         for range Number of files in commit
             (string) Path, or "//n", where n indexes a file of same path from previous commit
-            (int) Language, represented by an index in languages
             (size_t) Lines of code
     */
 
@@ -353,10 +352,7 @@ vector<Commit> create_loc_history(
                         // Path of form "//n", where n indexes a file of same path from prev commit 
                         path = cache_commits[cache_commits.size() - 1]
                             .files[strtoul(path.substr(2).c_str(), nullptr, 10)].path;
-                    string language_index_str;
-                    getline(cache_file, language_index_str);
-                    const Language &language = languages[stoi(language_index_str)];
-                    File file = File(path, language);
+                    File file = File(path);
                     string lines_str;
                     getline(cache_file, lines_str);
                     file.lines = strtoul(lines_str.c_str(), nullptr, 10);
@@ -445,7 +441,7 @@ vector<Commit> create_loc_history(
 
                         // Create File
 
-                        File file = File(path, lang);
+                        File file = File(path);
 
                         // Read File Contents
 
@@ -716,14 +712,10 @@ vector<Commit> create_loc_history(
                         }
                     }
                 }
-
                 if (!found_path)
                     cache_str += file.path + "\n";
-                cache_str +=
-                    to_string(
-                        find(languages.begin(), languages.end(),
-                        *(file.language)) - languages.begin()
-                    ) + "\n" + to_string(file.lines) + "\n";
+
+                cache_str += to_string(file.lines) + "\n";
 
             }
 
