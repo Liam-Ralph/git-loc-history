@@ -52,7 +52,7 @@ install -Dm755 build/git-loc-history-cli pkg/usr/bin/git-loc-history-cli
 install -Dm644 pkg/resources/git-loc-history.desktop \
     pkg/usr/share/applications/git-loc-history.desktop
 install -Dm644 pkg/resources/copyright pkg/usr/share/doc/git-loc-history/copyright
-install -Dm644 src/defaults.conf pkg/usr/git-loc-history/defaults.conf
+install -Dm644 src/defaults.conf pkg/usr/share/git-loc-history/defaults.conf
 install -Dm644 README.md pkg/usr/share/doc/git-loc-history/README.md
 install -Dm644 CHANGELOG.md pkg/usr/share/doc/git-loc-history/CHANGELOG.md
 install -Dm644 logo.png pkg/usr/share/icons/hicolor/512x512/apps/git-loc-history.png
