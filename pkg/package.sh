@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Get Program Version
+
 while read p; do
     if [[ $p == "### Version "* ]]; then
         version=${p:12}
@@ -7,27 +9,40 @@ while read p; do
     fi
 done < ../README.md
 
-if [ "$#" -eq 1 ]; then
-    if [ ! -d "usr" ]; then
-        ./build.sh
-    fi
-else
+# Check Argument Number
+
+if [ ! "$#" -eq 1 ]; then
     echo -e "Expected 1 argument, received $#."
     exit 1
 fi
 
+# Run build.sh
+
+if [ ! -d "usr" ]; then
+    ./build.sh
+fi
+
+# Build Package
+
 if [[ $1 == "debian" ]]; then
+
+    # Setup Build Path
 
     build_path="git-loc-history_${version}_x86_64"
     rm -rf $build_path
     mkdir -p $build_path/DEBIAN
 
+    # Copy usr Directory and Debian Files
+
     cp -a usr $build_path/usr
+
     cp debian/control $build_path/DEBIAN
     cp debian/postrm $build_path/postrm
     sed -i -e "s/VERSION/$version/g" $build_path/DEBIAN/control
     sed -i -e "s/INSTALLED_SIZE/$(du -s $build_path/usr | awk '{print $1}')/g" \
         $build_path/DEBIAN/control
+
+    # Package
 
     if [ -e "${build_path}.deb" ]; then
         rm -f $build_path.deb
@@ -37,10 +52,14 @@ if [[ $1 == "debian" ]]; then
 
 elif [[ $1 == "fedora" ]]; then
 
+    # Setup Build Path
+
     build_path="rpmbuild"
     rm -rf $build_path
     source_dir=git-loc-history-$version
     mkdir -p $build_path/{BUILD,RPMS,SOURCES/${source_dir},SPECS,SRPMS}
+
+    # Copy usr Directory and Spec File
 
     cp -a usr $build_path/SOURCES/$source_dir/usr
     cd $build_path/SOURCES/
@@ -49,6 +68,8 @@ elif [[ $1 == "fedora" ]]; then
 
     cp fedora/git-loc-history.spec $build_path/SPECS/git-loc-history.spec
     sed -i -e "s/VERSION/$version/g" $build_path/SPECS/git-loc-history.spec
+
+    # Build and Copy Package
 
     if [ -e "~/rpmbuild" ]; then
         mv ~/rpmbuild ~/rpmbuild-backup
@@ -64,9 +85,13 @@ elif [[ $1 == "fedora" ]]; then
 
 elif [[ $1 == "arch" ]]; then
 
+    # Setup Build Path
+
     build_path="package-build"
     rm -rf $build_path
     mkdir -p $build_path/git-loc-history-$version
+
+    # Copy usr Directory and PKGBUILD
 
     cp -a usr $build_path/git-loc-history-$version/usr
     cd $build_path
@@ -79,6 +104,8 @@ elif [[ $1 == "arch" ]]; then
     sha256sum=$(sha256sum $build_path/git-loc-history-$version.tar.gz | awk '{print $1}')
     sed -i -e "s/SHA256SUM/$sha256sum/g" $build_path/PKGBUILD
 
+    # Package
+
     cd $build_path
     makepkg
     cd ..
@@ -87,6 +114,10 @@ elif [[ $1 == "arch" ]]; then
     rm -rf $build_path
 
 else
+
+    # Unknown Distro
+
     echo -e "Unknown argument, must be \"debian\", \"fedora\", or \"arch\"."
     exit 1
+
 fi

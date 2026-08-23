@@ -2,14 +2,18 @@
 
 cd ../
 
-if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; then
+# Edit Files
 
-    sed -i -e "s/#define RELEASE_PATHS false/#define RELEASE_PATHS true/g" src/definitions.cpp
-    if [ -e "build" ]; then
-        rm -rf build/*
-    else
-        mkdir build
-    fi
+sed -i -e "s/#define RELEASE_PATHS false/#define RELEASE_PATHS true/g" src/definitions.cpp
+if [ -e "build" ]; then
+    rm -rf build/*
+else
+    mkdir build
+fi
+
+# Install libgit2
+
+if [ ! -e "/usr/local/lib/pkgconfig/libgit2.pc"]; then
 
     if [ ! -e "libgit2-1.9.7" ]; then
         wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
@@ -26,14 +30,18 @@ if [ ! -e "build/git-loc-history" ] || [ ! -e "build/git-loc-history-cli" ]; the
     sudo ldconfig
     cd ../..
 
-    cd build
-    cmake ..
-    cmake --build . --parallel $(nproc) --config Release
-    strip git-loc-history git-loc-history-cli
-    cd ..
-    sed -i -e "s/#define RELEASE_PATHS true/#define RELEASE_PATHS false/g" src/definitions.cpp
-
 fi
+
+# Compile Binaries
+
+cd build
+cmake ..
+cmake --build . --parallel $(nproc) --config Release
+strip git-loc-history git-loc-history-cli
+cd ..
+sed -i -e "s/#define RELEASE_PATHS true/#define RELEASE_PATHS false/g" src/definitions.cpp
+
+# Build usr Directory
 
 if [ -e "pkg/usr" ]; then
     rm -rf pkg/usr
