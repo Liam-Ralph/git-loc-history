@@ -8,6 +8,8 @@
  - Added a warning when a local path is chosen.
  - Added persistent settings.
  - Added branch choosing.
+ - Added results caching.
+ - Removed Commit member files and File member language.
 
 ## Version 1.0.0 (August 2026)
 
