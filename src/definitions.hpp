@@ -15,6 +15,8 @@ class Definitions {
 
     public:
 
+        // Functions
+
         static long get_time_ms();
 
         static std::string get_path_logo();

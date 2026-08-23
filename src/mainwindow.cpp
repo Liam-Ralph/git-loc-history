@@ -39,6 +39,9 @@ using namespace std;
 
 // MainWindow Functions
 
+/**
+ * Constructor
+ */
 MainWindow::MainWindow() : QMainWindow() {
 
     setWindowTitle("Git LoC History");
@@ -58,10 +61,14 @@ MainWindow::MainWindow() : QMainWindow() {
 
     // Top
 
+    // Info Button
+
     QPushButton *info_button = new QPushButton("Info");
     connect(info_button, &QPushButton::clicked, this, &MainWindow::show_info);
     layout_back->addWidget(info_button);
     layout_back->setAlignment(info_button, Qt::AlignRight);
+
+    // Path Entry
 
     QGridLayout *layout_path_entry = new QGridLayout();
     path_entry = new QLineEdit();
@@ -75,6 +82,8 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_path_entry->setColumnStretch(2, 1);
     layout_back->addLayout(layout_path_entry);
 
+    // Commit Info
+
     commit_info_label = new QLabel("");
     commit_info_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
     layout_back->addWidget(commit_info_label);
@@ -83,6 +92,8 @@ MainWindow::MainWindow() : QMainWindow() {
     // Middle
 
     QHBoxLayout *layout_middle = new QHBoxLayout();
+
+    // Excluded Paths
 
     QVBoxLayout *layout_excluded_paths = new QVBoxLayout();
     layout_excluded_paths->addWidget(new QLabel("Excluded Paths"));
@@ -97,6 +108,8 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_excluded_paths->addWidget(excluded_paths_entry);
     layout_middle->addLayout(layout_excluded_paths);
 
+    // Chart
+
     chart_view = new QChartView(window);
     chart_view->setMinimumWidth(500);
     if (is_dark_mode()) {
@@ -105,7 +118,11 @@ MainWindow::MainWindow() : QMainWindow() {
     }
     layout_middle->addWidget(chart_view);
 
+    // Options
+
     QVBoxLayout *layout_options = new QVBoxLayout();
+
+    // Run Options
 
     layout_options->addWidget(new QLabel("Run Options"));
 
@@ -124,6 +141,8 @@ MainWindow::MainWindow() : QMainWindow() {
     chart_type_combo->addItems({"Line", "Bar"});
     chart_type_combo->setCurrentIndex(0);
     layout_options->addWidget(chart_type_combo);
+
+    // Program Options
 
     layout_options->addWidget(new QLabel("Program Options"));
 
@@ -155,6 +174,8 @@ MainWindow::MainWindow() : QMainWindow() {
     );
     layout_options->addWidget(show_warnings_check);
 
+    // Cache Size and Clear Cache Button
+
     cache_size_label = new QLabel();
     update_cache_size();
     layout_options->addWidget(cache_size_label);
@@ -173,10 +194,14 @@ MainWindow::MainWindow() : QMainWindow() {
 
     // Bottom
 
+    // Start Button
+
     start_button = new QPushButton("Calculate Lines of Code");
-    connect(start_button, &QPushButton::clicked, this, &MainWindow::create_graph);
+    connect(start_button, &QPushButton::clicked, this, &MainWindow::create_chart);
     layout_back->addWidget(start_button);
     layout_back->setAlignment(start_button, Qt::AlignHCenter);
+
+    // Progress Bar
 
     QHBoxLayout *layout_progress = new QHBoxLayout();
     progress_bar = new QProgressBar();
@@ -187,29 +212,37 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_progress->addStretch(1);
     layout_back->addLayout(layout_progress);
 
+    // Section Label
+
     section_label = new QLabel("Not Running");
     section_label->setMinimumWidth(300);
     section_label->setAlignment(Qt::AlignCenter);
     layout_back->addWidget(section_label);
     layout_back->setAlignment(section_label, Qt::AlignCenter);
 
+    // Timer
+
     timer_label = new QLabel("0.0s");
     timer_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
     layout_back->addWidget(timer_label);
     layout_back->setAlignment(timer_label, Qt::AlignCenter);
 
+    // Footer Bar
+
     QHBoxLayout *layout_bottom = new QHBoxLayout();
     QLabel *name_label = new QLabel("Git LoC History");
     layout_bottom->addWidget(name_label);
     layout_bottom->setAlignment(name_label, Qt::AlignLeft);
-    QString version = QString::fromStdString(Definitions::get_version());
-    QLabel *version_label = new QLabel(QString("v") + version);
+    QLabel *version_label = new QLabel(QString::fromStdString("v" + Definitions::get_version()));
     layout_bottom->addWidget(version_label);
     layout_bottom->setAlignment(version_label, Qt::AlignRight);
     layout_back->addLayout(layout_bottom);
 
 }
 
+/**
+ * Destructor
+ */
 MainWindow::~MainWindow() {}
 
 bool MainWindow::is_dark_mode() {
@@ -222,11 +255,19 @@ bool MainWindow::is_dark_mode() {
     #endif
 }
 
+/**
+ * Show info window.
+ */
 void MainWindow::show_info() {
     InfoWindow *info_window = new InfoWindow(this);
     info_window->show();
 }
 
+/**
+ * Open dialog to select local path.
+ * 
+ * Sets selected path to path returned by dialog.
+ */
 void MainWindow::open_path_dialog() {
     QFileDialog *dialog = new QFileDialog();
     dialog->setOption(QFileDialog::ShowDirsOnly);
@@ -237,14 +278,24 @@ void MainWindow::open_path_dialog() {
         path_entry->setText(dialog->selectedFiles()[0]);
 }
 
-void MainWindow::create_graph() {
+/**
+ * Create LoC History and Chart
+ */
+void MainWindow::create_chart() {
+
+    // Reset Progress Indicators
 
     start_button->setEnabled(false);
     section_label->setText("Starting...");
     timer_label->setText("0.0s");
 
+    // Get Git Repo Path
+
     string git_repo_path = path_entry->text().toStdString();
     const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
+
+    // Show Local Path Warning
+
     if (
         settings_map["show_warnings"].compare("true") == 0 && !cloning &&
         settings_map["warn_local_path"].compare("true") == 0
@@ -267,9 +318,9 @@ void MainWindow::create_graph() {
         }
     }
 
-    // Create LoC History
-
     progress_bar->setValue(0);
+
+    // Get Excluded Paths
 
     vector<string> excluded_paths;
     string entry_text = excluded_paths_entry->toPlainText().toStdString();
@@ -278,9 +329,13 @@ void MainWindow::create_graph() {
     string to;
     while (getline(ss, to, '\n')) if (to.length() != 0) excluded_paths.push_back(to);
 
+    // Create LoC History
+
     long start = Definitions::get_time_ms();
 
     vector<Commit> commits;
+
+    // Run Creation Function
 
     string branch = branch_entry->text().toStdString();
     bool cache_results =
@@ -304,18 +359,23 @@ void MainWindow::create_graph() {
             );
         }
     } catch (const runtime_error &e) {
+        // Show Error in Terminal and GUI
         cerr << e.what() << endl;
         QMessageBox::critical(this, "Error Calculating Lines of Code", e.what());
         start_button->setEnabled(true);
         return;
     }
 
+    // Set Progress Indicators to Finished
+
     section_label->setText("Finished");
     progress_bar->setValue(100);
     update_timer(start);
     update_cache_size();
 
-    // Create Graph
+    // Create Chart
+
+    // Create Last Commit Info
 
     const Commit &last_commit = commits[0];
     string last_commit_line = "Last Commit: " + to_string(last_commit.lines) + " LoC";
@@ -326,11 +386,7 @@ void MainWindow::create_graph() {
     }
     commit_info_label->setText(QString::fromStdString(last_commit_line));
 
-    QChart *chart = new QChart();
-    chart_view->setBackgroundBrush(Qt::transparent);
-    chart_view->setForegroundBrush(Qt::transparent);
-    if (is_dark_mode())
-        chart->setTheme(QChart::ChartTheme::ChartThemeDark);
+    // Define Language Colors
 
     map<Language, QColor> language_colors = {
         {python, QColor::fromString("#0000AA")},
@@ -346,6 +402,8 @@ void MainWindow::create_graph() {
         {rust, QColor::fromString("#FF8000")},
         {shell, QColor::fromString("#808080")}
     };
+
+    // Axis Tick Interval Calculation Function
 
     auto calc_tick_interval = [this](size_t max_lines) {
         int max_ticks = chart_view->height() > 500 ? 10 : 5;
@@ -363,7 +421,19 @@ void MainWindow::create_graph() {
         return size_t(jumps[j] * pow(10, power));
     };
 
+    // Create QChart
+
+    QChart *chart = new QChart();
+    chart_view->setBackgroundBrush(Qt::transparent);
+    chart_view->setForegroundBrush(Qt::transparent);
+    if (is_dark_mode())
+        chart->setTheme(QChart::ChartTheme::ChartThemeDark);
+
     if (chart_type_combo->currentIndex() == 0) {
+
+        // Stacked Line (Area) Chart
+
+        // Get Project Languages
 
         vector<Language> project_languages = {};
         map<Language, QAreaSeries *> area_series_map;
@@ -387,6 +457,8 @@ void MainWindow::create_graph() {
             }
         }
 
+        // Process Commits
+
         size_t max_lines = 0;
 
         for (const Commit &commit : commits) {
@@ -403,6 +475,8 @@ void MainWindow::create_graph() {
             }
         }
 
+        // Axes
+
         QDateTimeAxis *axis_x = new QDateTimeAxis();
         axis_x->setMin(QDateTime::fromSecsSinceEpoch(commits.back().date));
         axis_x->setMax(QDateTime::fromSecsSinceEpoch(commits.front().date));
@@ -415,6 +489,8 @@ void MainWindow::create_graph() {
         axis_y->setLabelFormat("%i");
         chart->addAxis(axis_y, Qt::AlignLeft);
 
+        // Add Series to Chart
+
         for (auto &[lang, series] : area_series_map) {
             chart->addSeries(series);
             series->attachAxis(axis_x);
@@ -422,6 +498,11 @@ void MainWindow::create_graph() {
         }
 
     } else {
+
+        // Bar Chart
+        // One bar per commit
+
+        // Get Project Languages
 
         vector<Language> project_languages = {};
         map<Language, QBarSet *> bar_set_map;
@@ -442,6 +523,8 @@ void MainWindow::create_graph() {
             }
         }
 
+        // Process Commits
+
         size_t max_lines = 0;
 
         for (size_t i = commits.size() - 1; i-- > 0; ) {
@@ -454,6 +537,8 @@ void MainWindow::create_graph() {
                 );
         }
 
+        // Axes
+
         QValueAxis *axis_x = new QValueAxis();
         axis_x->setLabelFormat("%i");
         chart->addAxis(axis_x, Qt::AlignBottom);
@@ -465,6 +550,8 @@ void MainWindow::create_graph() {
         axis_y->setLabelFormat("%i");
         chart->addAxis(axis_y, Qt::AlignLeft);
 
+        // Add to Chart
+
         QStackedBarSeries *bar_series = new QStackedBarSeries();
         bar_series->setBarWidth(1);
         for (auto &[lang, bar_set] : bar_set_map)
@@ -475,24 +562,42 @@ void MainWindow::create_graph() {
 
     }
 
+    // Set Chart View
+
     chart_view->setChart(chart);
 
     start_button->setEnabled(true);
 
 }
 
+/**
+ * Update progress bar and timer.
+ * 
+ * @param progress Current progress 0-100.
+ * @param start Milliseconds since epoch at calculation start.
+ */
 void MainWindow::on_progress(int progress, const long start) {
     update_timer(start);
     progress_bar->setValue(progress);
     progress_bar->update();
 }
 
+/**
+ * Update the section title and timer.
+ * 
+ * @param section Current sections.
+ * @param start Milliseconds since epoch at calculation start.
+ */
 void MainWindow::on_section_change(string section, const long start) {
     update_timer(start);
     section_label->setText(QString::fromStdString(section));
     section_label->update();
 }
 
+/** Update timer.
+ * 
+ * @param start Milliseconds since epoch at calculation start.
+ */
 void MainWindow::update_timer(const long start) {
     ostringstream ss;
     ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
@@ -500,12 +605,22 @@ void MainWindow::update_timer(const long start) {
     timer_label->update();
 }
 
+/**
+ * Update displayed cache size.
+ */
 void MainWindow::update_cache_size() {
     cache_size_label->setText(
         QString::fromStdString("Cache Size: " + Definitions::get_cache_size())
     );
 }
 
+/**
+ * Shows a warning when Definitions::set_config() returns an error.
+ * 
+ * See Defintions::set_config() for more info on possible errors.
+ * 
+ * @param error The code of the error to display.
+ */
 void MainWindow::warn_set_config_error(int error) {
     array<string, 3> errors = {
         "Error opening file " + Definitions::get_path_config() + " (read).",

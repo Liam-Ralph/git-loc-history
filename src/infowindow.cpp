@@ -19,6 +19,11 @@ using namespace std;
 
 // Functions
 
+/**
+ * Constructor
+ * 
+ * @param parent MainWindow, the parent widget.
+ */
 InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
 
     setWindowTitle("Git LoC History Info");
@@ -43,8 +48,8 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
         string line;
         for (int i = 0; i < 4; i++) {
             getline(file, line);
-            if (i == 0) result += line.substr(2);
-            else result += line.substr(3);
+            if (i == 0) result += line.substr(2); // Git Loc History
+            else result += line.substr(3); // Released, Version, Updated
             if (i < 3) result += "\n";
         }
         file.close();
@@ -130,8 +135,17 @@ InfoWindow::InfoWindow(QWidget *parent) : QMainWindow(parent) {
 
 }
 
+/**
+ * Deconstructor
+ */
 InfoWindow::~InfoWindow() {}
 
+/**
+ * Read a documentation file.
+ * 
+ * @param path Path to file.
+ * @return File contents, or error message if file not opened.
+ */
 string InfoWindow::read_file(string path) {
     ifstream file(path);
     if (!file.is_open()) {
@@ -145,10 +159,20 @@ string InfoWindow::read_file(string path) {
     return buffer.str();
 }
 
+/**
+ * Read and display a documentation file.
+ * 
+ * Used as a slot for documentation viewer buttons.
+ */
 void InfoWindow::open_doc() {
+
     resize(this->width(), qMin(800, this->screen()->availableGeometry().height()));
+
     QObject *button = QObject::sender();
     string contents;
+
+    // Read and Display Documentation File
+
     if (button->objectName() == "view_readme") {
         static string readme_contents = read_file(Definitions::get_path_readme());
         contents = readme_contents;
@@ -164,4 +188,5 @@ void InfoWindow::open_doc() {
         doc_viewer->setMarkdown("");
         doc_viewer->setText(QString::fromStdString(contents));
     }
+
 }

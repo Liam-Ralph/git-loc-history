@@ -120,6 +120,7 @@ void throw_git_error(string function_name, int error) {
  * previous).
  * @param start Milliseconds since epoch in the calling program. Usually this
  * value will be set right before this function is called.
+ * @return An std::vector of Commits, in reverse chronological order.
  */
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,

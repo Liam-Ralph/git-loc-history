@@ -37,18 +37,41 @@ using namespace std;
 
 // Functions
 
+/**
+ * Check if item in vector.
+ * 
+ * Just uses find(), used to check string or char against multiple values.
+ * 
+ * @param target The value to search for.
+ * @param values The vector to search.
+ * @return Whether the target is present in the vector.
+ */
 template<typename T>
 bool is_in(T target, vector<T> values) {
     return find(values.begin(), values.end(), target) != values.end();
 }
 
+/**
+ * Format elapsed time since program start.
+ * 
+ * @param start Time in milliseconds since epoch at program start.
+ * @return Elapsed time in format "12.34s".
+ */
 string format_time(long start) {
     ostringstream ss;
     ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
     return ss.str();
 }
 
+/**
+ * Update the printed progress bar and timer.
+ * 
+ * @param progress Current progress 0-100.
+ * @param start Milliseconds since epoch at calculation start.
+ */
 void on_progress(int progress, const long start) {
+
+    // Get Progress Bar Width
 
     static int columns = []() {
         struct winsize w;
@@ -56,21 +79,28 @@ void on_progress(int progress, const long start) {
         return min(int(w.ws_col), 50);
     }();
 
-    static int prev_bars = 0;
+    // Calculate Additional Filled Bars
+
     int bars = int(round(double(progress) / 100 * columns));
 
-    if (bars != prev_bars) {
-        string text = "\033[3A\033[2K\r" + format_time(start) + "\033[2B\033[2K\r";
-        for (int i = 0; i < columns; i++) {
-            if (i < bars) text += "█";
-            else text += "░";
-        }
-        cout << text << endl;
-        flush(cout);
+    // Print New Progress Bar and Elapsed Time
+
+    string text = "\033[3A\033[2K\r" + format_time(start) + "\033[2B\033[2K\r";
+    for (int i = 0; i < columns; i++) {
+        if (i < bars) text += "█";
+        else text += "░";
     }
+    cout << text << endl;
+    flush(cout);
 
 }
 
+/**
+ * Update the printed section title and timer.
+ * 
+ * @param section Current section.
+ * @param start Milliseconds since epoch at calculation start.
+ */
 void on_section_change(string section, const long start) {
     cout << "\033[3A\033[2K" + format_time(start) + "\033[1B\033[2K\r" + section;
     flush(cout);
@@ -79,6 +109,9 @@ void on_section_change(string section, const long start) {
 
 // Main Function
 
+/**
+ * Main function.
+ */
 int main(int argc, char *argv[]) {
 
     // Get Settings
@@ -87,12 +120,16 @@ int main(int argc, char *argv[]) {
 
     // Parse Args
 
+    // Argument-Editable Variables
+
     string git_repo_path; // Path (filesystem or url) passed by user
     vector<string> excluded_paths;
     string branch = "";
     bool show_progress = false;
     bool cache_result = false;
-    bool yes = false;
+    bool show_warnings = true;
+
+    // Flag Definitions
 
     struct option flag_options[] {
         {"exclude", required_argument, 0, 'x'},
@@ -100,7 +137,7 @@ int main(int argc, char *argv[]) {
         {"branch", required_argument, 0, 'b'},
         {"progress", no_argument, 0, 'p'},
         {"cache-result", no_argument, 0, 'c'},
-        {"yes", no_argument, 0, 'y'},
+        {"no-warnings", no_argument, 0, 'w'},
         {"show-setting", required_argument, 0, 'S'},
         {"set-warnings", required_argument, 0, 'W'},
         {"set-caching", required_argument, 0, 'C'},
@@ -114,13 +151,15 @@ int main(int argc, char *argv[]) {
     int opt;
 
     while (
-        (opt = getopt_long(argc, argv, "x:X:b:pcyS:W:C:VCvh", flag_options, &option_index)) != -1
+        (opt = getopt_long(argc, argv, "x:X:b:pcwS:W:C:VCvh", flag_options, &option_index)) != -1
     ) {
         switch (opt) {
             case 'x':
+                // Add Optarg to Excluded Paths
                 excluded_paths.push_back(optarg);
                 break;
             case 'X': {
+                // Add Every Line in File Optarg to Excluded Paths
                 string abs_arg = optarg;
                 if (abs_arg[0] == '/' || abs_arg[0] == '~') {
                     abs_arg = filesystem::current_path().string() + abs_arg;
@@ -141,18 +180,23 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case 'b':
+                // Set Branch
                 branch = optarg;
                 break;
             case 'p':
+                // Enable Progress Tracking
                 show_progress = true;
                 break;
             case 'c':
+                // Cache This Result
                 cache_result = true;
                 break;
-            case 'y':
-                yes = true;
+            case 'w':
+                // Disable Warnings
+                show_warnings = false;
                 break;
             case 'S':
+                // Show Optarg Setting
                 if (settings_map.find(optarg) != settings_map.end()) {
                     cout << optarg << "=" << settings_map[optarg] << endl;
                     return 0;
@@ -160,6 +204,7 @@ int main(int argc, char *argv[]) {
                 cout << "Setting " << optarg << " not found." << endl;
                 return 1;
             case 'C':
+                // Set Results Caching Setting
                 if (is_in(string(optarg), {"true", "True", "1"})) {
                     Definitions::set_config("cache_results", "true");
                 } else if (is_in(string(optarg), {"false", "False", "0"})) {
@@ -170,6 +215,7 @@ int main(int argc, char *argv[]) {
                 }
                 return 0;
             case 'W':
+                // Set Show Warnings Setting
                 if (is_in(string(optarg), {"true", "True", "1"})) {
                     Definitions::set_config("show_warnings", "true");
                 } else if (is_in(string(optarg), {"false", "False", "0"})) {
@@ -180,16 +226,20 @@ int main(int argc, char *argv[]) {
                 }
                 return 0;
             case 'V':
+                // Display Cache Size
                 cout << "Cache Size: " << Definitions::get_cache_size() << endl;
                 return 0;
             case 'R':
+                // Remove Cache
                 filesystem::remove_all(Definitions::get_path_cache());
                 cout << "Cache cleared." << endl;
                 return 0;
             case 'v':
+                // Display Program Version
                 cout << Definitions::get_version() << endl;
                 return 0;
             case 'h':
+                // Display Program Help
                 cout <<
                     "Usage:\n"
                     "git-loc-history-cli <git_repo_path>\n"
@@ -224,6 +274,7 @@ int main(int argc, char *argv[]) {
                 << endl;
                 return 0;
             case '?':
+                // Display Program Usage
                 cout <<
                     "Usage:\n"
                     "git-loc-history-cli <git_repo_path>\n"
@@ -234,10 +285,14 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // Get Git Repository Path
+
     git_repo_path = argv[optind];
     const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
 
-    if (settings_map["show_warnings"].compare("true") == 0 && !yes && !cloning) {
+    // Show Local Path Warning
+
+    if (settings_map["show_warnings"].compare("true") == 0 && show_warnings && !cloning) {
 
         cout <<
             "While there are no known issues,\n"
@@ -260,11 +315,15 @@ int main(int argc, char *argv[]) {
 
     vector<Commit> commits;
 
+    // Clear Terminal
+
     if (show_progress) {
         system("clear");
         cout << "\n\n\n";
         flush(cout);
     }
+
+    // Run Creation Function
 
     bool cache_results = cache_result || (settings_map["cache_results"].compare("true") == 0);
     try {
@@ -377,7 +436,7 @@ int main(int argc, char *argv[]) {
             } else {
 
                 // Block Has Three or More Colors
-                // A character can only have two colors, fore- and background
+                // A character can only have two colors, foreground and background
 
                 // Get Largest Two Block Parts
 
@@ -471,6 +530,7 @@ int main(int argc, char *argv[]) {
     // Print Graph
 
     if (graph_bars.size() > width) {
+    // Graph cannot fit on screen, graph is dynamic
 
         // Print Graph
 
@@ -517,6 +577,9 @@ int main(int argc, char *argv[]) {
         }
 
     } else {
+    // Graph fits on screen, graph is static
+
+        // Print Graph
         system("clear");
         cout <<
             elapsed_time << git_repo_path << "\n" <<
@@ -531,6 +594,7 @@ int main(int argc, char *argv[]) {
             cout << "\033[m\n";
         }
         flush(cout);
+
     }
 
     return 0;

@@ -21,14 +21,6 @@ code across its history.
 #include <QApplication>
 
 
-// Definitions
-
-#define README_PATH "../README.md" // "/usr/share/doc/git-loc-history/README.md"
-
-
-// Functions
-
-
 // Main Function
 
 int main(int argc, char *argv[]) {

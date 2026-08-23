@@ -19,13 +19,19 @@ class InfoWindow : public QMainWindow {
 
     public:
 
+        // Constructor/Destructor
+
         InfoWindow(QWidget *parent);
         ~InfoWindow();
 
     private:
 
+        // Functions
+
         std::string read_file(std::string path);
         void open_doc();
+
+        // Variables
 
         QTextBrowser *doc_viewer;
 

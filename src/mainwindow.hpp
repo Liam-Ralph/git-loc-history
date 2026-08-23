@@ -28,21 +28,29 @@ class MainWindow : public QMainWindow {
 
     public:
 
+        // Constructor/Destructor
+
         MainWindow();
         ~MainWindow();
+
+        // Functions
 
         void on_progress(int progress, long start);
         void on_section_change(std::string section, long start);
 
     private:
 
+        // Functions
+
         static bool is_dark_mode();
         void show_info();
         void open_path_dialog();
-        void create_graph();
+        void create_chart();
         void update_timer(long start);
         void update_cache_size();
         void warn_set_config_error(int error);
+
+        // Variables
 
         std::unordered_map<std::string, std::string> settings_map;
 
