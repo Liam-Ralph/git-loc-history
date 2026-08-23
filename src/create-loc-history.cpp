@@ -269,10 +269,6 @@ vector<Commit> create_loc_history(
         for range Number of languages in commit language map
             (int) Language, represented by an index in languages
             (size_t) Lines of code
-        (int) Number of files in commit
-        for range Number of files in commit
-            (string) Path, or "//n", where n indexes a file of same path from previous commit
-            (size_t) Lines of code
     */
 
     vector<Commit> cache_commits = {};
@@ -341,24 +337,6 @@ vector<Commit> create_loc_history(
                 for (const Language &lang : languages)
                     if (commit.language_map[lang] == 0) commit.language_map.erase(lang);
 
-                // Files
-
-                string num_files_str;
-                getline(cache_file, num_files_str);
-                for (size_t i = 0; i < strtoul(num_files_str.c_str(), nullptr, 10); i++) {
-                    string path;
-                    getline(cache_file, path);
-                    if (path.size() > 2 && path[0] == '/' && path[1] == '/')
-                        // Path of form "//n", where n indexes a file of same path from prev commit 
-                        path = cache_commits[cache_commits.size() - 1]
-                            .files[strtoul(path.substr(2).c_str(), nullptr, 10)].path;
-                    File file = File(path);
-                    string lines_str;
-                    getline(cache_file, lines_str);
-                    file.lines = strtoul(lines_str.c_str(), nullptr, 10);
-                    commit.files.push_back(file);
-                }
-
                 cache_commits.push_back(commit);
 
             }
@@ -397,12 +375,13 @@ vector<Commit> create_loc_history(
         on_section_change(COMMITS_STR, start);
     }
 
-    Commit *prev_commit_ptr = nullptr; // Used in file caching
+    vector<File> files = {}; // Used in file caching
+    vector<File> prev_files = {}; // Used in file caching
 
     // File Processing Function
 
     function<void(const filesystem::path&, Commit&)> process_files_recursive =
-    [&process_files_recursive, &excluded_paths, &git_repo_path, &prev_commit_ptr]
+    [&process_files_recursive, &excluded_paths, &git_repo_path, &files, &prev_files]
     (const filesystem::path &base_path, Commit &commit) {
 
         for (const filesystem::directory_entry &entry : filesystem::directory_iterator(base_path)) {
@@ -455,9 +434,9 @@ vector<Commit> create_loc_history(
 
                         // Search for File in Previous Commit
 
-                        if (prev_commit_ptr != nullptr) {
+                        if (prev_files.size() != 0) {
                             bool found = false;
-                            for (const File &prev_file : prev_commit_ptr->files) {
+                            for (File prev_file : prev_files) {
                                 if (
                                     prev_file.contents.size() > 0 && // 0 means prev_file from cache
                                     prev_file.path.compare(file.path) == 0 &&
@@ -466,7 +445,7 @@ vector<Commit> create_loc_history(
                                     file.lines = prev_file.lines;
                                     commit.lines += file.lines;
                                     commit.language_map[lang] += file.lines;
-                                    commit.files.push_back(file);
+                                    files.push_back(file);
                                     found = true;
                                     break;
                                 }
@@ -551,7 +530,7 @@ vector<Commit> create_loc_history(
 
                         // Add File to Commit
 
-                        commit.files.push_back(file);
+                        files.push_back(file);
 
                         break;
 
@@ -602,7 +581,6 @@ vector<Commit> create_loc_history(
 
                     // Process Files
 
-                    if (commits.size() > 0) prev_commit_ptr = &(commits[commits.size() - 1]);
                     process_files_recursive(repo_path, commit);
 
                     git_tree_free(commit_tree);
@@ -620,6 +598,8 @@ vector<Commit> create_loc_history(
 
             commits.push_back(commit);
             git_commit_free(git_commit);
+            prev_files = files;
+            files = {};
 
             // Update Progress
 
@@ -694,30 +674,6 @@ vector<Commit> create_loc_history(
                     to_string(
                         find(languages.begin(), languages.end(), language) - languages.begin()
                     ) + "\n" + to_string(lines) + "\n";
-
-            // Files
-
-            cache_str += to_string(commit.files.size()) + "\n";
-            for (const File &file : commit.files) {
-
-                bool found_path = false;
-                if (i > 0) {
-                    // Check for Matching Path in Previous Commit's Files
-                    const Commit &prev_commit = cache_commits[i - 1];
-                    for (size_t ii = 0; ii < prev_commit.files.size(); ii++) {
-                        if (file.path.compare(prev_commit.files[ii].path) == 0) {
-                            cache_str += "//" + to_string(ii) + "\n";
-                            found_path = true;
-                            break;
-                        }
-                    }
-                }
-                if (!found_path)
-                    cache_str += file.path + "\n";
-
-                cache_str += to_string(file.lines) + "\n";
-
-            }
 
         }
 

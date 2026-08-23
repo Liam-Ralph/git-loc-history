@@ -71,14 +71,13 @@ class Commit {
     public:
 
         Commit(std::string oid, std::time_t date) :
-            oid(oid), date(date), files({}), lines(0), language_map({
+            oid(oid), date(date), lines(0), language_map({
                 {python, 0}, {java, 0}, {html, 0}, {css, 0}, {javascript, 0}, {typescript, 0},
                 {c, 0}, {cpp, 0}, {c_sharp, 0}, {go, 0}, {rust, 0}, {shell, 0}
             }) {}
 
         std::string oid; // SHA1 sum, 40 characters
         std::time_t date;
-        std::vector<File> files;
         size_t lines;
         std::map<Language, size_t> language_map; // Lines of code for each language
 
