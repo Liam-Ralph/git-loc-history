@@ -15,6 +15,8 @@
 
 // Classes
 
+// Language
+
 class Language {
 
     public:
@@ -24,15 +26,15 @@ class Language {
             std::string short_comment = "//", std::array<std::string, 2> long_comment = {"/*", "*/"}
         ) : name(name), ext(ext), short_comment(short_comment), long_comment(long_comment) {}
 
-        std::string name;
-        std::vector<std::string> ext;
-        std::string short_comment;
-        std::array<std::string, 2> long_comment;
+        std::string name; // e.g. "Python"
+        std::vector<std::string> ext; // e.g. "py"
+        std::string short_comment; // e.g. "//"
+        std::array<std::string, 2> long_comment; // e.g. {"/*", "*/"}
 
 };
 
 bool operator==(const Language &a, const Language &b);
-bool operator<(const Language &a, const Language &b);
+bool operator<(const Language &a, const Language &b); // Needed to make a map
 
 extern const Language python;
 extern const Language java;
@@ -48,19 +50,23 @@ extern const Language rust;
 extern const Language shell;
 extern const std::array<Language, 12> languages;
 
+// File
+
 class File {
 
     public:
 
-        File(std::string path, Language language) :
-            path(path), language(language), lines(0), contents("") {}
+        File(std::string path, const Language &language) :
+            path(path), language(&language), lines(0), contents("") {}
 
-        std::string path;
-        Language language;
+        std::string path; // Absolute path to file
+        const Language *language;
         size_t lines;
-        std::string contents;
+        std::string contents; // Empty when file retrieved from cache
 
 };
+
+// Commit
 
 class Commit {
 
@@ -72,16 +78,18 @@ class Commit {
                 {c, 0}, {cpp, 0}, {c_sharp, 0}, {go, 0}, {rust, 0}, {shell, 0}
             }) {}
 
-        std::string oid;
+        std::string oid; // SHA1 sum, 40 characters
         std::time_t date;
         std::vector<File> files;
         size_t lines;
-        std::map<Language, size_t> language_map;
+        std::map<Language, size_t> language_map; // Lines of code for each language
 
 };
 
 
 // Functions
+
+void throw_git_error(std::string function_name, int error);
 
 std::vector<Commit> create_loc_history(
     std::string git_repo_path, std::vector<std::string> excluded_paths,
@@ -90,8 +98,6 @@ std::vector<Commit> create_loc_history(
     std::function<void(std::string, long)> on_section_change,
     const long start
 );
-
-void throw_git_error(std::string function_name, int error);
 
 
 #endif

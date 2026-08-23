@@ -34,8 +34,9 @@ using namespace std;
 #define CACHE_STR "Caching results..."
 
 #define RESULTS_FORMAT_VERSION 1
+// Incremented when a breaking change is made to the format used in results caching
 
-#define UPDATE_DELAY 100
+#define UPDATE_DELAY 100 // Delay to update progress in milliseconds
 
 
 // Language Variables
@@ -69,6 +70,57 @@ bool operator<(const Language &a, const Language &b) {
 
 // Functions
 
+/**
+ * Get and throw most recent error from git2.
+ * 
+ * Output includes the error returned by the failed function, and the category
+ * and message of the most recent git2 error. Throws a runtime error, which
+ * should be caught by the caller of create_loc_history.
+ * 
+ * @param function_name The name of the function that failed, or some
+ * description.
+ * @param error The error number returned by the failed function.
+ */
+void throw_git_error(string function_name, int error) {
+    const git_error *e = git_error_last();
+    throw runtime_error(
+        function_name + " error " +
+        to_string(error) + "/" + to_string(e->klass) + ": " + e->message
+    );
+}
+
+/**
+ * Count the lines of code across a given git repository's history.
+ * 
+ * Clones/open the given repository, then checks out each commit and reads the
+ * files present. Constructs an std::vector of Commits to return. Broken down
+ * into sections, and runs a given function on section change, or on progress.
+ * Can also read and write cache results.
+ * 
+ * @param git_repo_path The path to the git repo. Can be a URL or filesystem
+ * path.
+ * @param excluded_paths Paths to be excluded from lines of code calculations.
+ * There are two types of paths; absolute paths (e.g. "/foo") are relative
+ * to the repository's base, and non-abolute paths (e.g. "foo") are matched
+ * to entire paths (i.e. "foo" will match "/foo" and "/bar/foo").
+ * @param cloning Whether the path is a URL that requires cloning. Used for
+ * to prevent redundancy, since this is usually checked by the caller anyway.
+ * @param branch The branch to checkout. An empty string will checkout the
+ * default branch.
+ * @param cache_results Whether to cache the produced results. Does not impact
+ * the functions attempting to read existing cache files during history
+ * creation.
+ * @param on_progress A function to call when progress is made. This function
+ * must accept an int, the current progress 0-100, and a long, the number of
+ * milliseconds since epoch from the caller. The long will always be the param
+ * start (see below). The function may only be called when the progress int
+ * changes.
+ * @param on_section_change A function to call when the current section changes.
+ * Must accept a string, representing the new section, and a long, start (see
+ * previous).
+ * @param start Milliseconds since epoch in the calling program. Usually this
+ * value will be set right before this function is called.
+ */
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,
     const bool cloning, const string branch, const bool cache_results,
@@ -77,7 +129,7 @@ vector<Commit> create_loc_history(
     const long start
 ) {
 
-    long last_update = start;
+    long last_update = start; // Milliseconds since progress last updated
 
     if (on_section_change != nullptr)
         on_section_change(SETUP_STR, start);
@@ -89,13 +141,15 @@ vector<Commit> create_loc_history(
     git_libgit2_init();
     git_repository *repo = nullptr;
     filesystem::path repo_path;
-    string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);;
+    string repo_name = git_repo_path.substr(git_repo_path.rfind('/') + 1);
 
     // Get Repository Name
 
     if (cloning) {
 
-        // git_repo_path is a URL
+        // URL
+
+        // Setup Target Directory
 
         if (repo_name.rfind(".git") == repo_name.length() - 4)
             repo_name = repo_name.substr(0, repo_name.length() - 4);
@@ -105,23 +159,34 @@ vector<Commit> create_loc_history(
         filesystem::create_directories(repo_path);
         int error;
 
+        // Cloning Repository
+
         if (on_progress != nullptr) {
+
+            // Create Class for Function Captures
 
             class Captures {
                 public:
+
                     Captures(
                         function<void(int, long)> on_progress,
                         function<void(string, long)> on_section_change,
                         const long start
                     ) : on_progress(on_progress), on_section_change(on_section_change),
-                    start(start) {}
+                        start(start) {}
+
                     function<void(int, long)> on_progress;
                     function<void(string, long)> on_section_change;
                     const long start;
+
             };
             Captures captures = Captures(on_progress, on_section_change, start);
 
+            // Progress Callback Function
+
             auto progress_callback = [](const git_transfer_progress *stats, void *payload) -> int {
+
+                // Unpack Payload
 
                 static Captures captures = *static_cast<Captures *>(payload);
                 static function<void(double, long)> on_progress = captures.on_progress;
@@ -129,8 +194,12 @@ vector<Commit> create_loc_history(
                     captures.on_section_change;
                 static long start = captures.start;
 
+                // Section Change Notification Tracking
+
                 static bool notified_objects = false;
                 static bool notified_deltas = false;
+
+                // Run Progress Function
 
                 if (stats->total_objects > 0) {
                     on_progress(int(round(
@@ -155,10 +224,14 @@ vector<Commit> create_loc_history(
 
             };
 
+            // Create Clone Options
+
             git_clone_options opts = GIT_CLONE_OPTIONS_INIT;
             opts.fetch_opts.callbacks.transfer_progress =
                 static_cast<git_transfer_progress_cb>(progress_callback);
             opts.fetch_opts.callbacks.payload = &captures;
+
+            // Clone Repository
 
             error = git_clone(&repo, git_repo_path.c_str(), repo_path.c_str(), &opts);
 
@@ -168,21 +241,10 @@ vector<Commit> create_loc_history(
 
         }
 
-        if (error != 0) {
-            const git_error *e = git_error_last();
-            throw runtime_error(
-                "git_clone error " +
-                to_string(error) + "/" + to_string(e->klass) + ": " + e->message
-            );
-        }
+        if (error != 0) throw_git_error("git_clone", error);
 
     } else {
-
         // git_repo_path is a filesystem path
-
-        if (git_repo_path[0] != '/' && git_repo_path[0] != '~') {
-            git_repo_path = filesystem::current_path().string() + '/' + git_repo_path;
-        }
 
         repo_path = git_repo_path;
 
@@ -192,6 +254,27 @@ vector<Commit> create_loc_history(
     }
 
     // Search Results Cache
+
+    /*
+    Results cache file format:
+    (int) Results format version
+    (int) Number of excluded paths
+    for range Number of excluded paths
+        (string) Excluded path
+    for range Number of commits (this number isn't given, since file ends after commits)
+        (string) Commit oid
+        (time_t) Commit date in seconds since epoch
+        (size_t) Commit lines of code
+        (int) Number of languages in commit language map
+        for range Number of languages in commit language map
+            (int) Language, represented by an index in languages
+            (size_t) Lines of code
+        (int) Number of files in commit
+        for range Number of files in commit
+            (string) Path, or "//n", where n indexes a file of same path from previous commit
+            (int) Language, represented by an index in languages
+            (size_t) Lines of code
+    */
 
     vector<Commit> cache_commits = {};
     const string cache_dir = Definitions::get_path_cache();
@@ -230,7 +313,7 @@ vector<Commit> create_loc_history(
             string oid;
             while (getline(cache_file, oid)) {
 
-                if (oid.size() == 0) continue;
+                if (oid.size() == 0) continue; // Blank line (likely end of file)
 
                 // Commit
 
@@ -267,12 +350,13 @@ vector<Commit> create_loc_history(
                     string path;
                     getline(cache_file, path);
                     if (path.size() > 2 && path[0] == '/' && path[1] == '/')
+                        // Path of form "//n", where n indexes a file of same path from prev commit 
                         path = cache_commits[cache_commits.size() - 1]
                             .files[strtoul(path.substr(2).c_str(), nullptr, 10)].path;
                     string language_index_str;
                     getline(cache_file, language_index_str);
-                    const Language *language = &(languages[stoi(language_index_str)]);
-                    File file = File(path, *language);
+                    const Language &language = languages[stoi(language_index_str)];
+                    File file = File(path, language);
                     string lines_str;
                     getline(cache_file, lines_str);
                     file.lines = strtoul(lines_str.c_str(), nullptr, 10);
@@ -284,6 +368,7 @@ vector<Commit> create_loc_history(
             }
 
         } catch (const runtime_error &e) {
+            // Invalid format causing error in getline(), file reading error, etc.
             cache_commits = {};
         }
     }
@@ -304,6 +389,8 @@ vector<Commit> create_loc_history(
     git_revwalk_new(&repo_walker, repo);
     git_revwalk_push_head(repo_walker);
 
+    // Count Commits
+
     int total_commits = 0;
     int commits_processed = 0;
     if (on_progress != nullptr) {
@@ -314,7 +401,7 @@ vector<Commit> create_loc_history(
         on_section_change(COMMITS_STR, start);
     }
 
-    Commit *prev_commit_ptr = nullptr;
+    Commit *prev_commit_ptr = nullptr; // Used in file caching
 
     // File Processing Function
 
@@ -376,7 +463,7 @@ vector<Commit> create_loc_history(
                             bool found = false;
                             for (const File &prev_file : prev_commit_ptr->files) {
                                 if (
-                                    prev_file.contents.size() > 0 &&
+                                    prev_file.contents.size() > 0 && // 0 means prev_file from cache
                                     prev_file.path.compare(file.path) == 0 &&
                                     prev_file.contents.compare(file.contents) == 0
                                 ) {
@@ -538,6 +625,8 @@ vector<Commit> create_loc_history(
             commits.push_back(commit);
             git_commit_free(git_commit);
 
+            // Update Progress
+
             const long time_now = Definitions::get_time_ms();
             if (on_progress != nullptr && time_now - last_update > UPDATE_DELAY) {
                 commits_processed++;
@@ -555,6 +644,8 @@ vector<Commit> create_loc_history(
 
     }
 
+    // Close git2
+
     git_revwalk_free(repo_walker);
     git_repository_free(repo);
     git_libgit2_shutdown();
@@ -562,9 +653,13 @@ vector<Commit> create_loc_history(
     if (cloning)
         filesystem::remove_all(repo_path);
 
+    // Cache Results
+
     if (cache_results) {
 
         if (on_section_change != nullptr) on_section_change(CACHE_STR, start);
+
+        // Add New Commits to Cached Commits
 
         for (const Commit &commit : commits) {
             bool found_commit = false;
@@ -574,6 +669,9 @@ vector<Commit> create_loc_history(
             if (!found_commit) cache_commits.push_back(commit);
         }
 
+        // Results Format and Excluded Paths
+        // see "Results cache file format" for more info
+
         string cache_str =
             to_string(RESULTS_FORMAT_VERSION) + "\n" + to_string(excluded_paths.size()) + "\n";
         for (string &path : excluded_paths) {
@@ -581,20 +679,34 @@ vector<Commit> create_loc_history(
             cache_str += path + "\n";
         }
 
+        // Commits
+
         for (size_t i = 0; i < cache_commits.size(); i++) {
+
             const Commit &commit = cache_commits[i];
+
+            // Commit Info
+
             cache_str +=
                 commit.oid + "\n" + to_string(commit.date) + "\n" + to_string(commit.lines) + "\n" +
                 to_string(commit.language_map.size()) + "\n";
+
+            // Languages
+            
             for (const auto &[language, lines] : commit.language_map)
                 cache_str +=
                     to_string(
                         find(languages.begin(), languages.end(), language) - languages.begin()
                     ) + "\n" + to_string(lines) + "\n";
+
+            // Files
+
             cache_str += to_string(commit.files.size()) + "\n";
             for (const File &file : commit.files) {
+
                 bool found_path = false;
                 if (i > 0) {
+                    // Check for Matching Path in Previous Commit's Files
                     const Commit &prev_commit = cache_commits[i - 1];
                     for (size_t ii = 0; ii < prev_commit.files.size(); ii++) {
                         if (file.path.compare(prev_commit.files[ii].path) == 0) {
@@ -604,14 +716,20 @@ vector<Commit> create_loc_history(
                         }
                     }
                 }
+
                 if (!found_path)
                     cache_str += file.path + "\n";
                 cache_str +=
                     to_string(
-                        find(languages.begin(), languages.end(), file.language) - languages.begin()
+                        find(languages.begin(), languages.end(),
+                        *(file.language)) - languages.begin()
                     ) + "\n" + to_string(file.lines) + "\n";
+
             }
+
         }
+
+        // Write to Cache File
 
         if (!filesystem::exists(cache_dir)) {
             filesystem::create_directory(cache_dir);
@@ -627,12 +745,4 @@ vector<Commit> create_loc_history(
 
     return commits;
 
-}
-
-void throw_git_error(string function_name, int error) {
-    const git_error *e = git_error_last();
-    throw runtime_error(
-        function_name + " error " +
-        to_string(error) + "/" + to_string(e->klass) + ": " + e->message
-    );
 }
