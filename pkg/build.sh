@@ -13,7 +13,7 @@ fi
 
 # Install libgit2
 
-if [ ! -e "/usr/local/lib/pkgconfig/libgit2.pc"]; then
+if [[ ! $(/sbin/ldconfig -p) == *"libgit2.so.1.9"* ]]; then
 
     if [ ! -e "libgit2-1.9.7" ]; then
         wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
@@ -27,7 +27,7 @@ if [ ! -e "/usr/local/lib/pkgconfig/libgit2.pc"]; then
     cmake ..
     make
     sudo make install
-    sudo ldconfig
+    sudo /sbin/ldconfig
     cd ../..
 
 fi
