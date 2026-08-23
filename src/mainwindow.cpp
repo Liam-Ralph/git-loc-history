@@ -146,11 +146,36 @@ MainWindow::MainWindow() : QMainWindow() {
 
     layout_options->addWidget(new QLabel("Program Options"));
 
+    // Settings Check Boxes
+
     QCheckBox *cache_results_check = new QCheckBox("Cache Results");
     if (settings_map["cache_results"].compare("true") == 0)
         cache_results_check->setChecked(true);
+    layout_options->addWidget(cache_results_check);
+
+    QCheckBox *show_warnings_check = new QCheckBox("Show Warnings");
+    if (settings_map["show_warnings"].compare("true") == 0)
+        show_warnings_check->setChecked(true);
+    layout_options->addWidget(show_warnings_check);
+
+    // Connect Setting Change Signals
+
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+        auto cache_results_sender = cache_results_check;
+        auto cache_results_signal = &QCheckBox::checkStateChanged; // This signal was added in 6.7
+        auto show_warnings_sender = show_warnings_check;
+        auto show_warnings_signal = &QCheckBox::checkStateChanged;
+    #else
+        QPushButton *update_settings_button = new QPushButton("Update Settings");
+        layout_options->addWidget(update_settings_button);
+        auto cache_results_sender = update_settings_button;
+        auto cache_results_signal = &QPushButton::clicked;
+        auto show_warnings_sender = update_settings_button;
+        auto show_warnings_signal = &QPushButton::clicked;
+    #endif
+
     connect(
-        cache_results_check, &QCheckBox::checkStateChanged, this,
+        cache_results_sender, cache_results_signal, this,
         [this, cache_results_check]() {
             const string state = cache_results_check->isChecked() ? "true" : "false";
             int error = Definitions::set_config("cache_results", state);
@@ -158,13 +183,9 @@ MainWindow::MainWindow() : QMainWindow() {
             settings_map["cache_results"] = state;
         }
     );
-    layout_options->addWidget(cache_results_check);
 
-    QCheckBox *show_warnings_check = new QCheckBox("Show Warnings");
-    if (settings_map["show_warnings"].compare("true") == 0)
-        show_warnings_check->setChecked(true);
     connect(
-        show_warnings_check, &QCheckBox::checkStateChanged, this,
+        show_warnings_sender, show_warnings_signal, this,
         [this, show_warnings_check]() {
             const string state = show_warnings_check->isChecked() ? "true" : "false";
             int error = Definitions::set_config("show_warnings", state);
@@ -172,7 +193,6 @@ MainWindow::MainWindow() : QMainWindow() {
             settings_map["show_warnings"] = state;
         }
     );
-    layout_options->addWidget(show_warnings_check);
 
     // Cache Size and Clear Cache Button
 
