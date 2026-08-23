@@ -106,11 +106,15 @@ string Definitions::get_version() {
 string Definitions::get_path_config() {
     static string config_path = []() {
         if (!RELEASE_PATHS) return string("../src/defaults.conf");
-        char *env_var = getenv("XDG_CONFIG_HOME");
-        if (env_var == nullptr) {
-            return string("~/.config/git-loc-history.conf");
+        char *xdg_config_home = getenv("XDG_CONFIG_HOME");
+        char *home = getenv("HOME");
+        if (xdg_config_home == nullptr) {
+            if (home == nullptr)
+                return string("~/.config/git-loc-history.conf");
+            else
+                return string(home) + "/.config/git-loc-history.conf";
         }
-        return string(env_var) + "/git-loc-history.conf";
+        return string(xdg_config_home) + "/git-loc-history.conf";
     }();
     return config_path;
 }
