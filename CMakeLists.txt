@@ -10,7 +10,7 @@ set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(USE_NSEC OFF CACHE BOOL "" FORCE)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
-add_subdirectory(libgit2-1.9.7)
+include_directories("libgit2-1.9.7/include")
 
 qt_standard_project_setup()
 
