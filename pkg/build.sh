@@ -11,25 +11,12 @@ else
     mkdir build
 fi
 
-# Install libgit2
+# libgit2
 
-if [[ ! $(/sbin/ldconfig -p) == *"libgit2.so.1.9"* ]]; then
-
-    if [ ! -e "libgit2-1.9.7" ]; then
-        wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
-        tar -xzf v1.9.7.tar.gz
-        rm -f v1.9.7.tar.gz
-    fi
-
-    cd libgit2-1.9.7
-    mkdir build
-    cd build
-    cmake ..
-    make
-    sudo make install
-    sudo /sbin/ldconfig
-    cd ../..
-
+if [ ! -e "libgit2-1.9.7" ]; then
+    wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
+    tar -xzf v1.9.7.tar.gz
+    rm -f v1.9.7.tar.gz
 fi
 
 # Compile Binaries

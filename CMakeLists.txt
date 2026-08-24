@@ -1,21 +1,20 @@
 cmake_minimum_required(VERSION 3.25)
-project(git-loc-history)
+project(git-loc-history VERSION 1.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(USE_NSEC OFF CACHE BOOL "" FORCE)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
-add_library(libgit2 STATIC)
+add_subdirectory(libgit2-1.9.7)
 
-if(MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+qt_standard_project_setup()
 
-add_executable(git-loc-history
+qt_add_executable(git-loc-history
     src/git-loc-history.cpp
     src/definitions.cpp
     src/definitions.hpp
@@ -35,6 +34,6 @@ add_executable(git-loc-history-cli
 )
 
 target_link_libraries(
-    git-loc-history git2 Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets
+    git-loc-history PRIVATE git2 Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets
 )
-target_link_libraries(git-loc-history-cli git2)
+target_link_libraries(git-loc-history-cli PRIVATE git2)
