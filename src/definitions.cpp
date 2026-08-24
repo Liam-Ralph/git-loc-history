@@ -220,11 +220,15 @@ int Definitions::set_config(string setting, string value) {
 string Definitions::get_path_cache() {
     static string cache_path = []() {
         if (!RELEASE_PATHS) return string("../cache");
-        char *env_var = getenv("XDG_CONFIG_HOME");
-        if (env_var == nullptr) {
-            return string("~/.cache/git-loc-history");
+        char *xdg_cache_home = getenv("XDG_CACHE_HOME");
+        char *home = getenv("HOME");
+        if (xdg_cache_home == nullptr) {
+            if (home == nullptr)
+                return string("~/.cache/git-loc-history.conf");
+            else
+                return string(home) + "/.cache/git-loc-history.conf";
         }
-        return string(env_var) + "/git-loc-history";
+        return string(xdg_cache_home) + "/git-loc-history";
     }();
     return cache_path;
 }
