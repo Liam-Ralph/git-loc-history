@@ -224,9 +224,9 @@ string Definitions::get_path_cache() {
         char *home = getenv("HOME");
         if (xdg_cache_home == nullptr) {
             if (home == nullptr)
-                return string("~/.cache/git-loc-history.conf");
+                return string("~/.cache/git-loc-history");
             else
-                return string(home) + "/.cache/git-loc-history.conf";
+                return string(home) + "/.cache/git-loc-history";
         }
         return string(xdg_cache_home) + "/git-loc-history";
     }();
