@@ -5,11 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(LIBGIT2_USE_STATIC_LIBS ON)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
-find_package(libgit2 REQUIRED)
+add_library(libgit2 STATIC)
 
 if(MSVC)
     add_compile_options(/W4)
