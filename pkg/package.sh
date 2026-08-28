@@ -11,14 +11,14 @@ done < ../README.md
 
 # Check Argument Number
 
-if [ ! "$#" -eq 1 ]; then
+if (( ! $# != 1 )); then
     echo -e "Expected 1 argument, received $#."
     exit 1
 fi
 
 # Run build.sh
 
-if [ ! -d "usr" ]; then
+if [[ ! -d "usr" ]]; then
     ./build.sh
 fi
 
@@ -44,7 +44,7 @@ if [[ $1 == "debian" ]]; then
 
     # Package
 
-    if [ -e "${build_path}.deb" ]; then
+    if [[ -f "${build_path}.deb" ]]; then
         rm -f $build_path.deb
     fi
     dpkg -b $build_path
@@ -71,7 +71,7 @@ elif [[ $1 == "fedora" ]]; then
 
     # Build and Copy Package
 
-    if [ -e "~/rpmbuild" ]; then
+    if [[ -e "~/rpmbuild" ]]; then
         mv ~/rpmbuild ~/rpmbuild-backup
     fi
 
