@@ -1,8 +1,8 @@
-find_path(GIT2_INCLUDE_PATH NAMES git2.h HINTS "${CMAKE_SOURCE_DIR}/libgit2-1.9.7/include")
+find_path(GIT2_INCLUDE_PATH NAMES git2.h HINTS "${CMAKE_SOURCE_DIR}/libgit2-1.9.7/build/include")
 find_library(GIT2_LIBRARY NAMES git2 HINTS "${CMAKE_SOURCE_DIR}/libgit2-1.9.7/build")
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(libgit2 REQUIRED_VARS GIT2_LIBRARY GIT2_INCLUDE_PATH)
+find_package_handle_standard_args(git2 REQUIRED_VARS GIT2_LIBRARY GIT2_INCLUDE_PATH)
 
 if (GIT2_FOUND)
     set(GIT2_INCLUDE_DIR ${GIT2_INCLUDE_PATH})
