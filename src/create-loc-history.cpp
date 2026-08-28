@@ -382,7 +382,7 @@ vector<Commit> create_loc_history(
     // File Processing Function
 
     function<void(const filesystem::path&, Commit&)> process_files_recursive =
-    [&process_files_recursive, &excluded_paths, &git_repo_path, &files, &prev_files]
+    [&process_files_recursive, &excluded_paths, &repo_path, &files, &prev_files]
     (const filesystem::path &base_path, Commit &commit) {
 
         for (const filesystem::directory_entry &entry : filesystem::directory_iterator(base_path)) {
@@ -395,7 +395,7 @@ vector<Commit> create_loc_history(
             for (const string &exc_path : excluded_paths) {
                 if (exc_path.size() == 0) continue;
                 if (exc_path[0] == '/') {
-                    string rel_path = git_repo_path + exc_path;
+                    string rel_path = repo_path.string() + exc_path;
                     if (path.string().starts_with(rel_path)) {
                         excluded = true;
                         break;
