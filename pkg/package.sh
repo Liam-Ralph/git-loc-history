@@ -11,7 +11,7 @@ done < ../README.md
 
 # Check Argument Number
 
-if (( ! $# != 1 )); then
+if (( $# != 1 )); then
     echo -e "Expected 1 argument, received $#."
     exit 1
 fi
