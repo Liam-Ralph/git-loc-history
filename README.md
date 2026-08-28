@@ -14,45 +14,49 @@ commit in its history.
 
 ## Setup
 
-Run the following commands to install libgit2 v1.9.7:
+### libgit2
+
+Run the following commands to build libgit2 v1.9.7:
 ```
 wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
 tar -xzf v1.9.7.tar.gz
-rm -rf v1.9.7.tar.gz
+rm -f v1.9.7.tar.gz
 cd libgit2-1.9.7
 mkdir build
 cd build
 cmake ..
-make
-sudo make install
-sudo ldconfig
-cd../../
+cmake --build . --parallel $(nproc)
+cd ../../
 ```
-libgit2 can be installed as a system package, which should work as well, but
-distros are inconsistent with what version they ship.
+
+### Dependencies
 
 Below are the required dependencies to build on each distro group. Qt 6.4 or
-greater is required.
+greater is required. This is just every package I had to install on each distro
+I tried, so it may not be a comprehensive list.
 
-### Debian (apt)
+#### Debian (apt)
  - build-essential
  - cmake
+ - wget
  - libssl-dev
  - qt6-base-dev
  - qt6-charts-dev
  - qt6-declarative-dev
  - libgl1 or libgl1-mesa-dev
 
-### Fedora (dnf)
+#### Fedora (dnf)
  - rpmdevtools
  - cmake
+ - wget
  - openssl-devel
  - qt6-qtbase-devel
  - qt6-qtcharts-devel
 
-### Arch (pacman)
+#### Arch (pacman)
  - base-devel
  - cmake
+ - wget
  - qt6-base
  - qt6-charts
 

@@ -13,10 +13,16 @@ fi
 
 # libgit2
 
-if [ ! -e "libgit2-1.9.7" ]; then
+if [ ! -e "libgit2-1.9.7/build/libgit2.so.1.9.7" ]; then
     wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
     tar -xzf v1.9.7.tar.gz
     rm -f v1.9.7.tar.gz
+    cd libgit2-1.9.7
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build . --parallel $(nproc)
+    cd ../../
 fi
 
 # Compile Binaries
