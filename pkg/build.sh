@@ -4,7 +4,7 @@ cd ../
 
 # Build libgit2
 
-if [[ ! -f "libgit2-1.9.7/build/libgit2.so.1.9.7" ]]; then
+if [[ ! -f "libgit2-1.9.7/build/libgit2.a" ]]; then
     if [[ ! -d "libgit2-1.9.7" ]]; then
         wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
         tar -xzf v1.9.7.tar.gz
