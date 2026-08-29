@@ -2,19 +2,10 @@
 
 cd ../
 
-# Edit Files
-
-sed -i -e "s/#define RELEASE_PATHS false/#define RELEASE_PATHS true/g" src/definitions.cpp
-if [[ -e "build" ]]; then
-    rm -rf build/*
-else
-    mkdir build
-fi
-
-# libgit2
+# Build libgit2
 
 if [[ ! -f "libgit2-1.9.7/build/libgit2.so.1.9.7" ]]; then
-    if [ ! -e "libgit2-1.9.7" ]; then
+    if [[ ! -d "libgit2-1.9.7" ]]; then
         wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.9.7.tar.gz
         tar -xzf v1.9.7.tar.gz
         rm -f v1.9.7.tar.gz
@@ -25,13 +16,18 @@ if [[ ! -f "libgit2-1.9.7/build/libgit2.so.1.9.7" ]]; then
     fi
     mkdir build
     cd build
-    cmake ..
+    cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DREGEX_BACKEND=builtin ..
     cmake --build . --parallel $(nproc)
     cd ../../
 fi
 
 # Compile Binaries
 
+sed -i -e "s/#define RELEASE_PATHS false/#define RELEASE_PATHS true/g" src/definitions.cpp
+if [[ -e "build" ]]; then
+    rm -rf build
+fi
+mkdir build
 cd build
 cmake ..
 cmake --build . --parallel $(nproc) --config Release

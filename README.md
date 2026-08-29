@@ -24,7 +24,7 @@ rm -f v1.9.7.tar.gz
 cd libgit2-1.9.7
 mkdir build
 cd build
-cmake ..
+cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DREGEX_BACKEND=builtin ..
 cmake --build . --parallel $(nproc)
 cd ../../
 ```

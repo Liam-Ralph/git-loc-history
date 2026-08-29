@@ -10,6 +10,9 @@ set(CMAKE_SKIP_RPATH TRUE)
 find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
 qt_standard_project_setup()
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OPENSSL REQUIRED openssl)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(git2 REQUIRED)
 include_directories(${GIT2_INCLUDE_DIR})
@@ -34,6 +37,6 @@ add_executable(git-loc-history-cli
 )
 
 target_link_libraries(
-    git-loc-history PRIVATE ${GIT2_LIBRARIES} Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets
+    git-loc-history PRIVATE ${GIT2_LIBRARIES} z ${OPENSSL_LIBRARIES} Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets
 )
-target_link_libraries(git-loc-history-cli PRIVATE ${GIT2_LIBRARIES})
+target_link_libraries(git-loc-history-cli PRIVATE ${GIT2_LIBRARIES} z ${OPENSSL_LIBRARIES})
