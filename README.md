@@ -39,6 +39,8 @@ I tried, so it may not be a comprehensive list.
  - build-essential
  - cmake
  - wget
+ - pkgconf
+ - zlib1g-dev
  - libssl-dev
  - qt6-base-dev
  - qt6-charts-dev
@@ -49,6 +51,7 @@ I tried, so it may not be a comprehensive list.
  - rpmdevtools
  - cmake
  - wget
+ - pkgconf
  - openssl-devel
  - qt6-qtbase-devel
  - qt6-qtcharts-devel
@@ -57,6 +60,7 @@ I tried, so it may not be a comprehensive list.
  - base-devel
  - cmake
  - wget
+ - pkgconf
  - qt6-base
  - qt6-charts
 
