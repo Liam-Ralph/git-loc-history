@@ -41,14 +41,10 @@ class MainWindow : public QMainWindow {
         MainWindow();
         ~MainWindow();
 
-        // Functions
-
-        void emit_progressed(int progress, long start);
-        void emit_section_changed(std::string section, long start);
-
     private:
 
         // Functions
+
         bool is_dark_mode();
         void show_info();
         void open_path_dialog();

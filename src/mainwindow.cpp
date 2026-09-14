@@ -2,6 +2,7 @@
 
 #include "definitions.hpp"
 #include "mainwindow.hpp"
+#include "mainthread.hpp"
 #include "infowindow.hpp"
 #include "create-loc-history.hpp"
 

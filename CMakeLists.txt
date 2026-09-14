@@ -19,6 +19,8 @@ qt_add_executable(git-loc-history
     src/definitions.hpp
     src/mainwindow.cpp
     src/mainwindow.hpp
+    src/mainthread.hpp
+    src/mainthread.cpp
     src/infowindow.cpp
     src/infowindow.hpp
     src/create-loc-history.cpp
