@@ -44,6 +44,9 @@ using namespace std;
  */
 MainWindow::MainWindow() : QMainWindow() {
 
+    this->connect(this, &MainWindow::progressed, this, &MainWindow::on_progress);
+    this->connect(this, &MainWindow::section_changed, this, &MainWindow::on_section_change);
+
     setWindowTitle("Git LoC History");
     setWindowIcon(QIcon(QString::fromStdString(Definitions::get_path_logo())));
     setWindowState(Qt::WindowMaximized);
@@ -265,6 +268,10 @@ MainWindow::MainWindow() : QMainWindow() {
  */
 MainWindow::~MainWindow() {}
 
+
+/**
+ * Returns whether the current color scheme is dark.
+ */
 bool MainWindow::is_dark_mode() {
     #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
         return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
@@ -274,6 +281,34 @@ bool MainWindow::is_dark_mode() {
             defaultPalette.color(QPalette::Window).lightness();
     #endif
 }
+
+// Slots
+
+/**
+ * Update progress bar and timer.
+ * 
+ * @param progress Current progress 0-100.
+ * @param start Milliseconds since epoch at calculation start.
+ */
+void MainWindow::on_progress(int progress, const long start) {
+    update_timer(start);
+    progress_bar->setValue(progress);
+    progress_bar->update();
+}
+
+/**
+ * Update the section title and timer.
+ * 
+ * @param section Current sections.
+ * @param start Milliseconds since epoch at calculation start.
+ */
+void MainWindow::on_section_change(string section, const long start) {
+    update_timer(start);
+    section_label->setText(QString::fromStdString(section));
+    section_label->update();
+}
+
+// Functions
 
 /**
  * Show info window.
@@ -362,15 +397,17 @@ void MainWindow::create_chart() {
         cache_this_check->isChecked() || (settings_map["cache_results"].compare("true") == 0);
     try {
         if (progress_check->isChecked()) {
-            static function<void(double, long)> on_progress_func = bind(
-                &MainWindow::on_progress, this, placeholders::_1, placeholders::_2
-            );
-            static function<void(string, long)> on_section_change_func = bind(
-                &MainWindow::on_section_change, this, placeholders::_1, placeholders::_2
-            );
+            static function<void(int, long)> progressed_func = [this](int progress, long start) {
+                emit progressed(progress, start);
+            };
+            static function<void(string, long)> section_changed_func =
+                [this](string section, long start)
+            {
+                emit section_changed(section, start);
+            };
             commits = create_loc_history(
                 git_repo_path, excluded_paths, cloning, branch, cache_results,
-                on_progress_func, on_section_change_func, start
+                progressed_func, section_changed_func, start
             );
         } else {
             commits = create_loc_history(
@@ -588,30 +625,6 @@ void MainWindow::create_chart() {
 
     start_button->setEnabled(true);
 
-}
-
-/**
- * Update progress bar and timer.
- * 
- * @param progress Current progress 0-100.
- * @param start Milliseconds since epoch at calculation start.
- */
-void MainWindow::on_progress(int progress, const long start) {
-    update_timer(start);
-    progress_bar->setValue(progress);
-    progress_bar->update();
-}
-
-/**
- * Update the section title and timer.
- * 
- * @param section Current sections.
- * @param start Milliseconds since epoch at calculation start.
- */
-void MainWindow::on_section_change(string section, const long start) {
-    update_timer(start);
-    section_label->setText(QString::fromStdString(section));
-    section_label->update();
 }
 
 /** Update timer.

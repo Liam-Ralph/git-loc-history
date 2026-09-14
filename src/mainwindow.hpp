@@ -26,6 +26,14 @@ class MainWindow : public QMainWindow {
 
     Q_OBJECT
 
+    signals:
+        void progressed(int progress, long start);
+        void section_changed(std::string section, long start);
+
+    public slots:
+        void on_progress(int progress, long start);
+        void on_section_change(std::string section, long start);
+
     public:
 
         // Constructor/Destructor
@@ -35,14 +43,13 @@ class MainWindow : public QMainWindow {
 
         // Functions
 
-        void on_progress(int progress, long start);
-        void on_section_change(std::string section, long start);
+        void emit_progressed(int progress, long start);
+        void emit_section_changed(std::string section, long start);
 
     private:
 
         // Functions
-
-        static bool is_dark_mode();
+        bool is_dark_mode();
         void show_info();
         void open_path_dialog();
         void create_chart();
