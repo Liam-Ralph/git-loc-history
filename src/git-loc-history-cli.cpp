@@ -14,8 +14,8 @@ code across its history.
 
 // Includes
 
-#include "definitions.hpp"
 #include "create-loc-history.hpp"
+#include "definitions.hpp"
 
 #include <array>
 #include <algorithm>

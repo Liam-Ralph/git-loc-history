@@ -6,7 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Charts QuickWidgets Concurrent REQUIRED)
 qt_standard_project_setup()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -19,8 +19,6 @@ qt_add_executable(git-loc-history
     src/definitions.hpp
     src/mainwindow.cpp
     src/mainwindow.hpp
-    src/mainthread.hpp
-    src/mainthread.cpp
     src/infowindow.cpp
     src/infowindow.hpp
     src/create-loc-history.cpp
@@ -35,6 +33,7 @@ add_executable(git-loc-history-cli
 )
 
 target_link_libraries(
-    git-loc-history PRIVATE ${GIT2_LIBRARIES} Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets
+    git-loc-history PRIVATE ${GIT2_LIBRARIES}
+    Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Charts Qt6::QuickWidgets Qt6::Concurrent
 )
 target_link_libraries(git-loc-history-cli PRIVATE ${GIT2_LIBRARIES})

@@ -14,9 +14,7 @@ code across its history.
 
 // Includes
 
-#include "definitions.hpp"
 #include "mainwindow.hpp"
-#include "create-loc-history.hpp"
 
 #include <QApplication>
 

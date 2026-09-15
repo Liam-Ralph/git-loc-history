@@ -1,10 +1,9 @@
 // Includes
 
-#include "definitions.hpp"
 #include "mainwindow.hpp"
-#include "mainthread.hpp"
-#include "infowindow.hpp"
 #include "create-loc-history.hpp"
+#include "definitions.hpp"
+#include "infowindow.hpp"
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -29,6 +28,8 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QStackedBarSeries>
 #include <QtCharts/QValueAxis>
+
+#include <QtConcurrent>
 
 #include <array>
 #include <iostream>
@@ -283,32 +284,6 @@ bool MainWindow::is_dark_mode() {
     #endif
 }
 
-// Slots
-
-/**
- * Update progress bar and timer.
- * 
- * @param progress Current progress 0-100.
- * @param start Milliseconds since epoch at calculation start.
- */
-void MainWindow::on_progress(int progress, const long start) {
-    update_timer(start);
-    progress_bar->setValue(progress);
-    progress_bar->update();
-}
-
-/**
- * Update the section title and timer.
- * 
- * @param section Current sections.
- * @param start Milliseconds since epoch at calculation start.
- */
-void MainWindow::on_section_change(string section, const long start) {
-    update_timer(start);
-    section_label->setText(QString::fromStdString(section));
-    section_label->update();
-}
-
 // Functions
 
 /**
@@ -396,26 +371,36 @@ void MainWindow::create_chart() {
     string branch = branch_entry->text().toStdString();
     bool cache_results =
         cache_this_check->isChecked() || (settings_map["cache_results"].compare("true") == 0);
+
     try {
+
+        function<void(int, long)> progressed_func;
+        function<void(string, long)> section_changed_func;
         if (progress_check->isChecked()) {
-            static function<void(int, long)> progressed_func = [this](int progress, long start) {
+            progressed_func = [this](int progress, long start) {
                 emit progressed(progress, start);
             };
-            static function<void(string, long)> section_changed_func =
-                [this](string section, long start)
-            {
+            section_changed_func = [this](string section, long start) {
                 emit section_changed(section, start);
             };
-            commits = create_loc_history(
+        } else {
+            progressed_func = nullptr;
+            section_changed_func = nullptr;
+        }
+
+        QFuture<vector<Commit>> commits_future = QtConcurrent::run(
+            [
                 git_repo_path, excluded_paths, cloning, branch, cache_results,
                 progressed_func, section_changed_func, start
-            );
-        } else {
-            commits = create_loc_history(
-                git_repo_path, excluded_paths, cloning, branch, cache_results,
-                nullptr, nullptr, start
-            );
-        }
+            ]() {
+                return create_loc_history(
+                    git_repo_path, excluded_paths, cloning, branch, cache_results,
+                    progressed_func, section_changed_func, start
+                );
+            }
+        );
+        commits = commits_future.result();
+
     } catch (const runtime_error &e) {
         // Show Error in Terminal and GUI
         cerr << e.what() << endl;
@@ -665,4 +650,30 @@ void MainWindow::warn_set_config_error(int error) {
         this,
         QString::fromStdString("Error Setting Config"), QString::fromStdString(errors[error - 1])
     );
+}
+
+// Slots
+
+/**
+ * Update progress bar and timer.
+ * 
+ * @param progress Current progress 0-100.
+ * @param start Milliseconds since epoch at calculation start.
+ */
+void MainWindow::on_progress(int progress, const long start) {
+    update_timer(start);
+    progress_bar->setValue(progress);
+    progress_bar->update();
+}
+
+/**
+ * Update the section title and timer.
+ * 
+ * @param section Current sections.
+ * @param start Milliseconds since epoch at calculation start.
+ */
+void MainWindow::on_section_change(string section, const long start) {
+    update_timer(start);
+    section_label->setText(QString::fromStdString(section));
+    section_label->update();
 }

@@ -26,14 +26,6 @@ class MainWindow : public QMainWindow {
 
     Q_OBJECT
 
-    signals:
-        void progressed(int progress, long start);
-        void section_changed(std::string section, long start);
-
-    public slots:
-        void on_progress(int progress, long start);
-        void on_section_change(std::string section, long start);
-
     public:
 
         // Constructor/Destructor
@@ -73,6 +65,14 @@ class MainWindow : public QMainWindow {
         QProgressBar *progress_bar;
         QLabel *section_label;
         QLabel *timer_label;
+
+    signals:
+        void progressed(int progress, long start);
+        void section_changed(std::string section, long start);
+
+    public slots:
+        void on_progress(int progress, long start);
+        void on_section_change(std::string section, long start);
 
 };
 
