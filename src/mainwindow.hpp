@@ -67,10 +67,12 @@ class MainWindow : public QMainWindow {
         QLabel *timer_label;
 
     signals:
+
         void progressed(int progress, long start);
         void section_changed(std::string section, long start);
 
     public slots:
+
         void on_progress(int progress, long start);
         void on_section_change(std::string section, long start);
 

@@ -191,8 +191,7 @@ vector<Commit> create_loc_history(
 
                 static Captures captures = *static_cast<Captures *>(payload);
                 static function<void(double, long)> on_progress = captures.on_progress;
-                static function<void(string, long)> on_section_change =
-                    captures.on_section_change;
+                static function<void(string, long)> on_section_change = captures.on_section_change;
                 static long start = captures.start;
 
                 // Section Change Notification Tracking

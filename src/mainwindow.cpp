@@ -270,6 +270,7 @@ MainWindow::MainWindow() : QMainWindow() {
  */
 MainWindow::~MainWindow() {}
 
+// Functions
 
 /**
  * Returns whether the current color scheme is dark.
@@ -283,8 +284,6 @@ bool MainWindow::is_dark_mode() {
             defaultPalette.color(QPalette::Window).lightness();
     #endif
 }
-
-// Functions
 
 /**
  * Show info window.
