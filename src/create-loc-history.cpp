@@ -111,13 +111,9 @@ void throw_git_error(string function_name, int error) {
  * the functions attempting to read existing cache files during history
  * creation.
  * @param on_progress A function to call when progress is made. This function
- * must accept an int, the current progress 0-100, and a long, the number of
- * milliseconds since epoch from the caller. The long will always be the param
- * start (see below). The function may only be called when the progress int
- * changes.
+ * must accept an int, the current progress 0-100.
  * @param on_section_change A function to call when the current section changes.
- * Must accept a string, representing the new section, and a long, start (see
- * previous).
+ * Must accept a string representing the new section.
  * @param start Milliseconds since epoch in the calling program. Usually this
  * value will be set right before this function is called.
  * @return An std::vector of Commits, in reverse chronological order.
@@ -125,15 +121,14 @@ void throw_git_error(string function_name, int error) {
 vector<Commit> create_loc_history(
     string git_repo_path, vector<string> excluded_paths,
     const bool cloning, const string branch, const bool cache_results,
-    function<void(int, long)> on_progress,
-    function<void(string, long)> on_section_change,
+    function<void(int)> on_progress,
+    function<void(string)> on_section_change,
     const long start
 ) {
 
     long last_update = start; // Milliseconds since progress last updated
 
-    if (on_section_change != nullptr)
-        on_section_change(SETUP_STR, start);
+    if (on_section_change != nullptr) on_section_change(SETUP_STR);
 
     vector<Commit> commits = {};
 
@@ -168,20 +163,19 @@ vector<Commit> create_loc_history(
 
             class Captures {
                 public:
-
                     Captures(
-                        function<void(int, long)> on_progress,
-                        function<void(string, long)> on_section_change,
-                        const long start
+                        function<void(int)> on_progress,
+                        function<void(string)> on_section_change,
+                        const long start, long &last_update_ptr
                     ) : on_progress(on_progress), on_section_change(on_section_change),
-                        start(start) {}
+                        start(start), last_update_ptr(last_update_ptr) {}
 
-                    function<void(int, long)> on_progress;
-                    function<void(string, long)> on_section_change;
+                    function<void(int)> on_progress;
+                    function<void(string)> on_section_change;
                     const long start;
-
+                    long &last_update_ptr;
             };
-            Captures captures = Captures(on_progress, on_section_change, start);
+            Captures captures = Captures(on_progress, on_section_change, start, last_update);
 
             // Progress Callback Function
 
@@ -190,9 +184,10 @@ vector<Commit> create_loc_history(
                 // Unpack Payload
 
                 static Captures captures = *static_cast<Captures *>(payload);
-                static function<void(double, long)> on_progress = captures.on_progress;
-                static function<void(string, long)> on_section_change = captures.on_section_change;
+                static function<void(int)> on_progress = captures.on_progress;
+                static function<void(string)> on_section_change = captures.on_section_change;
                 static long start = captures.start;
+                static long &last_update_ptr = captures.last_update_ptr;
 
                 // Section Change Notification Tracking
 
@@ -201,22 +196,33 @@ vector<Commit> create_loc_history(
 
                 // Run Progress Function
 
+                bool run_progress = false;
+                const long time_now = Definitions::get_time_ms();
+                if (time_now - last_update_ptr > UPDATE_DELAY) {
+                    run_progress = true;
+                    last_update_ptr = time_now;
+                }
+
                 if (stats->total_objects > 0) {
-                    on_progress(int(round(
-                        OBJECTS_PCT * stats->received_objects / stats->total_objects * 100
-                    )), start);
+                    if (run_progress)
+                        on_progress(int(round(
+                            OBJECTS_PCT * stats->received_objects / stats->total_objects * 100
+                        )));
                     if (!notified_objects) {
                         notified_objects = true;
-                        on_section_change(OBJECTS_STR, start);
+                        on_section_change(OBJECTS_STR);
                     }
                 } else {
-                    on_progress(int(round(
-                        (OBJECTS_PCT + DELTAS_PCT * stats->indexed_deltas / stats->total_deltas) *
-                        100
-                    )), start);
+                    if (run_progress)
+                        on_progress(int(round(
+                            (
+                                OBJECTS_PCT +
+                                DELTAS_PCT * stats->indexed_deltas / stats->total_deltas
+                            ) * 100
+                        )));
                     if (!notified_deltas) {
                         notified_deltas = true;
-                        on_section_change(DELTAS_STR, start);
+                        on_section_change(DELTAS_STR);
                     }
                 }
 
@@ -372,7 +378,7 @@ vector<Commit> create_loc_history(
             if (git_commit_lookup(&git_commit, repo, &oid) == 0)
                 total_commits++;
         git_revwalk_push_head(repo_walker);
-        on_section_change(COMMITS_STR, start);
+        on_section_change(COMMITS_STR);
     }
 
     vector<File> files = {}; // Used in file caching
@@ -545,8 +551,6 @@ vector<Commit> create_loc_history(
 
     };
 
-    int prev_progress = cloning ? (OBJECTS_PCT + DELTAS_PCT) * 100 : 0;
-
     while (git_revwalk_next(&oid, repo_walker) == 0) {
 
         if (git_commit_lookup(&git_commit, repo, &oid) == 0) {
@@ -605,15 +609,11 @@ vector<Commit> create_loc_history(
 
             const long time_now = Definitions::get_time_ms();
             if (on_progress != nullptr && time_now - last_update > UPDATE_DELAY) {
-                commits_processed++;
-                double progress_dbl = double(commits_processed) / total_commits;
+                double progress_dbl = double(++commits_processed) / total_commits;
                 if (cloning) progress_dbl = OBJECTS_PCT + DELTAS_PCT + COMMITS_PCT * progress_dbl;
                 int progress = int(round(progress_dbl * 100));
-                if (progress != prev_progress) {
-                    prev_progress = progress;
-                    last_update = time_now;
-                    on_progress(progress, start);
-                }
+                last_update = time_now;
+                on_progress(progress);
             }
 
         }
@@ -633,7 +633,7 @@ vector<Commit> create_loc_history(
 
     if (cache_results) {
 
-        if (on_section_change != nullptr) on_section_change(CACHE_STR, start);
+        if (on_section_change != nullptr) on_section_change(CACHE_STR);
 
         // Add New Commits to Cached Commits
 

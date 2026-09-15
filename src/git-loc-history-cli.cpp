@@ -35,6 +35,11 @@ code across its history.
 using namespace std;
 
 
+// Global Variables
+
+long start;
+
+
 // Functions
 
 /**
@@ -54,10 +59,9 @@ bool is_in(T target, vector<T> values) {
 /**
  * Format elapsed time since program start.
  * 
- * @param start Time in milliseconds since epoch at program start.
  * @return Elapsed time in format "12.34s".
  */
-string format_time(long start) {
+string format_time() {
     ostringstream ss;
     ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
     return ss.str();
@@ -67,9 +71,8 @@ string format_time(long start) {
  * Update the printed progress bar and timer.
  * 
  * @param progress Current progress 0-100.
- * @param start Milliseconds since epoch at calculation start.
  */
-void on_progress(int progress, const long start) {
+void on_progress(int progress) {
 
     // Get Progress Bar Width
 
@@ -85,7 +88,7 @@ void on_progress(int progress, const long start) {
 
     // Print New Progress Bar and Elapsed Time
 
-    string text = "\033[3A\033[2K\r" + format_time(start) + "\033[2B\033[2K\r";
+    string text = "\033[3A\033[2K\r" + format_time() + "\033[2B\033[2K\r";
     for (int i = 0; i < columns; i++) {
         if (i < bars) text += "█";
         else text += "░";
@@ -99,10 +102,9 @@ void on_progress(int progress, const long start) {
  * Update the printed section title and timer.
  * 
  * @param section Current section.
- * @param start Milliseconds since epoch at calculation start.
  */
-void on_section_change(string section, const long start) {
-    cout << "\033[3A\033[2K" + format_time(start) + "\033[1B\033[2K\r" + section;
+void on_section_change(string section) {
+    cout << "\033[3A\033[2K" + format_time() + "\033[1B\033[2K\r" + section;
     flush(cout);
 }
 
@@ -311,7 +313,7 @@ int main(int argc, char *argv[]) {
 
     // Create LoC History
 
-    long start = Definitions::get_time_ms();
+    start = Definitions::get_time_ms();
 
     vector<Commit> commits;
 
@@ -342,7 +344,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    string elapsed_time = format_time(start) + " ";
+    string elapsed_time = format_time() + " ";
 
     // Create Graph
 

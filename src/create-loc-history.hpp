@@ -91,8 +91,8 @@ void throw_git_error(std::string function_name, int error);
 std::vector<Commit> create_loc_history(
     std::string git_repo_path, std::vector<std::string> excluded_paths,
     const bool cloning, const std::string branch, const bool cache_results,
-    std::function<void(int, long)> on_progress,
-    std::function<void(std::string, long)> on_section_change,
+    std::function<void(int)> on_progress,
+    std::function<void(std::string)> on_section_change,
     const long start
 );
 

@@ -41,13 +41,14 @@ class MainWindow : public QMainWindow {
         void show_info();
         void open_path_dialog();
         void create_chart();
-        void update_timer(long start);
+        void update_timer();
         void update_cache_size();
         void warn_set_config_error(int error);
 
         // Variables
 
         std::unordered_map<std::string, std::string> settings_map;
+        long start;
 
         QLabel *commit_info_label;
 
@@ -68,13 +69,13 @@ class MainWindow : public QMainWindow {
 
     signals:
 
-        void progressed(int progress, long start);
-        void section_changed(std::string section, long start);
+        void progressed(int progress);
+        void section_changed(std::string section);
 
     public slots:
 
-        void on_progress(int progress, long start);
-        void on_section_change(std::string section, long start);
+        void on_progress(int progress);
+        void on_section_change(std::string section);
 
 };
 

@@ -46,8 +46,12 @@ using namespace std;
  */
 MainWindow::MainWindow() : QMainWindow() {
 
+    // Connect Signals and Slots
+
     this->connect(this, &MainWindow::progressed, this, &MainWindow::on_progress);
     this->connect(this, &MainWindow::section_changed, this, &MainWindow::on_section_change);
+
+    // Setup MainWindow
 
     setWindowTitle("Git LoC History");
     setWindowIcon(QIcon(QString::fromStdString(Definitions::get_path_logo())));
@@ -361,7 +365,7 @@ void MainWindow::create_chart() {
 
     // Create LoC History
 
-    long start = Definitions::get_time_ms();
+    start = Definitions::get_time_ms();
 
     vector<Commit> commits;
 
@@ -373,14 +377,14 @@ void MainWindow::create_chart() {
 
     try {
 
-        function<void(int, long)> progressed_func;
-        function<void(string, long)> section_changed_func;
+        function<void(int)> progressed_func;
+        function<void(string)> section_changed_func;
         if (progress_check->isChecked()) {
-            progressed_func = [this](int progress, long start) {
-                emit progressed(progress, start);
+            progressed_func = [this](int progress) {
+                emit progressed(progress);
             };
-            section_changed_func = [this](string section, long start) {
-                emit section_changed(section, start);
+            section_changed_func = [this](string section) {
+                emit section_changed(section);
             };
         } else {
             progressed_func = nullptr;
@@ -389,8 +393,8 @@ void MainWindow::create_chart() {
 
         QFuture<vector<Commit>> commits_future = QtConcurrent::run(
             [
-                git_repo_path, excluded_paths, cloning, branch, cache_results,
-                progressed_func, section_changed_func, start
+                this, git_repo_path, excluded_paths, cloning, branch, cache_results,
+                progressed_func, section_changed_func
             ]() {
                 return create_loc_history(
                     git_repo_path, excluded_paths, cloning, branch, cache_results,
@@ -412,7 +416,7 @@ void MainWindow::create_chart() {
 
     section_label->setText("Finished");
     progress_bar->setValue(100);
-    update_timer(start);
+    update_timer();
     update_cache_size();
 
     // Create Chart
@@ -613,10 +617,8 @@ void MainWindow::create_chart() {
 }
 
 /** Update timer.
- * 
- * @param start Milliseconds since epoch at calculation start.
  */
-void MainWindow::update_timer(const long start) {
+void MainWindow::update_timer() {
     ostringstream ss;
     ss << fixed << setprecision(2) << double(Definitions::get_time_ms() - start) / 1000 << "s";
     timer_label->setText(QString::fromStdString(ss.str()));
@@ -657,10 +659,9 @@ void MainWindow::warn_set_config_error(int error) {
  * Update progress bar and timer.
  * 
  * @param progress Current progress 0-100.
- * @param start Milliseconds since epoch at calculation start.
  */
-void MainWindow::on_progress(int progress, const long start) {
-    update_timer(start);
+void MainWindow::on_progress(int progress) {
+    update_timer();
     progress_bar->setValue(progress);
     progress_bar->update();
 }
@@ -669,10 +670,9 @@ void MainWindow::on_progress(int progress, const long start) {
  * Update the section title and timer.
  * 
  * @param section Current sections.
- * @param start Milliseconds since epoch at calculation start.
  */
-void MainWindow::on_section_change(string section, const long start) {
-    update_timer(start);
+void MainWindow::on_section_change(string section) {
+    update_timer();
     section_label->setText(QString::fromStdString(section));
     section_label->update();
 }
