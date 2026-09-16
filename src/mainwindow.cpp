@@ -22,6 +22,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QThread>
 
 #include <QtCharts/QAreaSeries>
@@ -31,9 +33,6 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QStackedBarSeries>
 #include <QtCharts/QValueAxis>
-
-#include <QtCore/QFuture>
-#include <QtCore/QFutureWatcher>
 
 #include <array>
 #include <iostream>
@@ -281,11 +280,6 @@ MainWindow::MainWindow() : QMainWindow() {
 
 }
 
-/**
- * Destructor
- */
-MainWindow::~MainWindow() {}
-
 // Functions
 
 /**
@@ -387,6 +381,8 @@ void MainWindow::get_commits() {
 
     try {
 
+        // Get Progress Functions
+
         function<void(int)> progressed_func;
         function<void(string)> section_changed_func;
         if (progress_check->isChecked()) {
@@ -401,69 +397,52 @@ void MainWindow::get_commits() {
             section_changed_func = nullptr;
         }
 
-        // QFuture<vector<Commit>> commits_future = QtConcurrent::run(
-        //     [
-        //         this, git_repo_path, excluded_paths, cloning, branch, cache_results,
-        //         progressed_func, section_changed_func
-        //     ]() {
-        //         return create_loc_history(
-        //             git_repo_path, excluded_paths, cloning, branch, cache_results,
-        //             progressed_func, section_changed_func, start
-        //         );
-        //     }
-        // );
-        // QFutureWatcher<vector<Commit>> *commits_watcher = new QFutureWatcher<vector<Commit>>(this);
-        // commits_watcher->setFuture(commits_future);
-        // connect(
-        //     commits_watcher, &QFutureWatcher<vector<Commit>>::finished, [this, commits_watcher]() {
-
-        //         // Set Progress Indicators to Finished
-
-        //         section_label->setText("Finished");
-        //         progress_bar->setValue(100);
-        //         update_cache_size();
-        //         update_timer();
-
-        //         // Create Chart
-
-        //         commits = commits_watcher->result();
-        //         create_chart();
-        //         start_button->setEnabled(true);
-
-        //         commits_watcher->deleteLater();
-
-        //     }
-        // );
+        // Create Worker
 
         QThread *thread = new QThread();
         Worker *worker = new Worker();
         worker->moveToThread(thread);
-        connect(thread, &QThread::started, [worker, git_repo_path, excluded_paths, cloning, branch, cache_results, progressed_func, section_changed_func, this]() {
-            worker->get_commits(
+        connect(thread, &QThread::started, [
+                this, worker,
                 git_repo_path, excluded_paths, cloning, branch, cache_results,
-                progressed_func, section_changed_func, start
-            );
-        });
-        connect(worker, &Worker::commits_finished, this, [this, thread, worker](std::vector<Commit> result) {
+                progressed_func, section_changed_func
+            ]() {
+                worker->get_commits(
+                    git_repo_path, excluded_paths, cloning, branch, cache_results,
+                    progressed_func, section_changed_func, start
+                );
+            }
+        );
 
-            // Set Progress Indicators to Finished
+        // Connect Worker and Thread Signals
 
-            section_label->setText("Finished");
-            progress_bar->setValue(100);
-            update_cache_size();
-            update_timer();
+        connect(worker, &Worker::got_commits, this,
+            [this, thread, worker](std::vector<Commit> result) {
 
-            // Create Chart
+                // Set Progress Indicators to Finished
 
-            commits = result;
-            create_chart();
-            thread->quit();
-            start_button->setEnabled(true);
+                section_label->setText("Finished");
+                progress_bar->setValue(100);
+                update_cache_size();
+                update_timer();
 
-            worker->deleteLater();
+                // Create Chart
 
-        });
+                commits = result;
+                create_chart();
+                thread->quit();
+                start_button->setEnabled(true);
+
+                worker->deleteLater();
+
+            }
+
+        );
+
         connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+
+        // Start Thread
+
         thread->start();
 
     } catch (const runtime_error &e) {

@@ -18,8 +18,6 @@
 
 #include <QtCharts/QChartView>
 
-#include <QtCore/QFutureWatcher>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -33,10 +31,9 @@ class MainWindow : public QMainWindow {
 
     public:
 
-        // Constructor/Destructor
+        // Constructor
 
         MainWindow();
-        ~MainWindow();
 
     private:
 
@@ -74,10 +71,14 @@ class MainWindow : public QMainWindow {
         QLabel *section_label;
         QLabel *timer_label;
 
+    // Signals
+
     signals:
 
         void progressed(int progress);
         void section_changed(std::string section);
+
+    // Slots
 
     public slots:
 
