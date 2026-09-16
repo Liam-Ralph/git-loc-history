@@ -46,7 +46,7 @@ class MainWindow : public QMainWindow {
         void show_info();
         void open_path_dialog();
         void get_commits();
-        void create_chart(std::vector<Commit> commits);
+        void create_chart();
         void update_timer();
         void update_cache_size();
         void warn_set_config_error(int error);
@@ -56,6 +56,7 @@ class MainWindow : public QMainWindow {
         std::unordered_map<std::string, std::string> settings_map;
         long start;
         QFutureWatcher<std::vector<Commit>> commits_watcher;
+        std::vector<Commit> commits;
 
         QLabel *commit_info_label;
 

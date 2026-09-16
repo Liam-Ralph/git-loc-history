@@ -1,3 +1,10 @@
+## Version 1.1.1 (September 2026)
+
+ - Added QtConcurrent to make UI responsive during LoC history creation.
+ - Added signals and slots for GUI progress updates.
+ - Added QWidgets to MainWindow members.
+ - Added chart updating when chart type changed.
+
 ## Version 1.1.0 (August 2026)
 
  - Switched to libgit2 v1.9.7.

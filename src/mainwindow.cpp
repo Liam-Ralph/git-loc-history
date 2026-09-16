@@ -49,6 +49,10 @@ using namespace std;
  */
 MainWindow::MainWindow() : QMainWindow() {
 
+    // Initialize Commits
+
+    commits = {};
+
     // Connect Signals and Slots
 
     connect(this, &MainWindow::progressed, this, &MainWindow::on_progress);
@@ -152,6 +156,10 @@ MainWindow::MainWindow() : QMainWindow() {
     chart_type_combo = new QComboBox();
     chart_type_combo->addItems({"Line", "Bar"});
     chart_type_combo->setCurrentIndex(0);
+    connect(chart_type_combo, &QComboBox::currentTextChanged, this, [this]() {
+        if (commits.size() > 0)
+            create_chart();
+    });
     layout_options->addWidget(chart_type_combo);
 
     // Program Options
@@ -303,7 +311,7 @@ void MainWindow::show_info() {
 /**
  * Open dialog to select local path.
  * 
- * Sets selected path to path returned by dialog.
+ * Sets selected path in path_entry to path returned by dialog.
  */
 void MainWindow::open_path_dialog() {
     QFileDialog *dialog = new QFileDialog();
@@ -316,7 +324,7 @@ void MainWindow::open_path_dialog() {
 }
 
 /**
- * Get LoC history commits
+ * Get LoC history commits, then run the create_chart fundtion.
  */
 void MainWindow::get_commits() {
 
@@ -370,8 +378,6 @@ void MainWindow::get_commits() {
 
     start = Definitions::get_time_ms();
 
-    vector<Commit> commits;
-
     // Run Creation Function
 
     string branch = branch_entry->text().toStdString();
@@ -407,8 +413,10 @@ void MainWindow::get_commits() {
         );
         commits_watcher.setFuture(commits_future);
         connect(
-            &commits_watcher, &QFutureWatcher<vector<Commit>>::finished,
-            [this](){ create_chart(commits_watcher.result()); }
+            &commits_watcher, &QFutureWatcher<vector<Commit>>::finished, [this]() {
+                commits = commits_watcher.result();
+                create_chart();
+            }
         );
 
     } catch (const runtime_error &e) {
@@ -420,7 +428,10 @@ void MainWindow::get_commits() {
     }
 }
 
-void MainWindow::create_chart(vector<Commit> commits) {
+/**
+ * Create chart.
+ */
+void MainWindow::create_chart() {
 
     // Set Progress Indicators to Finished
 
