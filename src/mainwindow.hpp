@@ -5,6 +5,8 @@
 
 // Includes
 
+#include "create-loc-history.hpp"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
@@ -16,8 +18,11 @@
 
 #include <QtCharts/QChartView>
 
+#include <QtCore/QFutureWatcher>
+
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 
 // MainWindow Class
@@ -40,7 +45,8 @@ class MainWindow : public QMainWindow {
         bool is_dark_mode();
         void show_info();
         void open_path_dialog();
-        void create_chart();
+        void get_commits();
+        void create_chart(std::vector<Commit> commits);
         void update_timer();
         void update_cache_size();
         void warn_set_config_error(int error);
@@ -49,6 +55,7 @@ class MainWindow : public QMainWindow {
 
         std::unordered_map<std::string, std::string> settings_map;
         long start;
+        QFutureWatcher<std::vector<Commit>> commits_watcher;
 
         QLabel *commit_info_label;
 

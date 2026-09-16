@@ -31,6 +31,9 @@
 
 #include <QtConcurrent>
 
+#include <QtCore/QFuture>
+#include <QtCore/QFutureWatcher>
+
 #include <array>
 #include <iostream>
 #include <sstream>
@@ -48,8 +51,8 @@ MainWindow::MainWindow() : QMainWindow() {
 
     // Connect Signals and Slots
 
-    this->connect(this, &MainWindow::progressed, this, &MainWindow::on_progress);
-    this->connect(this, &MainWindow::section_changed, this, &MainWindow::on_section_change);
+    connect(this, &MainWindow::progressed, this, &MainWindow::on_progress);
+    connect(this, &MainWindow::section_changed, this, &MainWindow::on_section_change);
 
     // Setup MainWindow
 
@@ -226,7 +229,7 @@ MainWindow::MainWindow() : QMainWindow() {
     // Start Button
 
     start_button = new QPushButton("Calculate Lines of Code");
-    connect(start_button, &QPushButton::clicked, this, &MainWindow::create_chart);
+    connect(start_button, &QPushButton::clicked, this, &MainWindow::get_commits);
     layout_back->addWidget(start_button);
     layout_back->setAlignment(start_button, Qt::AlignHCenter);
 
@@ -313,9 +316,9 @@ void MainWindow::open_path_dialog() {
 }
 
 /**
- * Create LoC History and Chart
+ * Get LoC history commits
  */
-void MainWindow::create_chart() {
+void MainWindow::get_commits() {
 
     // Reset Progress Indicators
 
@@ -402,7 +405,11 @@ void MainWindow::create_chart() {
                 );
             }
         );
-        commits = commits_future.result();
+        commits_watcher.setFuture(commits_future);
+        connect(
+            &commits_watcher, &QFutureWatcher<vector<Commit>>::finished,
+            [this](){ create_chart(commits_watcher.result()); }
+        );
 
     } catch (const runtime_error &e) {
         // Show Error in Terminal and GUI
@@ -411,6 +418,9 @@ void MainWindow::create_chart() {
         start_button->setEnabled(true);
         return;
     }
+}
+
+void MainWindow::create_chart(vector<Commit> commits) {
 
     // Set Progress Indicators to Finished
 
@@ -616,7 +626,8 @@ void MainWindow::create_chart() {
 
 }
 
-/** Update timer.
+/**
+ * Update timer.
  */
 void MainWindow::update_timer() {
     ostringstream ss;
