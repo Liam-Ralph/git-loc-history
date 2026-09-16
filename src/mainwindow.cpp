@@ -29,7 +29,7 @@
 #include <QtCharts/QStackedBarSeries>
 #include <QtCharts/QValueAxis>
 
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 
 #include <QtCore/QFuture>
 #include <QtCore/QFutureWatcher>
@@ -400,7 +400,7 @@ void MainWindow::get_commits() {
             section_changed_func = nullptr;
         }
 
-        QFuture<vector<Commit>> commits_future = QtConcurrent::run(
+        commits_future = QtConcurrent::run(
             [
                 this, git_repo_path, excluded_paths, cloning, branch, cache_results,
                 progressed_func, section_changed_func

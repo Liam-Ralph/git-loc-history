@@ -55,6 +55,7 @@ class MainWindow : public QMainWindow {
 
         std::unordered_map<std::string, std::string> settings_map;
         long start;
+        QFuture<std::vector<Commit>> commits_future;
         QFutureWatcher<std::vector<Commit>> commits_watcher;
         std::vector<Commit> commits;
 
