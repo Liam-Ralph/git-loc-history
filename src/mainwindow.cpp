@@ -400,7 +400,7 @@ void MainWindow::get_commits() {
             section_changed_func = nullptr;
         }
 
-        commits_future = QtConcurrent::run(
+        QFuture<vector<Commit>> commits_future = QtConcurrent::run(
             [
                 this, git_repo_path, excluded_paths, cloning, branch, cache_results,
                 progressed_func, section_changed_func
@@ -411,11 +411,13 @@ void MainWindow::get_commits() {
                 );
             }
         );
-        commits_watcher.setFuture(commits_future);
+        QFutureWatcher<vector<Commit>> *commits_watcher = new QFutureWatcher<vector<Commit>>(this);
+        commits_watcher->setFuture(commits_future);
         connect(
-            &commits_watcher, &QFutureWatcher<vector<Commit>>::finished, [this]() {
-                commits = commits_watcher.result();
+            commits_watcher, &QFutureWatcher<vector<Commit>>::finished, [this, commits_watcher]() {
+                commits = commits_watcher->result();
                 create_chart();
+                commits_watcher->deleteLater();
             }
         );
 
