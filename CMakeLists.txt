@@ -15,21 +15,21 @@ include_directories(${GIT2_INCLUDE_DIR})
 
 qt_add_executable(git-loc-history
     src/git-loc-history.cpp
-    src/definitions.cpp
     src/definitions.hpp
-    src/mainwindow.cpp
+    src/definitions.cpp
     src/mainwindow.hpp
-    src/infowindow.cpp
+    src/mainwindow.cpp
     src/infowindow.hpp
-    src/create-loc-history.cpp
+    src/infowindow.cpp
     src/create-loc-history.hpp
+    src/create-loc-history.cpp
 )
 add_executable(git-loc-history-cli
     src/git-loc-history-cli.cpp
-    src/definitions.cpp
     src/definitions.hpp
-    src/create-loc-history.cpp
+    src/definitions.cpp
     src/create-loc-history.hpp
+    src/create-loc-history.cpp
 )
 
 target_link_libraries(

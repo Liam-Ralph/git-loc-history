@@ -415,9 +415,22 @@ void MainWindow::get_commits() {
         commits_watcher->setFuture(commits_future);
         connect(
             commits_watcher, &QFutureWatcher<vector<Commit>>::finished, [this, commits_watcher]() {
+
+                // Set Progress Indicators to Finished
+
+                section_label->setText("Finished");
+                progress_bar->setValue(100);
+                update_cache_size();
+                update_timer();
+
+                // Create Chart
+
                 commits = commits_watcher->result();
                 create_chart();
+                start_button->setEnabled(true);
+
                 commits_watcher->deleteLater();
+
             }
         );
 
@@ -434,13 +447,6 @@ void MainWindow::get_commits() {
  * Create chart.
  */
 void MainWindow::create_chart() {
-
-    // Set Progress Indicators to Finished
-
-    section_label->setText("Finished");
-    progress_bar->setValue(100);
-    update_timer();
-    update_cache_size();
 
     // Create Chart
 
@@ -634,8 +640,6 @@ void MainWindow::create_chart() {
     // Set Chart View
 
     chart_view->setChart(chart);
-
-    start_button->setEnabled(true);
 
 }
 
