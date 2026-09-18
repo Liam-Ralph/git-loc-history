@@ -69,14 +69,17 @@ I tried, so it may not be a comprehensive list.
 
 ## Installation
 
-Packages can be found on this repository's GitHub page under releases. Qt 6.4
-or greater is required.
+Packages can be found on this repository's GitHub page under releases. Qt 6.7
+or greater is required, or Qt 6.4 for the Debian/apt LTS package.
 
 <br/>
 
 ## Packaging
 
-You can use the scripts under pkg to create Linux packages.
+You can use the scripts under pkg to create Linux packages. Package requires one
+argument ("debian", "fedora", or "arch") to determine target distro group. With
+"debian", you can also pass a second argument, "lts", to create an LTS package
+that supports Qt 6.4.
 
 <br/>
 

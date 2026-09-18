@@ -11,8 +11,8 @@ done < ../README.md
 
 # Check Argument Number
 
-if (( $# != 1 )); then
-    echo -e "Expected 1 argument, received $#."
+if (( $# < 1 )); then
+    echo -e "Missing required argument."
     exit 1
 fi
 
@@ -28,7 +28,13 @@ if [[ $1 == "debian" ]]; then
 
     # Setup Build Path
 
-    build_path="git-loc-history_${version}_x86_64"
+    if [ $# -eq 2 -a $2 -eq "lts" ]; then
+        build_path="git-loc-history-lts_${version}_x86_64"
+        control_path=control-lts
+    else
+        build_path="git-loc-history_${version}_x86_64"
+        control_path=control
+    fi
     rm -rf $build_path
     mkdir -p $build_path/DEBIAN
 
@@ -36,7 +42,7 @@ if [[ $1 == "debian" ]]; then
 
     cp -a usr $build_path/usr
 
-    cp debian/control $build_path/DEBIAN
+    cp -T debian/$control_path $build_path/DEBIAN/control
     cp debian/postrm $build_path/postrm
     sed -i -e "s/VERSION/$version/g" $build_path/DEBIAN/control
     sed -i -e "s/INSTALLED_SIZE/$(du -s $build_path/usr | awk '{print $1}')/g" \

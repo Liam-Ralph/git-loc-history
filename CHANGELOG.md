@@ -3,6 +3,7 @@
  - Added QThread to make UI responsive during LoC history creation.
  - Added signals and slots for GUI progress updates.
  - Added chart updating when chart type changed.
+ - Separated Debian/apt package into regular and LTS.
 
 ## Version 1.1.0 (August 2026)
 

@@ -1,12 +1,12 @@
-Package: git-loc-history
+Package: git-loc-history-lts
 Version: VERSION
 Section: misc
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: libqt6core6 (>= 6.7), libqt6gui6 (>= 6.7), libqt6widgets6 (>= 6.7),
-    libqt6charts6 (>= 6.7), libqt6quickwidgets6 (>= 6.7), openssl
-Conflicts: git-loc-history-lts
+Depends: libqt6core6 (>= 6.4), libqt6gui6 (>= 6.4), libqt6widgets6 (>= 6.4),
+    libqt6charts6 (>= 6.4), libqt6quickwidgets6 (>= 6.4), openssl
+Conflicts: git-loc-history
 Installed-Size: INSTALLED_SIZE
 Maintainer: Liam Ralph <liamralph@tutamail.com>
 Description: A GUI application for viewing a git repo's lines of code across its history.
