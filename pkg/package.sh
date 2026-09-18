@@ -28,7 +28,7 @@ if [[ $1 == "debian" ]]; then
 
     # Setup Build Path
 
-    if [ $# -eq 2 -a $2 -eq "lts" ]; then
+    if (( $# >= 2 )) && [[ $2 == "lts" ]]; then
         build_path="git-loc-history-lts_${version}_x86_64"
         control_path=control-lts
     else
