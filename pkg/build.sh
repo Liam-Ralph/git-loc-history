@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Get Program Version
+
+while read p; do
+    if [[ $p == "### Version "* ]]; then
+        version=${p:12}
+        break
+    fi
+done < ../README.md
+
 cd ../
 
 # Build libgit2
@@ -45,6 +54,7 @@ install -Dm755 build/git-loc-history pkg/usr/bin/git-loc-history
 install -Dm755 build/git-loc-history-cli pkg/usr/bin/git-loc-history-cli
 install -Dm644 pkg/resources/git-loc-history.desktop \
     pkg/usr/share/applications/git-loc-history.desktop
+sed -e -r "s/VERSION/$version/g" pkg/usr/share/applications/git-loc-history.desktop
 install -Dm644 pkg/resources/copyright pkg/usr/share/doc/git-loc-history/copyright
 install -Dm644 src/defaults.conf pkg/usr/share/git-loc-history/defaults.conf
 install -Dm644 README.md pkg/usr/share/doc/git-loc-history/README.md
