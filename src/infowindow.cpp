@@ -166,7 +166,7 @@ string InfoWindow::read_file(string path) {
  */
 void InfoWindow::open_doc() {
 
-    resize(this->width(), qMin(800, this->screen()->availableGeometry().height()));
+    setWindowState(Qt::WindowMaximized);
 
     QObject *button = QObject::sender();
     string contents;
