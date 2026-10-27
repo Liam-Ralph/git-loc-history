@@ -39,12 +39,17 @@ install -Dm644 usr/share/licenses/git-loc-history/LICENSE \
 rm -rf $RPM_BUILD_ROOT
 
 %postun
-if [[ -n $XDG_CONFIG_DIR && ! -z $XDG_CONFIG_DIR ]]; then
-    rm -rf "$XDG_CONFIG_DIR/git-loc-history.conf"
+if [[ -n $XDG_CONFIG_HOME && ! -z $XDG_CONFIG_HOME ]]; then
+    rm -rf $XDG_CONFIG_HOME/git-loc-history.conf
 else
-    rm -rf /home/*/.config/git-loc-history.conf
+    rm -rf ~/.config/git-loc-history.conf
 fi
-rm -rf /var/cache/git-loc-history
+if [[ -n $XDG_CACHE_HOME && ! -z $XDG_CACHE_HOME ]]; then
+    rm -rf $XDG_CACHE_HOME/git-loc-history
+else
+    rm -rf ~/.cache/git-loc-history
+fi
+rm -rf /tmp/git-loc-history
 
 %files
 /usr/bin/git-loc-history

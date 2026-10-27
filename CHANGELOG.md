@@ -1,3 +1,8 @@
+## Version 1.2.0 (October 2026)
+
+ - Added recent path saving and caching.
+ - Fixed crash on git error.
+
 ## Version 1.1.1 (September 2026)
 
  - Added QThread to make UI responsive during LoC history creation.
