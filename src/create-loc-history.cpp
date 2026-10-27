@@ -278,7 +278,7 @@ vector<Commit> create_loc_history(
     */
 
     vector<Commit> cache_commits = {};
-    const string cache_dir = Definitions::get_path_cache();
+    const string cache_dir = Definitions::get_path_cached_results();
     const string cache_path = cache_dir + "/" + repo_name;
 
     if (filesystem::exists(cache_path)) {

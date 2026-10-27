@@ -13,12 +13,14 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 using namespace std;
 
 
 // Definitions
 
 #define RELEASE_PATHS false // true for packaged applications
+#define RECENT_PATHS_LENGTH 10
 
 
 // Definitions Class Functions
@@ -71,7 +73,7 @@ string Definitions::get_path_license() {
  * @return Path, absolute if RELEASE_PATHS, otherwise relative to build.
  */
 string Definitions::get_path_readme() {
-    static string result = Definitions::get_path_doc() + "/README.md";
+    static string result = get_path_doc() + "/README.md";
     return result;
 }
 
@@ -82,7 +84,7 @@ string Definitions::get_path_readme() {
  */
 string Definitions::get_version() {
     static string version = []() {
-        const string readme_path = Definitions::get_path_readme();
+        const string readme_path = get_path_readme();
         ifstream file(readme_path);
         if (!file.is_open()) {
             cerr << "Error opening file " << readme_path << "." << endl;
@@ -242,17 +244,20 @@ string Definitions::get_cache_size() {
 
     // Get Cache Path
 
-    const filesystem::path path_cache = get_path_cache();
-    if (!filesystem::exists(path_cache)) {
+    if (!filesystem::exists(get_path_cache()))
         return "0B";
-    }
 
     // Get Cache Size in Bytes
 
     long total_bytes = 0;
-    for (const filesystem::directory_entry &entry : filesystem::directory_iterator(path_cache))
-        if (filesystem::is_regular_file(entry.path()))
-            total_bytes += filesystem::file_size(entry.path());
+    const filesystem::path path_cached_results = get_path_cached_results();
+    if (filesystem::exists(path_cached_results))
+        for (const filesystem::directory_entry &entry : filesystem::directory_iterator(path_cached_results))
+            if (filesystem::is_regular_file(entry.path()))
+                total_bytes += filesystem::file_size(entry.path());
+    const filesystem::path path_recent_paths = get_path_recent_paths();
+    if (filesystem::is_regular_file(path_recent_paths))
+        total_bytes += filesystem::file_size(path_recent_paths);
 
     // Format Size as String
 
@@ -265,5 +270,67 @@ string Definitions::get_cache_size() {
         round(float(total_bytes) / pow(1024, exp) * 10) / 10 << suffixes[exp];
 
     return ss.str();
+
+}
+
+string Definitions::get_path_cached_results() {
+    static string result = get_path_cache() + "/cached-results";
+    return result;
+}
+
+int Definitions::get_recent_paths_length() {
+    return RECENT_PATHS_LENGTH;
+}
+
+string Definitions::get_path_recent_paths() {
+    static string result = get_path_cache() + "/recent-paths";
+    return result;
+}
+
+/**
+ * 
+ */
+vector<string> Definitions::get_recent_paths() {
+    
+    // Get Cache Path
+
+    const filesystem::path path_recent_paths = get_path_recent_paths();
+    if (!filesystem::exists(path_recent_paths))
+        return {};
+
+    // Read Cached Paths
+
+    ifstream file(path_recent_paths);
+    if (!file.is_open()) {
+        cerr << "Error opening file " << path_recent_paths << "." << endl;
+        return {};
+    }
+
+    vector<string> recent_paths = {};
+    string line;
+    for (int i = 0; i < RECENT_PATHS_LENGTH; i++) {
+        if (!getline(file, line)) break;
+        recent_paths.push_back(line);
+    }
+
+    return recent_paths;
+
+}
+
+void Definitions::set_recent_paths(vector<string> recent_paths) {
+
+    const string cache_path = get_path_cache();
+    if (!filesystem::exists(cache_path))
+        filesystem::create_directory(cache_path);
+
+    const string recent_paths_path = get_path_recent_paths();
+
+    ofstream file(recent_paths_path);
+    if (!file.is_open()) {
+        cerr << "Error opening file " << recent_paths_path << "." << endl;
+        return;
+    }
+    for (string s : recent_paths)
+        file << s << "\n";
 
 }

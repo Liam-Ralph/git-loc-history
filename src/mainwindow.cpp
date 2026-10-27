@@ -69,6 +69,10 @@ MainWindow::MainWindow() : QMainWindow() {
 
     settings_map = Definitions::get_config();
 
+    // Load Recent Paths
+
+    recent_paths = Definitions::get_recent_paths();
+
     // Create Window
 
     QWidget *window = new QWidget();
@@ -97,6 +101,18 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_path_entry->setColumnStretch(0, 1);
     layout_path_entry->setColumnStretch(2, 1);
     layout_back->addLayout(layout_path_entry);
+
+    // Recent Paths
+
+    recent_paths_combo = new QComboBox();
+    recent_paths_combo->setFixedWidth(300);
+    for (string s : recent_paths)
+        recent_paths_combo->addItem(QString::fromStdString(s));
+    recent_paths_combo->setPlaceholderText("Choose Recently Used Path");
+    connect(recent_paths_combo, &QComboBox::activated, this, [this](int index) {
+        path_entry->setText(recent_paths_combo->currentText());
+    });
+    layout_back->addWidget(recent_paths_combo, 0, Qt::AlignCenter);
 
     // Commit Info
 
@@ -334,6 +350,34 @@ void MainWindow::get_commits() {
     string git_repo_path = path_entry->text().toStdString();
     const bool cloning = git_repo_path.substr(0, 4).compare("http") == 0;
 
+    // Add Recent Path
+
+    if (std::find(recent_paths.begin(), recent_paths.end(), git_repo_path) == recent_paths.end()) {
+
+        // Edit recent_paths
+
+        static const int recent_paths_length = Definitions::get_recent_paths_length();
+        recent_paths.push_back(git_repo_path);
+        if (recent_paths.size() > 10) {
+            for (int i = 10; i >= 0; i--)
+                recent_paths[i] = recent_paths[i + 1];
+            while (recent_paths.size() > 10)
+                recent_paths.pop_back();
+            recent_paths.resize(10);
+        }
+
+        // Edit ComboBox
+
+        recent_paths_combo->clear();
+        for (string s : recent_paths)
+            recent_paths_combo->addItem(QString::fromStdString(s));
+
+        // Write to Cache
+
+        Definitions::set_recent_paths(recent_paths);
+    
+    }
+
     // Show Local Path Warning
 
     if (
@@ -379,79 +423,73 @@ void MainWindow::get_commits() {
     bool cache_results =
         cache_this_check->isChecked() || (settings_map["cache_results"].compare("true") == 0);
 
-    try {
+    // Get Progress Functions
 
-        // Get Progress Functions
+    function<void(int)> progressed_func;
+    function<void(string)> section_changed_func;
+    if (progress_check->isChecked()) {
+        progressed_func = [this](int progress) {
+            emit progressed(progress);
+        };
+        section_changed_func = [this](string section) {
+            emit section_changed(section);
+        };
+    } else {
+        progressed_func = nullptr;
+        section_changed_func = nullptr;
+    }
 
-        function<void(int)> progressed_func;
-        function<void(string)> section_changed_func;
-        if (progress_check->isChecked()) {
-            progressed_func = [this](int progress) {
-                emit progressed(progress);
-            };
-            section_changed_func = [this](string section) {
-                emit section_changed(section);
-            };
-        } else {
-            progressed_func = nullptr;
-            section_changed_func = nullptr;
+    // Create Worker
+
+    QThread *thread = new QThread();
+    Worker *worker = new Worker();
+    worker->moveToThread(thread);
+
+    // Connect Worker and Thread Signals
+
+    connect(worker, &Worker::warning, this, &MainWindow::show_warning);
+
+    connect(thread, &QThread::started, [
+            this, worker,
+            git_repo_path, excluded_paths, cloning, branch, cache_results,
+            progressed_func, section_changed_func
+        ]() {
+            worker->get_commits(
+                git_repo_path, excluded_paths, cloning, branch, cache_results,
+                progressed_func, section_changed_func, start
+            );
+        }
+    );
+
+    connect(worker, &Worker::got_commits, this,
+        [this, thread, worker](std::vector<Commit> result) {
+
+            // Set Progress Indicators to Finished
+
+            section_label->setText("Finished");
+            progress_bar->setValue(100);
+            update_cache_size();
+            update_timer();
+
+            // Create Chart
+
+            commits = result;
+            create_chart();
+            thread->quit();
+            start_button->setEnabled(true);
+
+            worker->deleteLater();
+
         }
 
-        // Create Worker
+    );
 
-        QThread *thread = new QThread();
-        Worker *worker = new Worker();
-        worker->moveToThread(thread);
-        connect(thread, &QThread::started, [
-                this, worker,
-                git_repo_path, excluded_paths, cloning, branch, cache_results,
-                progressed_func, section_changed_func
-            ]() {
-                worker->get_commits(
-                    git_repo_path, excluded_paths, cloning, branch, cache_results,
-                    progressed_func, section_changed_func, start
-                );
-            }
-        );
+    connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 
-        // Connect Worker and Thread Signals
+    // Start Thread
 
-        connect(worker, &Worker::got_commits, this,
-            [this, thread, worker](std::vector<Commit> result) {
+    thread->start();
 
-                // Set Progress Indicators to Finished
-
-                section_label->setText("Finished");
-                progress_bar->setValue(100);
-                update_cache_size();
-                update_timer();
-
-                // Create Chart
-
-                commits = result;
-                create_chart();
-                thread->quit();
-                start_button->setEnabled(true);
-
-                worker->deleteLater();
-
-            }
-
-        );
-
-        connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-
-        // Start Thread
-
-        thread->start();
-
-    } catch (const runtime_error &e) {
-        // Show Error in Terminal and GUI
-        cerr << e.what() << endl;
-        QMessageBox::critical(this, "Error Calculating Lines of Code", e.what());
-        start_button->setEnabled(true);
-        return;
-    }
 }
 
 /**
@@ -693,6 +731,15 @@ void MainWindow::warn_set_config_error(int error) {
 }
 
 // Slots
+
+
+void MainWindow::show_warning(string warning) { // TODO: Generalize this function
+    // Show Error in Terminal and GUI
+    cerr << warning << endl;
+    QMessageBox::warning(this, "Error Calculating Lines of Code", warning.c_str());
+    start_button->setEnabled(true);
+    return;
+}
 
 /**
  * Update progress bar and timer.

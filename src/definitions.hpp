@@ -7,6 +7,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 
 // Definitions Class
@@ -31,6 +32,13 @@ class Definitions {
 
         static std::string get_path_cache();
         static std::string get_cache_size();
+
+        static std::string get_path_cached_results();
+
+        static int get_recent_paths_length();
+        static std::string get_path_recent_paths();
+        static std::vector<std::string> get_recent_paths();
+        static void set_recent_paths(std::vector<std::string> recent_paths);
 
 };
 

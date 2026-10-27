@@ -1,5 +1,8 @@
-add QObjects to this and try threading
-cache recent repo paths (add delete option)
+edit packaging files to remove existing caches for older versions
+
+use alignment= instead of setAlignment
+
+add error messages in GUI
 fix progress only updating every few percent
 fix .h file case
 add color blind friendly color set and option

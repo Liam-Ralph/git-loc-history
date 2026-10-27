@@ -32,8 +32,12 @@ void Worker::get_commits(
     function<void(string)> on_section_change,
     const long start
 ) {
-    emit got_commits(create_loc_history(
-        git_repo_path, excluded_paths, cloning, branch, cache_results,
-        on_progress, on_section_change, start
-    ));
+    try {
+        emit got_commits(create_loc_history(
+            git_repo_path, excluded_paths, cloning, branch, cache_results,
+            on_progress, on_section_change, start
+        ));
+    } catch (const runtime_error &e) {
+        emit warning(e.what());
+    }
 }

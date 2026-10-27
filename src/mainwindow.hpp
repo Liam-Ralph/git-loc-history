@@ -53,13 +53,16 @@ class MainWindow : public QMainWindow {
         std::unordered_map<std::string, std::string> settings_map;
         long start;
         std::vector<Commit> commits;
-
-        QLabel *commit_info_label;
+        std::vector<std::string> recent_paths;
 
         QLineEdit *path_entry;
+        QComboBox *recent_paths_combo;
+        QLabel *commit_info_label;
+
         QPlainTextEdit *excluded_paths_entry;
 
         QChartView *chart_view;
+
         QLineEdit *branch_entry;
         QCheckBox *progress_check;
         QCheckBox *cache_this_check;
@@ -82,6 +85,7 @@ class MainWindow : public QMainWindow {
 
     public slots:
 
+        void show_warning(std::string warning);
         void on_progress(int progress);
         void on_section_change(std::string section);
 
