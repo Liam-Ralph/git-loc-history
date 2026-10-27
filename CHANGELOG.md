@@ -2,6 +2,8 @@
 
  - Added recent path saving and caching.
  - Fixed crash on git error.
+ - Set "Cache This Result" to override "Cache All Results".
+ - "Show Progress" now defaults to true.
 
 ## Version 1.1.1 (September 2026)
 

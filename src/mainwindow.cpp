@@ -18,7 +18,6 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QStyleHints>
-#include <QToolTip>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -164,9 +163,14 @@ MainWindow::MainWindow() : QMainWindow() {
     layout_options->addWidget(branch_entry);
 
     progress_check = new QCheckBox("Show Progress");
+    progress_check->setChecked(true);
     layout_options->addWidget(progress_check);
 
     cache_this_check = new QCheckBox("Cache This Result");
+    cache_this_check->setToolTip("Overrides \"Cache All Results\"");
+    const bool cache_checked = // only used to set initial state
+        settings_map["cache_results"].compare("true") == 0;
+    cache_this_check->setChecked(cache_checked);
     layout_options->addWidget(cache_this_check);
 
     chart_type_combo = new QComboBox();
@@ -184,14 +188,12 @@ MainWindow::MainWindow() : QMainWindow() {
 
     // Settings Check Boxes
 
-    QCheckBox *cache_results_check = new QCheckBox("Cache Results");
-    if (settings_map["cache_results"].compare("true") == 0)
-        cache_results_check->setChecked(true);
+    QCheckBox *cache_results_check = new QCheckBox("Cache All Results");
+    cache_results_check->setChecked(cache_checked);
     layout_options->addWidget(cache_results_check);
 
     QCheckBox *show_warnings_check = new QCheckBox("Show Warnings");
-    if (settings_map["show_warnings"].compare("true") == 0)
-        show_warnings_check->setChecked(true);
+    show_warnings_check->setChecked(settings_map["show_warnings"].compare("true") == 0);
     layout_options->addWidget(show_warnings_check);
 
     // Connect Setting Change Signals
@@ -420,8 +422,7 @@ void MainWindow::get_commits() {
     // Run Creation Function
 
     string branch = branch_entry->text().toStdString();
-    bool cache_results =
-        cache_this_check->isChecked() || (settings_map["cache_results"].compare("true") == 0);
+    bool cache_results = cache_this_check->isChecked();
 
     // Get Progress Functions
 
