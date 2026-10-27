@@ -370,6 +370,7 @@ void MainWindow::get_commits() {
         // Write to Cache
 
         Definitions::set_recent_paths(recent_paths);
+        update_cache_size();
     
     }
 
