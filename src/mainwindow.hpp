@@ -85,7 +85,7 @@ class MainWindow : public QMainWindow {
 
     public slots:
 
-        void show_warning(std::string warning);
+        void show_warning(std::string title, std::string text);
         void on_progress(int progress);
         void on_section_change(std::string section);
 

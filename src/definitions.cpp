@@ -273,22 +273,41 @@ string Definitions::get_cache_size() {
 
 }
 
+/**
+ * Get the path of the project's cached results.
+ * 
+ * @return Path, get_path_cache() + "/cached-results".
+ */
 string Definitions::get_path_cached_results() {
     static string result = get_path_cache() + "/cached-results";
     return result;
 }
 
+/**
+ * Get the maximum number of saved recent paths.
+ * 
+ * For use outside of Definitions, use RECENT_PATHS_LENGTH inside.
+ * 
+ * @return RECENT_PATHS_LENGTH.
+ */
 int Definitions::get_recent_paths_length() {
     return RECENT_PATHS_LENGTH;
 }
 
+/**
+ * Get the path of the project's cached recent paths.
+ * 
+ * @return Path, get_path_cache() + "/recent-paths".
+ */
 string Definitions::get_path_recent_paths() {
     static string result = get_path_cache() + "/recent-paths";
     return result;
 }
 
 /**
+ * Load recent paths from cache file.
  * 
+ * @returns Recent paths.
  */
 vector<string> Definitions::get_recent_paths() {
     
@@ -317,6 +336,11 @@ vector<string> Definitions::get_recent_paths() {
 
 }
 
+/**
+ * Set recent paths in cache file to recent_paths.
+ * 
+ * @param recent_paths a vector of all paths to write to the cache file.
+ */
 void Definitions::set_recent_paths(vector<string> recent_paths) {
 
     const string cache_path = get_path_cache();

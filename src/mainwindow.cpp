@@ -733,11 +733,17 @@ void MainWindow::warn_set_config_error(int error) {
 
 // Slots
 
-
-void MainWindow::show_warning(string warning) { // TODO: Generalize this function
-    // Show Error in Terminal and GUI
-    cerr << warning << endl;
-    QMessageBox::warning(this, "Error Calculating Lines of Code", warning.c_str());
+/**
+ * Display a warning in the GUI and terminal.
+ * 
+ * Displays the warning using QMessageBox::warning and cerr.
+ * 
+ * @param title should describe the category or type of error.
+ * @param text the error text itself.
+ */
+void MainWindow::show_warning(string title, string text) {
+    cerr << title << ": " << text << endl;
+    QMessageBox::warning(this, QString::fromStdString(title), QString::fromStdString(text));
     start_button->setEnabled(true);
     return;
 }

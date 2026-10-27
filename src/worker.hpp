@@ -27,7 +27,7 @@ class Worker : public QObject {
     // Signals
 
     signals:
-        void warning(std::string);
+        void warning(std::string, std::string);
         void got_commits(std::vector<Commit>);
 
     // Slots

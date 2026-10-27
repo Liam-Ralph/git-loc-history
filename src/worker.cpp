@@ -24,6 +24,7 @@ Worker::Worker(QObject *parent) : QObject(parent) {}
  * 
  * Get commits and emits `got_commits` with the resulting vector.
  * Parameters explained in `create-loc-history`.
+ * Emits `warning` on runtime_error.
  */
 void Worker::get_commits(
     string git_repo_path, vector<string> excluded_paths,
@@ -38,6 +39,6 @@ void Worker::get_commits(
             on_progress, on_section_change, start
         ));
     } catch (const runtime_error &e) {
-        emit warning(e.what());
+        emit warning("Error Calculating Lines of Code", e.what());
     }
 }
