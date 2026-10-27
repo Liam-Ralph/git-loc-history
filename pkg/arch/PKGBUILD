@@ -43,3 +43,19 @@ post_remove() {
     fi
     rm -rf /tmp/git-loc-history
 }
+
+post_upgrade() {
+    if [[ $1 == "1.0"* || $1 == "1.1"* ]]; then
+        if [[ -n $XDG_CONFIG_HOME && ! -z $XDG_CONFIG_HOME ]]; then
+            rm -rf $XDG_CONFIG_HOME/git-loc-history.conf
+        else
+            rm -rf ~/.config/git-loc-history.conf
+        fi
+        if [[ -n $XDG_CACHE_HOME && ! -z $XDG_CACHE_HOME ]]; then
+            rm -rf $XDG_CACHE_HOME/git-loc-history
+        else
+            rm -rf ~/.cache/git-loc-history
+        fi
+        rm -rf /tmp/git-loc-history
+    fi
+}
