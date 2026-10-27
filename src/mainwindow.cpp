@@ -84,8 +84,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
     QPushButton *info_button = new QPushButton("Info");
     connect(info_button, &QPushButton::clicked, this, &MainWindow::show_info);
-    layout_back->addWidget(info_button);
-    layout_back->setAlignment(info_button, Qt::AlignRight);
+    layout_back->addWidget(info_button, 0, Qt::AlignRight);
 
     // Path Entry
 
@@ -117,8 +116,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
     commit_info_label = new QLabel("");
     commit_info_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    layout_back->addWidget(commit_info_label);
-    layout_back->setAlignment(commit_info_label, Qt::AlignCenter);
+    layout_back->addWidget(commit_info_label, 0, Qt::AlignCenter);
 
     // Middle
 
@@ -256,8 +254,7 @@ MainWindow::MainWindow() : QMainWindow() {
 
     start_button = new QPushButton("Calculate Lines of Code");
     connect(start_button, &QPushButton::clicked, this, &MainWindow::get_commits);
-    layout_back->addWidget(start_button);
-    layout_back->setAlignment(start_button, Qt::AlignHCenter);
+    layout_back->addWidget(start_button, 0, Qt::AlignHCenter);
 
     // Progress Bar
 
@@ -275,25 +272,21 @@ MainWindow::MainWindow() : QMainWindow() {
     section_label = new QLabel("Not Running");
     section_label->setMinimumWidth(300);
     section_label->setAlignment(Qt::AlignCenter);
-    layout_back->addWidget(section_label);
-    layout_back->setAlignment(section_label, Qt::AlignCenter);
+    layout_back->addWidget(section_label, 0, Qt::AlignCenter);
 
     // Timer
 
     timer_label = new QLabel("0.0s");
     timer_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    layout_back->addWidget(timer_label);
-    layout_back->setAlignment(timer_label, Qt::AlignCenter);
+    layout_back->addWidget(timer_label, 0, Qt::AlignCenter);
 
     // Footer Bar
 
     QHBoxLayout *layout_bottom = new QHBoxLayout();
     QLabel *name_label = new QLabel("Git LoC History");
-    layout_bottom->addWidget(name_label);
-    layout_bottom->setAlignment(name_label, Qt::AlignLeft);
+    layout_bottom->addWidget(name_label, 0, Qt::AlignLeft);
     QLabel *version_label = new QLabel(QString::fromStdString("v" + Definitions::get_version()));
-    layout_bottom->addWidget(version_label);
-    layout_bottom->setAlignment(version_label, Qt::AlignRight);
+    layout_bottom->addWidget(version_label, 0, Qt::AlignRight);
     layout_back->addLayout(layout_bottom);
 
 }

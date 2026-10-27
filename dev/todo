@@ -1,5 +1,3 @@
-use alignment= instead of setAlignment
-
 add error messages in GUI
 fix progress only updating every few percent
 fix .h file case
